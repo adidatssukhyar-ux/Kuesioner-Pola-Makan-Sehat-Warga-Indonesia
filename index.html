@@ -9,11 +9,14 @@
   <div class="container">
     <h1>Pola Makan Sehat Orang Indonesia</h1>
     <form id="wizardForm">
+      <!-- Step 1: Email -->
       <div id="emailStep">
         <label for="email">Email kamu:</label>
         <input type="email" name="email" id="email" required placeholder="your@email.com">
-        <button type="button" id="startBtn">Next</button>
+        <button type="button" id="startBtn">Mulai</button>
       </div>
+
+      <!-- Step 2: Questions -->
       <div id="questionStep" style="display:none;">
         <div id="questionContainer"></div>
         <button type="button" id="nextBtn">Next</button>
@@ -21,11 +24,11 @@
       </div>
     </form>
 
+    <!-- Thank you + AI overview -->
     <div id="thankYouMessage" style="display:none; margin-top:15px; cursor:pointer;">
       <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br>
       <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
     </div>
-
     <div id="aiOverview" style="display:none; margin-top:15px; padding:10px; border:1px solid #ccc; border-radius:5px; background:#f9f9f9;"></div>
 
     <hr>
@@ -97,7 +100,10 @@
     }
 
     startBtn.addEventListener('click', () => {
-      if (!emailInput.value.trim()) return alert("Masukkan email terlebih dahulu");
+      if (!emailInput.value.trim()) {
+        alert("Masukkan email terlebih dahulu");
+        return;
+      }
       emailStep.style.display = 'none';
       questionStep.style.display = 'block';
       currentQuestion = 0;
@@ -173,4 +179,6 @@
     });
 
     showAnswersBtn.addEventListener('click', async () => {
-      const pass = prompt("Masukkan password untuk melihat jawaban
+      const pass = prompt("Masukkan password untuk melihat jawaban:");
+      if (pass === "rahasia123") {
+        let combinedAnswers = [...allAnswers
