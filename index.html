@@ -60,7 +60,7 @@
       resize: vertical;
     }
 
-    button[type="button"], button[type="submit"] {
+    button {
       margin-top: 20px;
       width: 100%;
       padding: 13px;
@@ -75,7 +75,7 @@
       box-shadow: 0 2px 10px rgba(53,163,92,0.08);
     }
 
-    button[type="button"]:hover, button[type="submit"]:hover {
+    button:hover {
       background: linear-gradient(90deg, #22753e 30%, #e9b742 100%);
       box-shadow: 0 4px 16px rgba(53,163,92,0.15);
     }
@@ -90,6 +90,8 @@
       border-radius: 10px;
       border: 1.5px solid #b5e7b7;
       cursor: pointer;
+      opacity: 0;
+      transition: opacity 1s ease;
     }
 
     .final-message {
@@ -97,6 +99,21 @@
       color: #f5bc51;
       font-size: 1.07em;
       margin-top: 10px;
+    }
+
+    #progressBar {
+      width: 100%;
+      background: #e0f5e0;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    #progressFill {
+      height: 10px;
+      background: #35a35c;
+      width: 0%;
+      transition: width 0.3s ease;
     }
 
     table {
@@ -141,17 +158,19 @@
       <label for="email">Email kamu:</label>
       <input type="email" name="email" id="email" required placeholder="your@email.com">
       <div id="questionContainer"></div>
+      <div id="progressBar"><div id="progressFill"></div></div>
       <button type="button" id="nextBtn">Next</button>
       <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
     </form>
 
-    <div id="thankYouMessage" style="display:none;">
+    <div id="thankYouMessage">
       Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat
       <span class="final-message" style="display:none;">(maybe 2 days)</span>
     </div>
 
     <hr>
     <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
+    <button id="exportBtn" type="button">📁 Export ke CSV</button>
     <div id="answersContainer" style="display:none;"></div>
   </div>
 
@@ -181,12 +200,15 @@
     const form = document.getElementById('wizardForm');
     const answersContainer = document.getElementById('answersContainer');
     const showAnswersBtn = document.getElementById('showAnswersBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const progressFill = document.getElementById('progressFill');
 
     function showQuestion(index) {
       questionContainer.innerHTML = `
         <label for="answer">${questions[index]}</label>
         <textarea id="answer" required placeholder="Jawaban kamu..."></textarea>
       `;
+      progressFill.style.width = ((index + 1) / questions.length * 100) + "%";
     }
 
     function loadStoredAnswers() {
@@ -214,30 +236,6 @@
       }
     }
 
-    showQuestion(currentQuestion);
-
-    nextBtn.addEventListener('click', function() {
-      const answerField = document.getElementById('answer');
-      if (!emailInput.value) {
-        emailInput.focus();
-        return;
-      }
-      if (!answerField.value) {
-        answerField.focus();
-        return;
-      }
-      answers[currentQuestion] = answerField.value;
-      currentQuestion++;
-      if (currentQuestion < questions.length) {
-        showQuestion(currentQuestion);
-        if (currentQuestion === questions.length - 1) {
-          nextBtn.style.display = "none";
-          submitBtn.style.display = "inline-block";
-        }
-      }
-    });
-
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const answerField = document.getElementById('answer');
-      if (!answerField.value)
+    function exportToCSV() {
+      const allAnswers = loadStoredAnswers();
+      if (allAnswers.length === 0) return alert("Belum ada
