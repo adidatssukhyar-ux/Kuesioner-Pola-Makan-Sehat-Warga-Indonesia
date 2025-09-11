@@ -30,12 +30,10 @@
   </div>
 
   <script type="module">
-    // Firebase imports from CDN
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
       from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
       authDomain: "surveylive-c0691.firebaseapp.com",
@@ -46,11 +44,9 @@
       measurementId: "G-83GZWBY7K5"
     };
 
-    // Init Firebase + Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Questions
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -68,7 +64,6 @@
     let tempAnswers = [];
     let allAnswers = JSON.parse(localStorage.getItem("responses") || "[]");
 
-    // DOM elements
     const emailInput = document.getElementById('email');
     const questionContainer = document.getElementById('questionContainer');
     const nextBtn = document.getElementById('nextBtn');
@@ -104,15 +99,14 @@
       showQuestion(currentQuestion);
     });
 
-    // AI Overview generator
     function generateOverview(answers) {
       let advice = [];
-      
+
       // Junk food opinion
       if (answers[0]?.toLowerCase().includes("sehat")) {
         advice.push("⚠️ Kamu menganggap junk food sehat — sebaiknya batasi konsumsi makanan cepat saji karena tinggi lemak, garam, dan gula.");
       } else {
-        advice.push("👍 Kamu sadar junk food tidak sehat — pertahankan kebiasaan ini dan pilih makanan segar lebih sering.");
+        advice.push("👍 Bagus! Kamu sadar junk food tidak sehat — pertahankan kebiasaan ini.");
       }
 
       // Sayur & buah
@@ -125,16 +119,18 @@
       // Minuman manis
       if (answers[3]?.toLowerCase().includes("sering")) {
         advice.push("🥤 Kurangi minuman manis/bersoda untuk menjaga kesehatan gigi dan berat badan.");
+      } else {
+        advice.push("💧 Pilihan minuman kamu sehat — pertahankan!");
       }
 
       // Sarapan
       if (answers[8]?.toLowerCase().includes("tidak")) {
         advice.push("🍳 Usahakan sarapan setiap pagi untuk energi dan konsentrasi.");
+      } else {
+        advice.push("☀️ Bagus! Sarapan teratur membantu menjaga energi sepanjang hari.");
       }
 
-      // Default encouragement
       advice.push("💡 Ingat: pola makan seimbang + olahraga teratur = tubuh sehat dan bugar.");
-
       return advice.join("<br>");
     }
 
@@ -144,7 +140,7 @@
       if (!answerField.value.trim()) return;
       tempAnswers[currentQuestion] = answerField.value.trim();
 
-      // Save locally first
+      // Save locally
       allAnswers.push({
         email: emailInput.value.trim(),
         answers: [...tempAnswers]
@@ -164,40 +160,28 @@
         alert("⚠ Data disimpan lokal. Firebase gagal menyimpan.");
       }
 
-      // Generate and show AI overview
+      // Show AI overview
       aiOverview.innerHTML = `<strong>📊 Ringkasan & Saran:</strong><br>${generateOverview(tempAnswers)}`;
       aiOverview.style.display = 'block';
 
-      // Reset UI
-      form.reset();
-      currentQuestion = 0;
-      tempAnswers = [];
-      showQuestion(currentQuestion);
+      // Show thank you
       form.style.display = 'none';
       thankYouMessage.style.display = 'block';
+
+      // Prepare for next run
+      setTimeout(() => {
+        form.reset();
+        currentQuestion = 0;
+        tempAnswers = [];
+        showQuestion(currentQuestion);
+        form.style.display = 'block';
+        thankYouMessage.style.display = 'none';
+        aiOverview.style.display = 'none';
+      }, 5000); // after 5 seconds, reset for next person
     });
 
     thankYouMessage.addEventListener('click', () => {
       hiddenInfo.style.display = 'inline';
     });
 
-    showAnswersBtn.addEventListener('click', async () => {
-      const pass = prompt("Masukkan password untuk melihat jawaban:");
-      if (pass === "rahasia123") {
-        let combinedAnswers = [...allAnswers];
-        try {
-          const q = query(collection(db, "responses"), orderBy("timestamp"));
-          const snapshot = await getDocs(q);
-          snapshot.forEach(doc => {
-            combinedAnswers.push(doc.data());
-          });
-        } catch (err) {
-          console.warn("⚠ Could not load from Firebase, showing local only.");
-        }
-
-        if (combinedAnswers.length === 0) {
-          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
-        } else {
-          let html = "<table border='1'><tr><th>Email</th><th>Jawaban</th></tr>";
-          combinedAnswers.forEach(row => {
-            html += `<tr><td>${row.email}</td
+    showAnswersBtn
