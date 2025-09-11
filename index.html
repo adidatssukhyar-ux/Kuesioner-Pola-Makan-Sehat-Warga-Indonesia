@@ -7,17 +7,17 @@
   <style>
     /* AI Overview styling to match form */
     #aiOverview {
-      /* keep display controlled by inline + JS */
-      margin-top: 12px !important;
-      padding: 14px 16px !important;
-      border: 1px solid #ddd !important;
-      border-radius: 8px !important;
-      background: linear-gradient(135deg, #ffffff, #f7f7f7) !important;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05) !important;
-      font-size: 14px !important;
-      line-height: 1.5em !important;
-      color: #333 !important;
+      margin-top: 12px;
+      padding: 14px 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffffff, #f7f7f7);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      font-size: 14px;
+      line-height: 1.5em;
+      color: #333;
       animation: fadeInUp 0.4s ease;
+      display: none;
     }
     #aiOverview strong {
       display: block;
@@ -47,8 +47,8 @@
       <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
     </div>
 
-    <!-- AI Overview box (new) -->
-    <div id="aiOverview" style="display:none; margin-top:12px; padding:10px; border:1px solid #ccc; border-radius:6px; background:#f9f9f9;"></div>
+    <!-- AI Overview box -->
+    <div id="aiOverview"></div>
 
     <hr>
     <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
@@ -56,14 +56,12 @@
   </div>
 
   <script type="module">
-    // Firebase imports from CDN
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
       from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Firebase config (your project)
     const firebaseConfig = {
-      apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
+      apiKey: "YOUR_FIREBASE_KEY",
       authDomain: "surveylive-c0691.firebaseapp.com",
       projectId: "surveylive-c0691",
       storageBucket: "surveylive-c0691.firebasestorage.app",
@@ -72,11 +70,9 @@
       measurementId: "G-83GZWBY7K5"
     };
 
-    // Init Firebase + Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Questions
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -94,7 +90,6 @@
     let tempAnswers = [];
     let allAnswers = JSON.parse(localStorage.getItem("responses") || "[]");
 
-    // DOM elements
     const emailInput = document.getElementById('email');
     const questionContainer = document.getElementById('questionContainer');
     const nextBtn = document.getElementById('nextBtn');
@@ -106,7 +101,6 @@
     const showAnswersBtn = document.getElementById('showAnswersBtn');
     const answersContainer = document.getElementById('answersContainer');
 
-    // Render a question
     function showQuestion(index) {
       const q = questions[index] ?? "";
       questionContainer.innerHTML = `
@@ -122,10 +116,8 @@
       }
     }
 
-    // Start with question 1 visible (original behavior)
     showQuestion(currentQuestion);
 
-    // Next button
     nextBtn.addEventListener('click', () => {
       const answerField = document.getElementById('answer');
       if (!emailInput.value.trim() || !answerField.value.trim()) return;
@@ -134,96 +126,72 @@
       showQuestion(currentQuestion);
     });
 
-    // AI Overview generator (expanded, with praise + tips)
-    function generateOverview(answers = []) {
+    // Dynamic AI Overview using API
+    async function generateOverview(answers = []) {
+      const prompt = `
+      Buat ringkasan dan saran pola makan berdasarkan jawaban berikut:
+      ${answers.map((ans, i) => `${questions[i]}: ${ans}`).join("\n")}
+      Gunakan bahasa yang ramah, jelas, dan berikan tips yang relevan.
+      `;
+
       try {
-        const a = (i) => (answers[i] || "").toString().toLowerCase();
-        const out = [];
-
-        // Junk food opinion (Q1 index 0)
-        if (a(0).includes("sehat")) {
-          out.push("⚠️ Kamu menilai junk food sebagai makanan sehat. Perlu diingat, makanan cepat saji biasanya tinggi lemak jenuh, garam, dan gula. Menguranginya akan membantu menjaga kesehatan jangka panjang, mengontrol berat badan, dan mengurangi risiko penyakit kronis seperti hipertensi atau diabetes.");
-        } else if (a(0)) {
-          out.push("👍 Kesadaran kamu bahwa junk food tidak sehat adalah langkah awal yang baik. Pertahankan pilihan ini untuk kesehatan yang lebih baik, dan terus pilih makanan segar, alami, dan minim proses.");
-        }
-
-        // Minuman manis/soda (Q4 index 3)
-        if (a(3).includes("sering")) {
-          out.push("🥤 Kebiasaan sering minum soda atau minuman manis dapat meningkatkan risiko obesitas, diabetes tipe 2, dan masalah gigi. Cobalah menggantinya dengan air putih, teh herbal tanpa gula, atau infused water untuk hidrasi yang lebih sehat.");
-        } else if (a(3)) {
-          out.push("💧 Pilihan minuman kamu sudah cukup sehat. Teruskan kebiasaan ini untuk menjaga hidrasi, kesehatan ginjal, dan metabolisme tubuh.");
-        }
-
-        // Sayur (Q5 index 4)
-        if (a(4).includes("tidak") || a(4).includes("jarang")) {
-          out.push("🥦 Asupan sayur dan buah kamu masih kurang. Menambahkannya setiap hari akan membantu memenuhi kebutuhan serat, vitamin, dan mineral, menjaga kesehatan pencernaan, serta meningkatkan daya tahan tubuh.");
-        } else if (a(4)) {
-          out.push("🌱 Konsumsi sayur dan buah kamu sudah baik. Pertahankan variasi dan jumlahnya untuk manfaat maksimal, dan coba eksplorasi resep baru agar tidak bosan.");
-        }
-
-        // Sarapan (Q9 index 8)
-        if (a(8).includes("tidak")) {
-          out.push("🍳 Melewatkan sarapan dapat membuat energi menurun, konsentrasi terganggu, dan memicu makan berlebihan di siang hari. Usahakan sarapan dengan menu bergizi setiap pagi, misalnya roti gandum dengan telur, atau oatmeal dengan buah segar.");
-        } else if (a(8)) {
-          out.push("☀️ Sarapan teratur membantu menjaga energi dan fokus sepanjang hari. Pertahankan kebiasaan baik ini dengan memilih menu yang seimbang antara karbohidrat, protein, dan serat.");
-        }
-
-        // Balanced reminder
-        out.push("💡 Secara keseluruhan, pola makan seimbang, cukup air, dan olahraga teratur akan membantu menjaga tubuh tetap sehat dan bugar. Perubahan kecil yang konsisten dapat memberikan hasil besar dalam jangka panjang. Ingat, kesehatan adalah investasi terbaik untuk masa depan.");
-
-        return out.join("<br>");
-      } catch {
+        const res = await fetch("YOUR_AI_API_ENDPOINT", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_API_KEY"
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 300
+          })
+        });
+        const data = await res.json();
+        return `<strong>📊 Ringkasan & Saran:</strong><br>${data.choices?.[0]?.message?.content || "Tidak ada ringkasan."}`;
+      } catch (err) {
+        console.error(err);
         return "⚙ Ringkasan tidak tersedia saat ini, namun jawaban kamu sudah tersimpan.";
       }
     }
 
-    // Submit
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const answerField = document.getElementById('answer');
       if (!answerField.value.trim()) return;
       tempAnswers[currentQuestion] = answerField.value.trim();
 
-      // Save locally first (always)
       allAnswers.push({
         email: emailInput.value.trim(),
         answers: [...tempAnswers]
       });
       localStorage.setItem("responses", JSON.stringify(allAnswers));
 
-      // Try Firebase save (non-blocking for UI)
       try {
         await addDoc(collection(db, "responses"), {
           email: emailInput.value.trim(),
           answers: [...tempAnswers],
           timestamp: new Date()
         });
-        console.log("✅ Saved to Firestore");
       } catch (err) {
-        console.error("❌ Firebase save failed:", err);
-        alert("⚠ Data disimpan lokal. Firebase gagal menyimpan.");
+        console.error("Firebase save failed:", err);
       }
 
-      // Show thank you (but don't hide the form)
       thankYouMessage.style.display = 'block';
 
-      // Show AI overview safely
-      aiOverview.innerHTML = `<strong>📊 Ringkasan & Saran:</strong><br>${generateOverview(tempAnswers)}`;
+      aiOverview.innerHTML = await generateOverview(tempAnswers);
       aiOverview.style.display = 'block';
 
-      // Prepare for next response (keep questions visible)
       form.reset();
       currentQuestion = 0;
       tempAnswers = [];
       showQuestion(currentQuestion);
     });
 
-    // Tiny easter: click thank-you to reveal hidden line
     thankYouMessage.addEventListener('click', () => {
       hiddenInfo.style.display = 'inline';
     });
 
-    // Protected answers viewer
     showAnswersBtn.addEventListener('click', async () => {
       const pass = prompt("Masukkan password untuk melihat jawaban:");
       if (pass === "rahasia123") {
@@ -231,31 +199,4 @@
         try {
           const q = query(collection(db, "responses"), orderBy("timestamp"));
           const snapshot = await getDocs(q);
-          snapshot.forEach(doc => {
-            combinedAnswers.push(doc.data());
-          });
-        } catch (err) {
-          console.warn("⚠ Could not load from Firebase, showing local only.");
-        }
-
-        if (combinedAnswers.length === 0) {
-          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
-        } else {
-          let html = "<table border='1' cellspacing='0' cellpadding='6'><tr><th>Email</th><th>Jawaban</th></tr>";
-          combinedAnswers.forEach(row => {
-            const safeEmail = (row.email ?? "").toString();
-            const safeAns = Array.isArray(row.answers) ? row.answers.join(" | ") : "";
-            html += `<tr><td>${safeEmail}</td><td>${safeAns}</td></tr>`;
-          });
-          html += "</table>";
-          answersContainer.innerHTML = html;
-        }
-        answersContainer.style.display = "block";
-      } else {
-        alert("Password salah!");
-      }
-    });
-  </script>
-</body>
-</html>
-```
+          snapshot.forEach
