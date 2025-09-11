@@ -8,7 +8,7 @@
 <body>
   <div class="container">
     <h1>Pola Makan Sehat Orang Indonesia</h1>
-    <form id="wizardForm" action="https://formspree.io/f/mqkrpqqw" method="POST">
+    <form id="wizardForm">
       <label for="email">Email kamu:</label>
       <input type="email" name="email" id="email" required placeholder="your@email.com">
       <div id="questionContainer"></div>
@@ -17,9 +17,10 @@
     </form>
     <div id="thankYouMessage" style="display:none;">
       <span>Terima kasih atas jawaban kamu!</span><br>
-      <span class="final-message">Jawaban berhasil dikirim ke admin.</span>
+      <span class="final-message">Jawaban berhasil disimpan secara lokal.</span>
     </div>
   </div>
+
   <script>
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
@@ -83,26 +84,14 @@
       }
       answers[currentQuestion] = answerField.value;
 
-      // Add hidden fields for each answer
-      answers.forEach(function(ans, idx) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = `question_${idx+1}`;
-        input.value = ans;
-        form.appendChild(input);
-      });
+      // Simpan data di console (atau bisa disimpan ke localStorage)
+      console.log("Email:", emailInput.value);
+      console.log("Jawaban:", answers);
 
-      // Optionally add the email again for Formspree
-      const emailInputHidden = document.createElement('input');
-      emailInputHidden.type = 'hidden';
-      emailInputHidden.name = 'email';
-      emailInputHidden.value = emailInput.value;
-      form.appendChild(emailInputHidden);
-
-      form.submit(); // This sends data to Formspree!
       form.style.display = 'none';
       thankYouMessage.style.display = 'block';
     });
   </script>
 </body>
 </html>
+
