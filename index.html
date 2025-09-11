@@ -4,6 +4,32 @@
   <meta charset="UTF-8">
   <title>Pola Makan Sehat Orang Indonesia</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* AI Overview styling to match form */
+    #aiOverview {
+      display: none;
+      margin-top: 12px;
+      padding: 14px 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffffff, #f7f7f7);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      font-size: 14px;
+      line-height: 1.5em;
+      color: #333;
+      animation: fadeInUp 0.4s ease;
+    }
+    #aiOverview strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+      color: #222;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -22,7 +48,7 @@
     </div>
 
     <!-- AI Overview -->
-    <div id="aiOverview" style="display:none; margin-top:15px; padding:10px; border:1px solid #ccc; border-radius:5px; background:#f9f9f9;"></div>
+    <div id="aiOverview"></div>
 
     <hr>
     <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
@@ -99,48 +125,37 @@
       showQuestion(currentQuestion);
     });
 
-    // Smarter AI Overview
-    function smartOverview(answers) {
+    function generateOverview(answers = []) {
       const a = (i) => (answers[i] || "").toLowerCase();
-      let score = 0;
-      let issues = [];
+      let parts = [];
 
-      // Junk food opinion
-      if (a(0).includes("sehat")) { score -= 2; issues.push("Menganggap junk food sehat"); }
-      else if (a(0)) { score += 1; }
+      if (a(0).includes("sehat")) {
+        parts.push("⚠️ Kamu menilai junk food sebagai makanan sehat. Perlu diingat, makanan cepat saji biasanya tinggi lemak jenuh, garam, dan gula. Menguranginya akan membantu menjaga kesehatan jangka panjang.");
+      } else if (a(0)) {
+        parts.push("👍 Kesadaran kamu bahwa junk food tidak sehat adalah langkah awal yang baik. Pertahankan pilihan ini untuk kesehatan yang lebih baik.");
+      }
 
-      // Junk food frequency
-      if (a(1).includes("sering")) { score -= 1; issues.push("Sering makan junk food"); }
-      else if (a(1).includes("jarang") || a(1).includes("tidak")) { score += 1; }
+      if (a(3).includes("sering")) {
+        parts.push("🥤 Kebiasaan sering minum soda atau minuman manis dapat meningkatkan risiko obesitas dan masalah gigi. Cobalah menggantinya dengan air putih atau infused water.");
+      } else if (a(3)) {
+        parts.push("💧 Pilihan minuman kamu sudah cukup sehat. Teruskan kebiasaan ini untuk menjaga hidrasi dan kesehatan tubuh.");
+      }
 
-      // Soda
-      if (a(3).includes("sering")) { score -= 1; issues.push("Sering minum soda/manis"); }
-      else if (a(3)) { score += 1; }
+      if (a(4).includes("tidak") || a(4).includes("jarang")) {
+        parts.push("🥦 Asupan sayur dan buah kamu masih kurang. Menambahkannya setiap hari akan membantu memenuhi kebutuhan serat, vitamin, dan mineral.");
+      } else if (a(4)) {
+        parts.push("🌱 Konsumsi sayur dan buah kamu sudah baik. Pertahankan variasi dan jumlahnya untuk manfaat maksimal.");
+      }
 
-      // Sayur
-      if (a(4).includes("tidak") || a(4).includes("jarang")) { score -= 1; issues.push("Kurang sayur/buah"); }
-      else if (a(4)) { score += 1; }
+      if (a(8).includes("tidak")) {
+        parts.push("🍳 Melewatkan sarapan dapat membuat energi menurun dan konsentrasi terganggu. Usahakan sarapan dengan menu bergizi setiap pagi.");
+      } else if (a(8)) {
+        parts.push("☀️ Sarapan teratur membantu menjaga energi dan fokus sepanjang hari. Pertahankan kebiasaan baik ini.");
+      }
 
-      // Sarapan
-      if (a(8).includes("tidak")) { score -= 1; issues.push("Tidak sarapan"); }
-      else if (a(8)) { score += 1; }
+      parts.push("💡 Secara keseluruhan, pola makan seimbang, cukup air, dan olahraga teratur akan membantu menjaga tubuh tetap sehat dan bugar. Perubahan kecil yang konsisten dapat memberikan hasil besar dalam jangka panjang.");
 
-      // Summary tone
-      let summary;
-      if (score <= -2) summary = "⚠️ Pola makan kamu perlu banyak perbaikan.";
-      else if (score <= 2) summary = "🙂 Pola makan kamu cukup, tapi masih bisa ditingkatkan.";
-      else summary = "🌟 Pola makan kamu sudah sangat baik — pertahankan!";
-
-      // Advice
-      let advice = [];
-      if (issues.includes("Menganggap junk food sehat")) advice.push("Kurangi konsumsi junk food, pilih makanan segar.");
-      if (issues.includes("Sering makan junk food")) advice.push("Batasi junk food, ganti dengan makanan bergizi.");
-      if (issues.includes("Sering minum soda/manis")) advice.push("Ganti minuman manis dengan air putih.");
-      if (issues.includes("Kurang sayur/buah")) advice.push("Perbanyak sayur dan buah setiap hari.");
-      if (issues.includes("Tidak sarapan")) advice.push("Biasakan sarapan untuk energi dan konsentrasi.");
-      if (advice.length === 0) advice.push("Pertahankan kebiasaan sehatmu dan terus aktif bergerak.");
-
-      return `<strong>📊 Ringkasan & Saran:</strong><br>${summary}<br>- ${advice.join("<br>- ")}`;
+      return `<strong>📊 Ringkasan & Saran:</strong>${parts.map(p => `<div>${p}</div>`).join("")}`;
     }
 
     form.addEventListener('submit', async (e) => {
@@ -149,11 +164,9 @@
       if (!answerField.value.trim()) return;
       tempAnswers[currentQuestion] = answerField.value.trim();
 
-      // Save locally
       allAnswers.push({ email: emailInput.value.trim(), answers: [...tempAnswers] });
       localStorage.setItem("responses", JSON.stringify(allAnswers));
 
-      // Try Firebase save
       try {
         await addDoc(collection(db, "responses"), {
           email: emailInput.value.trim(),
@@ -162,14 +175,3 @@
         });
       } catch (err) {
         alert("⚠ Data disimpan lokal. Firebase gagal menyimpan.");
-      }
-
-      // Show thank you + AI overview
-      thankYouMessage.style.display = 'block';
-      aiOverview.innerHTML = smartOverview(tempAnswers);
-      aiOverview.style.display = 'block';
-
-      // Reset for next run
-      form.reset();
-      currentQuestion = 0;
-      tempAnswers = [];
