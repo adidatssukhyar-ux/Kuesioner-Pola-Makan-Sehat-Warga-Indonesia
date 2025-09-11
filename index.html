@@ -30,6 +30,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
+    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
       authDomain: "surveylive-c0691.firebaseapp.com",
@@ -72,9 +73,8 @@
     function showQuestion(index) {
       questionContainer.innerHTML = `
         <label for="answer">${questions[index]}</label>
-        <textarea id="answer" required placeholder="Jawaban kamu..."></textarea>
+        <textarea id="answer" placeholder="Jawaban kamu..."></textarea>
       `;
-      // Toggle buttons based on position
       if (index === questions.length - 1) {
         nextBtn.style.display = "none";
         submitBtn.style.display = "inline-block";
@@ -88,8 +88,8 @@
 
     nextBtn.addEventListener('click', () => {
       const answerField = document.getElementById('answer');
-      if (!emailInput.value || !answerField.value) return;
-      answers[currentQuestion] = answerField.value;
+      if (!emailInput.value.trim() || !answerField.value.trim()) return;
+      answers[currentQuestion] = answerField.value.trim();
       currentQuestion++;
       showQuestion(currentQuestion);
     });
@@ -97,16 +97,15 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const answerField = document.getElementById('answer');
-      if (!answerField.value) return;
-      answers[currentQuestion] = answerField.value; // Save last answer
+      if (!answerField.value.trim()) return;
+      answers[currentQuestion] = answerField.value.trim();
 
       await addDoc(collection(db, "responses"), {
-        email: emailInput.value,
+        email: emailInput.value.trim(),
         answers: [...answers],
         timestamp: new Date()
       });
 
-      // Reset for next user
       form.reset();
       currentQuestion = 0;
       answers = [];
