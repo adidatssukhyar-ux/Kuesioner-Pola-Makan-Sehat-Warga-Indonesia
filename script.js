@@ -61,5 +61,4 @@ form.addEventListener('submit', function(e) {
   answers[currentQuestion] = answerField.value;
   form.style.display = 'none';
   thankYouMessage.style.display = 'block';
-  // You can process/email the answers here if you add a backend or service
 });
