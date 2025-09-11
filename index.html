@@ -100,7 +100,7 @@
       showQuestion(currentQuestion);
     });
 
-    // AI Overview generator (Gemini 2.0 Flash API)
+    // AI Overview generator (Gemini 2.0 Flash API with your key)
     async function generateOverview(answers = []) {
       const prompt = `
       Buat ringkasan dan saran pola makan berdasarkan jawaban berikut:
@@ -110,7 +110,7 @@
 
       try {
         const res = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=YOUR_GEMINI_API_KEY",
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDXDp6pRZwU_87aSNhOrtke5wmkgkEEGEg",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
