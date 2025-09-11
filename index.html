@@ -26,7 +26,24 @@
     <div id="answersContainer" style="display:none; margin-top:10px;"></div>
   </div>
 
-  <script>
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
+      authDomain: "surveylive-c0691.firebaseapp.com",
+      projectId: "surveylive-c0691",
+      storageBucket: "surveylive-c0691.firebasestorage.app",
+      messagingSenderId: "894041077720",
+      appId: "1:894041077720:web:2115a27b69e8b81ab724ad",
+      measurementId: "G-83GZWBY7K5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -60,29 +77,11 @@
       `;
     }
 
-    function loadStoredAnswers() {
-      const stored = localStorage.getItem("surveyAnswers");
-      return stored ? JSON.parse(stored) : [];
-    }
-
-    function saveAnswer(email, answersArray) {
-      const all = loadStoredAnswers();
-      all.push({ email, answers: answersArray });
-      localStorage.setItem("surveyAnswers", JSON.stringify(all));
-    }
-
     showQuestion(currentQuestion);
 
-    nextBtn.addEventListener('click', function() {
+    nextBtn.addEventListener('click', () => {
       const answerField = document.getElementById('answer');
-      if (!emailInput.value) {
-        emailInput.focus();
-        return;
-      }
-      if (!answerField.value) {
-        answerField.focus();
-        return;
-      }
+      if (!emailInput.value || !answerField.value) return;
       answers[currentQuestion] = answerField.value;
       currentQuestion++;
       if (currentQuestion < questions.length) {
@@ -94,16 +93,17 @@
       }
     });
 
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const answerField = document.getElementById('answer');
-      if (!answerField.value) {
-        answerField.focus();
-        return;
-      }
+      if (!answerField.value) return;
       answers[currentQuestion] = answerField.value;
 
-      saveAnswer(emailInput.value, [...answers]);
+      await addDoc(collection(db, "responses"), {
+        email: emailInput.value,
+        answers: [...answers],
+        timestamp: new Date()
+      });
 
       form.reset();
       currentQuestion = 0;
@@ -111,23 +111,28 @@
       showQuestion(currentQuestion);
       nextBtn.style.display = "inline-block";
       submitBtn.style.display = "none";
-
       form.style.display = 'none';
       thankYouMessage.style.display = 'block';
     });
 
-    thankYouMessage.addEventListener('click', function() {
+    thankYouMessage.addEventListener('click', () => {
       hiddenInfo.style.display = 'inline';
     });
 
-    showAnswersBtn.addEventListener('click', function() {
+    showAnswersBtn.addEventListener('click', async () => {
       const pass = prompt("Masukkan password untuk melihat jawaban:");
       if (pass === "rahasia123") {
-        const allAnswers = loadStoredAnswers();
+        const q = query(collection(db, "responses"), orderBy("timestamp"));
+        const snapshot = await getDocs(q);
+        const allAnswers = [];
+        snapshot.forEach(doc => {
+          allAnswers.push(doc.data());
+        });
+
         if (allAnswers.length === 0) {
           answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
         } else {
-          let html = "<table border='1' cellpadding='5'><tr><th>Email</th><th>Jawaban</th></tr>";
+          let html = "<table border='1'><tr><th>Email</th><th>Jawaban</th></tr>";
           allAnswers.forEach(row => {
             html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
           });
