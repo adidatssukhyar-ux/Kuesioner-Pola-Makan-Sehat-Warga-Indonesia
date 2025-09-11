@@ -20,6 +20,11 @@
       <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br>
       <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
     </div>
+
+    <hr>
+    <!-- Tombol rahasia -->
+    <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
+    <div id="answersContainer" style="display:none; margin-top:10px;"></div>
   </div>
 
   <script>
@@ -37,7 +42,8 @@
     ];
 
     let currentQuestion = 0;
-    const answers = [];
+    let answers = [];
+    const allAnswers = [];
 
     const emailInput = document.getElementById('email');
     const questionContainer = document.getElementById('questionContainer');
@@ -86,14 +92,51 @@
       }
       answers[currentQuestion] = answerField.value;
 
-      // di versi asli kamu, ini kirim ke Formspree — sekarang hanya tampilkan pesan
+      // Simpan jawaban ke array global
+      allAnswers.push({
+        email: emailInput.value,
+        answers: [...answers]
+      });
+
+      // Reset form untuk responden berikutnya
+      form.reset();
+      currentQuestion = 0;
+      answers = [];
+      showQuestion(currentQuestion);
+      nextBtn.style.display = "inline-block";
+      submitBtn.style.display = "none";
+
+      // Tampilkan pesan terima kasih
       form.style.display = 'none';
       thankYouMessage.style.display = 'block';
     });
 
-    // Hidden feature: click thank-you message to reveal extra info
+    // Hidden feature: klik pesan terima kasih untuk memunculkan info tambahan
     thankYouMessage.addEventListener('click', function() {
       hiddenInfo.style.display = 'inline';
+    });
+
+    // Tombol rahasia untuk melihat semua jawaban
+    const showAnswersBtn = document.getElementById('showAnswersBtn');
+    const answersContainer = document.getElementById('answersContainer');
+
+    showAnswersBtn.addEventListener('click', function() {
+      const pass = prompt("Masukkan password untuk melihat jawaban:");
+      if (pass === "rahasia123") { // ganti sesuai keinginan
+        if (allAnswers.length === 0) {
+          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
+        } else {
+          let html = "<table border='1' cellpadding='5'><tr><th>Email</th><th>Jawaban</th></tr>";
+          allAnswers.forEach(row => {
+            html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
+          });
+          html += "</table>";
+          answersContainer.innerHTML = html;
+        }
+        answersContainer.style.display = "block";
+      } else {
+        alert("Password salah!");
+      }
     });
   </script>
 </body>
