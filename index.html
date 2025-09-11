@@ -8,18 +8,16 @@
 <body>
   <div class="container">
     <h1>Pola Makan Sehat Orang Indonesia</h1>
-    <form id="wizardForm">
-      <label for="email">Email:</label>
+    <form id="wizardForm" action="https://formspree.io/f/mqkrpqqw" method="POST">
+      <label for="email">Email kamu:</label>
       <input type="email" name="email" id="email" required placeholder="your@email.com">
-
       <div id="questionContainer"></div>
-
       <button type="button" id="nextBtn">Next</button>
-      <button type="button" id="submitBtn" style="display:none;">Kirim ke WhatsApp</button>
+      <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
     </form>
     <div id="thankYouMessage" style="display:none;">
       <span>Terima kasih atas jawaban kamu!</span><br>
-      <span class="final-message">Jawaban kamu siap dikirim lewat WhatsApp (pastikan klik tombol Kirim di WhatsApp yang muncul)</span>
+      <span class="final-message">Jawaban berhasil dikirim ke admin.</span>
     </div>
   </div>
   <script>
@@ -76,20 +74,32 @@
       }
     });
 
-    submitBtn.addEventListener('click', function() {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
       const answerField = document.getElementById('answer');
       if (!answerField.value) {
         answerField.focus();
         return;
       }
       answers[currentQuestion] = answerField.value;
-      const phoneNumber = "6285146494804"; // WhatsApp format, 62 for Indonesia
-      let message = `Email: ${emailInput.value}\n\n`;
-      questions.forEach((q, i) => {
-        message += `${q}\n${answers[i]}\n\n`;
+
+      // Add hidden fields for each answer
+      answers.forEach(function(ans, idx) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `question_${idx+1}`;
+        input.value = ans;
+        form.appendChild(input);
       });
-      const encodedMessage = encodeURIComponent(message);
-      window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, "_blank");
+
+      // Optionally add the email again for Formspree
+      const emailInputHidden = document.createElement('input');
+      emailInputHidden.type = 'hidden';
+      emailInputHidden.name = 'email';
+      emailInputHidden.value = emailInput.value;
+      form.appendChild(emailInputHidden);
+
+      form.submit(); // This sends data to Formspree!
       form.style.display = 'none';
       thankYouMessage.style.display = 'block';
     });
