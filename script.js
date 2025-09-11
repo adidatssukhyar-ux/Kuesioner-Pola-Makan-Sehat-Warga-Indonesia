@@ -59,6 +59,24 @@ form.addEventListener('submit', function(e) {
     return;
   }
   answers[currentQuestion] = answerField.value;
+
+  // Add hidden fields for each answer
+  answers.forEach(function(ans, idx) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = `question_${idx+1}`;
+    input.value = ans;
+    form.appendChild(input);
+  });
+
+  // Optionally add the email again (Formspree recommends it)
+  const emailInputHidden = document.createElement('input');
+  emailInputHidden.type = 'hidden';
+  emailInputHidden.name = 'email';
+  emailInputHidden.value = emailInput.value;
+  form.appendChild(emailInputHidden);
+
+  form.submit(); // This sends data to Formspree!
   form.style.display = 'none';
   thankYouMessage.style.display = 'block';
 });
