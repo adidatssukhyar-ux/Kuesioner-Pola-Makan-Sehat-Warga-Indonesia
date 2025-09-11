@@ -74,6 +74,13 @@
         <label for="answer">${questions[index]}</label>
         <textarea id="answer" required placeholder="Jawaban kamu..."></textarea>
       `;
+      // Reset visibility
+      nextBtn.style.display = "inline-block";
+      submitBtn.style.display = "none";
+      if (index === questions.length - 1) {
+        nextBtn.style.display = "none";
+        submitBtn.style.display = "inline-block";
+      }
     }
 
     showQuestion(currentQuestion);
@@ -83,13 +90,7 @@
       if (!emailInput.value || !answerField.value) return;
       answers[currentQuestion] = answerField.value;
       currentQuestion++;
-      if (currentQuestion < questions.length) {
-        showQuestion(currentQuestion);
-        if (currentQuestion === questions.length - 1) {
-          nextBtn.style.display = "none";
-          submitBtn.style.display = "inline-block";
-        }
-      }
+      showQuestion(currentQuestion);
     });
 
     form.addEventListener('submit', async (e) => {
@@ -108,8 +109,6 @@
       currentQuestion = 0;
       answers = [];
       showQuestion(currentQuestion);
-      nextBtn.style.display = "inline-block";
-      submitBtn.style.display = "none";
       form.style.display = 'none';
       thankYouMessage.style.display = 'block';
     });
