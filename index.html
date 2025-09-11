@@ -3,66 +3,123 @@
 <head>
   <meta charset="UTF-8">
   <title>Pola Makan Sehat Orang Indonesia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: sans-serif;
-      background: white;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #f6fff4, #e8f5e9);
+      color: #2e3d2f;
       padding: 20px;
-      color: #333;
+      margin: 0;
     }
+
     .container {
       max-width: 600px;
       margin: auto;
+      background-color: #ffffff;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
+
     h1 {
       text-align: center;
+      color: #3a5f3a;
       margin-bottom: 30px;
+      font-size: 24px;
     }
+
     label {
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
+      color: #3a5f3a;
+      font-weight: 500;
     }
+
     input[type="email"],
     textarea {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
+      padding: 12px;
+      margin-bottom: 18px;
+      border: 1px solid #aacbaa;
+      border-radius: 10px;
       font-size: 14px;
+      background-color: #f9fff9;
+      transition: border-color 0.3s ease;
     }
+
+    input[type="email"]:focus,
+    textarea:focus {
+      border-color: #6fbf73;
+      outline: none;
+    }
+
     button {
       padding: 10px 20px;
-      margin-top: 10px;
-      background-color: #007bff;
+      background-color: #ffa94d;
       color: white;
       border: none;
-      border-radius: 4px;
-      cursor: pointer;
+      border-radius: 10px;
       font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
     }
+
     button:hover {
-      background-color: #0056b3;
+      background-color: #e68a2e;
+      transform: scale(1.03);
     }
+
     #thankYouMessage {
       margin-top: 20px;
-      background-color: #f0f0f0;
-      padding: 10px;
-      border-radius: 4px;
+      background-color: #e6ffe6;
+      padding: 12px;
+      border-radius: 10px;
+      color: #2e3d2f;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
+
     #hiddenInfo {
       color: gray;
+      font-size: 13px;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
+      margin-top: 20px;
+      border-radius: 10px;
+      overflow: hidden;
     }
+
     th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
+      border: 1px solid #aacbaa;
+      padding: 10px;
       font-size: 13px;
       text-align: left;
+      background-color: #f9fff9;
+    }
+
+    th {
+      background-color: #d0e8d0;
+      color: #2e3d2f;
+      font-weight: 600;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      .container {
+        padding: 15px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      button {
+        width: 100%;
+        margin-top: 10px;
+      }
     }
   </style>
 </head>
@@ -201,15 +258,3 @@
       const pass = prompt("Masukkan password untuk melihat jawaban:");
       if (pass === "rahasia123") {
         answersContainer.style.display = "block";
-        renderAnswers();
-        if (!liveViewerActive) {
-          liveInterval = setInterval(renderAnswers, 2000);
-          liveViewerActive = true;
-        }
-      } else {
-        alert("Password salah!");
-      }
-    });
-  </script>
-</body>
-</html>
