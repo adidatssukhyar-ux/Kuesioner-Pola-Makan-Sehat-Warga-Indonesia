@@ -26,23 +26,7 @@
     <div id="answersContainer" style="display:none; margin-top:10px;"></div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
-      authDomain: "surveylive-c0691.firebaseapp.com",
-      projectId: "surveylive-c0691",
-      storageBucket: "surveylive-c0691.firebasestorage.app",
-      messagingSenderId: "894041077720",
-      appId: "1:894041077720:web:2115a27b69e8b81ab724ad",
-      measurementId: "G-83GZWBY7K5"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
+  <script>
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -57,7 +41,8 @@
     ];
 
     let currentQuestion = 0;
-    let answers = [];
+    let tempAnswers = [];
+    let allAnswers = JSON.parse(localStorage.getItem("responses") || "[]");
 
     const emailInput = document.getElementById('email');
     const questionContainer = document.getElementById('questionContainer');
@@ -88,26 +73,26 @@
     nextBtn.addEventListener('click', () => {
       const answerField = document.getElementById('answer');
       if (!emailInput.value.trim() || !answerField.value.trim()) return;
-      answers[currentQuestion] = answerField.value.trim();
+      tempAnswers[currentQuestion] = answerField.value.trim();
       currentQuestion++;
       showQuestion(currentQuestion);
     });
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
       const answerField = document.getElementById('answer');
       if (!answerField.value.trim()) return;
-      answers[currentQuestion] = answerField.value.trim();
+      tempAnswers[currentQuestion] = answerField.value.trim();
 
-      await addDoc(collection(db, "responses"), {
+      allAnswers.push({
         email: emailInput.value.trim(),
-        answers: [...answers],
-        timestamp: new Date()
+        answers: [...tempAnswers]
       });
+      localStorage.setItem("responses", JSON.stringify(allAnswers));
 
       form.reset();
       currentQuestion = 0;
-      answers = [];
+      tempAnswers = [];
       showQuestion(currentQuestion);
       form.style.display = 'none';
       thankYouMessage.style.display = 'block';
@@ -117,16 +102,9 @@
       hiddenInfo.style.display = 'inline';
     });
 
-    showAnswersBtn.addEventListener('click', async () => {
+    showAnswersBtn.addEventListener('click', () => {
       const pass = prompt("Masukkan password untuk melihat jawaban:");
       if (pass === "rahasia123") {
-        const q = query(collection(db, "responses"), orderBy("timestamp"));
-        const snapshot = await getDocs(q);
-        const allAnswers = [];
-        snapshot.forEach(doc => {
-          allAnswers.push(doc.data());
-        });
-
         if (allAnswers.length === 0) {
           answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
         } else {
