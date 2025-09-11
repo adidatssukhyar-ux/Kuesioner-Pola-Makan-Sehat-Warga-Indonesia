@@ -16,7 +16,7 @@
       <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
     </form>
 
-    <div id="thankYouMessage" style="display:none; cursor:pointer;">
+    <div id="thankYouMessage" style="display:none; margin-top:15px; cursor:pointer;">
       <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br>
       <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
     </div>
@@ -160,28 +160,35 @@
         alert("⚠ Data disimpan lokal. Firebase gagal menyimpan.");
       }
 
-      // Show AI overview
+      // Show thank you + AI overview without hiding form
+      thankYouMessage.style.display = 'block';
       aiOverview.innerHTML = `<strong>📊 Ringkasan & Saran:</strong><br>${generateOverview(tempAnswers)}`;
       aiOverview.style.display = 'block';
 
-      // Show thank you
-      form.style.display = 'none';
-      thankYouMessage.style.display = 'block';
-
-      // Prepare for next run
-      setTimeout(() => {
-        form.reset();
-        currentQuestion = 0;
-        tempAnswers = [];
-        showQuestion(currentQuestion);
-        form.style.display = 'block';
-        thankYouMessage.style.display = 'none';
-        aiOverview.style.display = 'none';
-      }, 5000); // after 5 seconds, reset for next person
+      // Reset for next run
+      form.reset();
+      currentQuestion = 0;
+      tempAnswers = [];
+      showQuestion(currentQuestion);
     });
 
     thankYouMessage.addEventListener('click', () => {
       hiddenInfo.style.display = 'inline';
     });
 
-    showAnswersBtn
+    showAnswersBtn.addEventListener('click', async () => {
+      const pass = prompt("Masukkan password untuk melihat jawaban:");
+      if (pass === "rahasia123") {
+        let combinedAnswers = [...allAnswers];
+        try {
+          const q = query(collection(db, "responses"), orderBy("timestamp"));
+          const snapshot = await getDocs(q);
+          snapshot.forEach(doc => {
+            combinedAnswers.push(doc.data());
+          });
+        } catch (err) {
+          console.warn("⚠ Could not load from Firebase, showing local only.");
+        }
+
+        if (combinedAnswers.length === 0) {
+          answersContainer.innerHTML = "<p>Belum
