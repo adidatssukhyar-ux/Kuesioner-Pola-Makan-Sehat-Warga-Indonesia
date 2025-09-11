@@ -9,26 +9,19 @@
   <div class="container">
     <h1>Pola Makan Sehat Orang Indonesia</h1>
     <form id="wizardForm">
-      <!-- Step 1: Email -->
-      <div id="emailStep">
-        <label for="email">Email kamu:</label>
-        <input type="email" name="email" id="email" required placeholder="your@email.com">
-        <button type="button" id="startBtn">Mulai</button>
-      </div>
-
-      <!-- Step 2: Questions -->
-      <div id="questionStep" style="display:none;">
-        <div id="questionContainer"></div>
-        <button type="button" id="nextBtn">Next</button>
-        <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
-      </div>
+      <label for="email">Email kamu:</label>
+      <input type="email" name="email" id="email" required placeholder="your@email.com">
+      <div id="questionContainer"></div>
+      <button type="button" id="nextBtn">Next</button>
+      <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
     </form>
 
-    <!-- Thank you + AI overview -->
-    <div id="thankYouMessage" style="display:none; margin-top:15px; cursor:pointer;">
+    <div id="thankYouMessage" style="display:none; cursor:pointer; margin-top:15px;">
       <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br>
       <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
     </div>
+
+    <!-- AI Overview box -->
     <div id="aiOverview" style="display:none; margin-top:15px; padding:10px; border:1px solid #ccc; border-radius:5px; background:#f9f9f9;"></div>
 
     <hr>
@@ -72,9 +65,6 @@
     let allAnswers = JSON.parse(localStorage.getItem("responses") || "[]");
 
     const emailInput = document.getElementById('email');
-    const startBtn = document.getElementById('startBtn');
-    const emailStep = document.getElementById('emailStep');
-    const questionStep = document.getElementById('questionStep');
     const questionContainer = document.getElementById('questionContainer');
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
@@ -99,49 +89,49 @@
       }
     }
 
-    startBtn.addEventListener('click', () => {
-      if (!emailInput.value.trim()) {
-        alert("Masukkan email terlebih dahulu");
-        return;
-      }
-      emailStep.style.display = 'none';
-      questionStep.style.display = 'block';
-      currentQuestion = 0;
-      tempAnswers = [];
-      showQuestion(currentQuestion);
-    });
+    showQuestion(currentQuestion);
 
     nextBtn.addEventListener('click', () => {
       const answerField = document.getElementById('answer');
-      if (!answerField.value.trim()) return;
+      if (!emailInput.value.trim() || !answerField.value.trim()) return;
       tempAnswers[currentQuestion] = answerField.value.trim();
       currentQuestion++;
       showQuestion(currentQuestion);
     });
 
+    // AI Overview generator
     function generateOverview(answers) {
       let advice = [];
+
+      // Junk food opinion
       if (answers[0]?.toLowerCase().includes("sehat")) {
-        advice.push("⚠️ Kamu menganggap junk food sehat — sebaiknya batasi konsumsi makanan cepat saji.");
+        advice.push("⚠️ Kamu menganggap junk food sehat — sebaiknya batasi konsumsi makanan cepat saji karena tinggi lemak, garam, dan gula.");
       } else {
-        advice.push("👍 Bagus! Kamu sadar junk food tidak sehat.");
+        advice.push("👍 Bagus! Kamu sadar junk food tidak sehat — pertahankan kebiasaan ini.");
       }
+
+      // Sayur & buah
       if (answers[4]?.toLowerCase().includes("tidak") || answers[4]?.toLowerCase().includes("jarang")) {
-        advice.push("🥦 Perbanyak konsumsi sayur dan buah.");
+        advice.push("🥦 Perbanyak konsumsi sayur dan buah setiap hari untuk serat, vitamin, dan mineral.");
       } else {
-        advice.push("🌱 Konsumsi sayur dan buah kamu sudah baik.");
+        advice.push("🌱 Konsumsi sayur dan buah kamu sudah baik — teruskan!");
       }
+
+      // Minuman manis
       if (answers[3]?.toLowerCase().includes("sering")) {
-        advice.push("🥤 Kurangi minuman manis/bersoda.");
+        advice.push("🥤 Kurangi minuman manis/bersoda untuk menjaga kesehatan gigi dan berat badan.");
       } else {
-        advice.push("💧 Pilihan minuman kamu sehat.");
+        advice.push("💧 Pilihan minuman kamu sehat — pertahankan!");
       }
+
+      // Sarapan
       if (answers[8]?.toLowerCase().includes("tidak")) {
-        advice.push("🍳 Usahakan sarapan setiap pagi.");
+        advice.push("🍳 Usahakan sarapan setiap pagi untuk energi dan konsentrasi.");
       } else {
-        advice.push("☀️ Bagus! Sarapan teratur membantu energi.");
+        advice.push("☀️ Bagus! Sarapan teratur membantu menjaga energi sepanjang hari.");
       }
-      advice.push("💡 Pola makan seimbang + olahraga teratur = tubuh sehat.");
+
+      advice.push("💡 Ingat: pola makan seimbang + olahraga teratur = tubuh sehat dan bugar.");
       return advice.join("<br>");
     }
 
@@ -151,27 +141,37 @@
       if (!answerField.value.trim()) return;
       tempAnswers[currentQuestion] = answerField.value.trim();
 
-      allAnswers.push({ email: emailInput.value.trim(), answers: [...tempAnswers] });
+      // Save locally first
+      allAnswers.push({
+        email: emailInput.value.trim(),
+        answers: [...tempAnswers]
+      });
       localStorage.setItem("responses", JSON.stringify(allAnswers));
 
+      // Try Firebase save
       try {
         await addDoc(collection(db, "responses"), {
           email: emailInput.value.trim(),
           answers: [...tempAnswers],
           timestamp: new Date()
         });
+        console.log("✅ Saved to Firestore");
       } catch (err) {
+        console.error("❌ Firebase save failed:", err);
         alert("⚠ Data disimpan lokal. Firebase gagal menyimpan.");
       }
 
-      thankYouMessage.style.display = 'block';
+      // Show AI overview
       aiOverview.innerHTML = `<strong>📊 Ringkasan & Saran:</strong><br>${generateOverview(tempAnswers)}`;
       aiOverview.style.display = 'block';
 
-      // Reset to email step for next person
-      questionStep.style.display = 'none';
-      emailStep.style.display = 'block';
+      // Reset UI for next run
       form.reset();
+      currentQuestion = 0;
+      tempAnswers = [];
+      showQuestion(currentQuestion);
+      form.style.display = 'none';
+      thankYouMessage.style.display = 'block';
     });
 
     thankYouMessage.addEventListener('click', () => {
@@ -181,4 +181,20 @@
     showAnswersBtn.addEventListener('click', async () => {
       const pass = prompt("Masukkan password untuk melihat jawaban:");
       if (pass === "rahasia123") {
-        let combinedAnswers = [...allAnswers
+        let combinedAnswers = [...allAnswers];
+        try {
+          const q = query(collection(db, "responses"), orderBy("timestamp"));
+          const snapshot = await getDocs(q);
+          snapshot.forEach(doc => {
+            combinedAnswers.push(doc.data());
+          });
+        } catch (err) {
+          console.warn("⚠ Could not load from Firebase, showing local only.");
+        }
+
+        if (combinedAnswers.length === 0) {
+          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
+        } else {
+          let html = "<table border='1'><tr><th>Email</th><th>Jawaban</th></tr>";
+          combinedAnswers.forEach(row => {
+            html += `<tr><td>${row.email}</td><td>${row.answers.join
