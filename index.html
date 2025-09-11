@@ -3,7 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <title>Pola Makan Sehat Orang Indonesia</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
+    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; }
+    textarea, input[type="email"] { width: 100%; padding: 10px; margin-top: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 10px 20px; margin-right: 10px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    #thankYouMessage { margin-top: 20px; background: #e0ffe0; padding: 10px; border-radius: 4px; }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -22,9 +32,8 @@
     </div>
 
     <hr>
-    <!-- Tombol rahasia -->
     <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
-    <div id="answersContainer" style="display:none; margin-top:10px;"></div>
+    <div id="answersContainer" style="display:none;"></div>
   </div>
 
   <script>
@@ -43,7 +52,6 @@
 
     let currentQuestion = 0;
     let answers = [];
-    const allAnswers = [];
 
     const emailInput = document.getElementById('email');
     const questionContainer = document.getElementById('questionContainer');
@@ -52,12 +60,39 @@
     const thankYouMessage = document.getElementById('thankYouMessage');
     const hiddenInfo = document.getElementById('hiddenInfo');
     const form = document.getElementById('wizardForm');
+    const answersContainer = document.getElementById('answersContainer');
+    const showAnswersBtn = document.getElementById('showAnswersBtn');
 
     function showQuestion(index) {
       questionContainer.innerHTML = `
         <label for="answer">${questions[index]}</label>
         <textarea id="answer" required placeholder="Jawaban kamu..."></textarea>
       `;
+    }
+
+    function loadStoredAnswers() {
+      const stored = localStorage.getItem('allAnswers');
+      return stored ? JSON.parse(stored) : [];
+    }
+
+    function saveAnswer(email, answers) {
+      const allAnswers = loadStoredAnswers();
+      allAnswers.push({ email, answers });
+      localStorage.setItem('allAnswers', JSON.stringify(allAnswers));
+    }
+
+    function renderAnswers() {
+      const allAnswers = loadStoredAnswers();
+      if (allAnswers.length === 0) {
+        answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
+      } else {
+        let html = "<table><tr><th>Email</th><th>Jawaban</th></tr>";
+        allAnswers.forEach(row => {
+          html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
+        });
+        html += "</table>";
+        answersContainer.innerHTML = html;
+      }
     }
 
     showQuestion(currentQuestion);
@@ -92,48 +127,34 @@
       }
       answers[currentQuestion] = answerField.value;
 
-      // Simpan jawaban ke array global
-      allAnswers.push({
-        email: emailInput.value,
-        answers: [...answers]
-      });
+      saveAnswer(emailInput.value, answers);
 
-      // Reset form untuk responden berikutnya
       form.reset();
       currentQuestion = 0;
       answers = [];
       showQuestion(currentQuestion);
       nextBtn.style.display = "inline-block";
       submitBtn.style.display = "none";
-
-      // Tampilkan pesan terima kasih
       form.style.display = 'none';
       thankYouMessage.style.display = 'block';
     });
 
-    // Hidden feature: klik pesan terima kasih untuk memunculkan info tambahan
     thankYouMessage.addEventListener('click', function() {
       hiddenInfo.style.display = 'inline';
     });
 
-    // Tombol rahasia untuk melihat semua jawaban
-    const showAnswersBtn = document.getElementById('showAnswersBtn');
-    const answersContainer = document.getElementById('answersContainer');
+    let liveViewerActive = false;
+    let liveInterval;
 
     showAnswersBtn.addEventListener('click', function() {
       const pass = prompt("Masukkan password untuk melihat jawaban:");
-      if (pass === "rahasia123") { // ganti sesuai keinginan
-        if (allAnswers.length === 0) {
-          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
-        } else {
-          let html = "<table border='1' cellpadding='5'><tr><th>Email</th><th>Jawaban</th></tr>";
-          allAnswers.forEach(row => {
-            html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
-          });
-          html += "</table>";
-          answersContainer.innerHTML = html;
-        }
+      if (pass === "rahasia123") {
         answersContainer.style.display = "block";
+        renderAnswers();
+        if (!liveViewerActive) {
+          liveInterval = setInterval(renderAnswers, 2000); // update every 2 seconds
+          liveViewerActive = true;
+        }
       } else {
         alert("Password salah!");
       }
