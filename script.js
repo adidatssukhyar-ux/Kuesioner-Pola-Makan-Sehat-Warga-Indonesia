@@ -1,82 +1,137 @@
-const questions = [
-  "1. Menurut kamu makanan junk food sehat atau tidak?",
-  "2. Seberapa sering kamu mengonsumsi makanan junk food?",
-  "3. Berapa kali kamu makan dalam sehari?",
-  "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
-  "5. Apakah kamu sering mengonsumsi sayur sayuran?",
-  "6. Sebutkan makanan yang bergizi dan tidak bergizi",
-  "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
-  "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
-  "9. Apakah kamu hari ini sudah sarapan?",
-  "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
-];
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Pola Makan Sehat Orang Indonesia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Pola Makan Sehat Orang Indonesia</h1>
+    <form id="wizardForm">
+      <label for="email">Email kamu:</label>
+      <input type="email" name="email" id="email" required placeholder="your@email.com">
+      <div id="questionContainer"></div>
+      <button type="button" id="nextBtn">Next</button>
+      <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
+    </form>
 
-let currentQuestion = 0;
-const answers = [];
+    <div id="thankYouMessage" style="display:none;">
+      <span>Terima kasih atas jawaban kamu!</span><br>
+      <span class="final-message">Jawaban berhasil disimpan.</span>
+    </div>
 
-const emailInput = document.getElementById('email');
-const questionContainer = document.getElementById('questionContainer');
-const nextBtn = document.getElementById('nextBtn');
-const submitBtn = document.getElementById('submitBtn');
-const thankYouMessage = document.getElementById('thankYouMessage');
-const form = document.getElementById('wizardForm');
+    <hr>
+    <!-- Tombol rahasia -->
+    <button id="showAnswersBtn">Lihat Semua Jawaban</button>
+    <div id="answersContainer" style="display:none; margin-top:10px;"></div>
+  </div>
 
-function showQuestion(index) {
-  questionContainer.innerHTML = `
-    <label for="answer">${questions[index]}</label>
-    <textarea id="answer" required placeholder="Jawaban kamu..."></textarea>
-  `;
-}
+  <script>
+    const questions = [
+      "1. Menurut kamu makanan junk food sehat atau tidak?",
+      "2. Seberapa sering kamu mengonsumsi makanan junk food?",
+      "3. Berapa kali kamu makan dalam sehari?",
+      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
+      "5. Apakah kamu sering mengonsumsi sayur sayuran?",
+      "6. Sebutkan makanan yang bergizi dan tidak bergizi",
+      "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
+      "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
+      "9. Apakah kamu hari ini sudah sarapan?",
+      "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
+    ];
 
-showQuestion(currentQuestion);
+    let currentQuestion = 0;
+    let answers = [];
+    const allAnswers = []; // Menyimpan semua respon dari semua orang
 
-nextBtn.addEventListener('click', function() {
-  const answerField = document.getElementById('answer');
-  if (!emailInput.value) {
-    emailInput.focus();
-    return;
-  }
-  if (!answerField.value) {
-    answerField.focus();
-    return;
-  }
-  answers[currentQuestion] = answerField.value;
-  currentQuestion++;
-  if (currentQuestion < questions.length) {
-    showQuestion(currentQuestion);
-    if (currentQuestion === questions.length - 1) {
-      nextBtn.style.display = "none";
-      submitBtn.style.display = "inline-block";
+    const emailInput = document.getElementById('email');
+    const questionContainer = document.getElementById('questionContainer');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const thankYouMessage = document.getElementById('thankYouMessage');
+    const form = document.getElementById('wizardForm');
+
+    function showQuestion(index) {
+      questionContainer.innerHTML = `
+        <label for="answer">${questions[index]}</label>
+        <textarea id="answer" required placeholder="Jawaban kamu..."></textarea>
+      `;
     }
-  }
-});
 
-form.addEventListener('submit', function(e) {
-  e.preventDefault();
-  const answerField = document.getElementById('answer');
-  if (!answerField.value) {
-    answerField.focus();
-    return;
-  }
-  answers[currentQuestion] = answerField.value;
+    showQuestion(currentQuestion);
 
-  // Add hidden fields for each answer
-  answers.forEach(function(ans, idx) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = `question_${idx+1}`;
-    input.value = ans;
-    form.appendChild(input);
-  });
+    nextBtn.addEventListener('click', function() {
+      const answerField = document.getElementById('answer');
+      if (!emailInput.value) {
+        emailInput.focus();
+        return;
+      }
+      if (!answerField.value) {
+        answerField.focus();
+        return;
+      }
+      answers[currentQuestion] = answerField.value;
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        showQuestion(currentQuestion);
+        if (currentQuestion === questions.length - 1) {
+          nextBtn.style.display = "none";
+          submitBtn.style.display = "inline-block";
+        }
+      }
+    });
 
-  // Optionally add the email again (Formspree recommends it)
-  const emailInputHidden = document.createElement('input');
-  emailInputHidden.type = 'hidden';
-  emailInputHidden.name = 'email';
-  emailInputHidden.value = emailInput.value;
-  form.appendChild(emailInputHidden);
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const answerField = document.getElementById('answer');
+      if (!answerField.value) {
+        answerField.focus();
+        return;
+      }
+      answers[currentQuestion] = answerField.value;
 
-  form.submit(); // This sends data to Formspree!
-  form.style.display = 'none';
-  thankYouMessage.style.display = 'block';
-});
+      // Simpan jawaban ke array global
+      allAnswers.push({
+        email: emailInput.value,
+        answers: [...answers]
+      });
+
+      // Reset form untuk responden berikutnya
+      form.reset();
+      currentQuestion = 0;
+      answers = [];
+      showQuestion(currentQuestion);
+      nextBtn.style.display = "inline-block";
+      submitBtn.style.display = "none";
+
+      // Tampilkan pesan terima kasih
+      form.style.display = 'none';
+      thankYouMessage.style.display = 'block';
+    });
+
+    // Tombol rahasia untuk melihat semua jawaban
+    const showAnswersBtn = document.getElementById('showAnswersBtn');
+    const answersContainer = document.getElementById('answersContainer');
+
+    showAnswersBtn.addEventListener('click', function() {
+      const pass = prompt("Masukkan password untuk melihat jawaban:");
+      if (pass === "rahasia123") { // Ganti password sesuai keinginan
+        if (allAnswers.length === 0) {
+          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
+        } else {
+          let html = "<table border='1' cellpadding='5'><tr><th>Email</th><th>Jawaban</th></tr>";
+          allAnswers.forEach(row => {
+            html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
+          });
+          html += "</table>";
+          answersContainer.innerHTML = html;
+        }
+        answersContainer.style.display = "block";
+      } else {
+        alert("Password salah!");
+      }
+    });
+  </script>
+</body>
+</html>
