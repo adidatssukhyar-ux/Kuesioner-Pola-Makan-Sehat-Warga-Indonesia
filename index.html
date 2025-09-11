@@ -3,17 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Pola Makan Sehat Orang Indonesia</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .container { max-width: 600px; margin: auto; }
-    textarea { width: 100%; height: 80px; margin-top: 5px; }
-    button { margin-top: 10px; padding: 8px 12px; }
-    table { border-collapse: collapse; margin-top: 10px; width: 100%; }
-    table, th, td { border: 1px solid #ccc; }
-    th, td { padding: 8px; text-align: left; }
-    #thankYouMessage { margin-top: 20px; cursor: pointer; }
-    #hiddenInfo { color: gray; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
@@ -26,15 +16,10 @@
       <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
     </form>
 
-    <div id="thankYouMessage" style="display:none;">
+    <div id="thankYouMessage" style="display:none; cursor:pointer;">
       <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br>
-      <span id="hiddenInfo" style="display:none;">(maybe 2 days)</span>
+      <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
     </div>
-
-    <hr>
-    <!-- Tombol rahasia -->
-    <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
-    <div id="answersContainer" style="display:none; margin-top:10px;"></div>
   </div>
 
   <script>
@@ -52,8 +37,7 @@
     ];
 
     let currentQuestion = 0;
-    let answers = [];
-    const allAnswers = [];
+    const answers = [];
 
     const emailInput = document.getElementById('email');
     const questionContainer = document.getElementById('questionContainer');
@@ -102,18 +86,7 @@
       }
       answers[currentQuestion] = answerField.value;
 
-      allAnswers.push({
-        email: emailInput.value,
-        answers: [...answers]
-      });
-
-      form.reset();
-      currentQuestion = 0;
-      answers = [];
-      showQuestion(currentQuestion);
-      nextBtn.style.display = "inline-block";
-      submitBtn.style.display = "none";
-
+      // di versi asli kamu, ini kirim ke Formspree — sekarang hanya tampilkan pesan
       form.style.display = 'none';
       thankYouMessage.style.display = 'block';
     });
@@ -121,29 +94,6 @@
     // Hidden feature: click thank-you message to reveal extra info
     thankYouMessage.addEventListener('click', function() {
       hiddenInfo.style.display = 'inline';
-    });
-
-    // Password-protected answers
-    const showAnswersBtn = document.getElementById('showAnswersBtn');
-    const answersContainer = document.getElementById('answersContainer');
-
-    showAnswersBtn.addEventListener('click', function() {
-      const pass = prompt("Masukkan password untuk melihat jawaban:");
-      if (pass === "rahasia123") {
-        if (allAnswers.length === 0) {
-          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
-        } else {
-          let html = "<table><tr><th>Email</th><th>Jawaban</th></tr>";
-          allAnswers.forEach(row => {
-            html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
-          });
-          html += "</table>";
-          answersContainer.innerHTML = html;
-        }
-        answersContainer.style.display = "block";
-      } else {
-        alert("Password salah!");
-      }
     });
   </script>
 </body>
