@@ -21,8 +21,8 @@
       <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
     </div>
 
-    <!-- AI Overview box (new) -->
-    <div id="aiOverview" style="display:none; margin-top:12px; padding:10px; border:1px solid #ccc; border-radius:6px; background:#f9f9f9;"></div>
+    <!-- AI Overview -->
+    <div id="aiOverview" style="display:none; margin-top:15px; padding:10px; border:1px solid #ccc; border-radius:5px; background:#f9f9f9;"></div>
 
     <hr>
     <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
@@ -30,12 +30,10 @@
   </div>
 
   <script type="module">
-    // Firebase imports from CDN
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
       from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Firebase config (your project)
     const firebaseConfig = {
       apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
       authDomain: "surveylive-c0691.firebaseapp.com",
@@ -46,11 +44,9 @@
       measurementId: "G-83GZWBY7K5"
     };
 
-    // Init Firebase + Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Questions
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -68,7 +64,6 @@
     let tempAnswers = [];
     let allAnswers = JSON.parse(localStorage.getItem("responses") || "[]");
 
-    // DOM elements
     const emailInput = document.getElementById('email');
     const questionContainer = document.getElementById('questionContainer');
     const nextBtn = document.getElementById('nextBtn');
@@ -80,14 +75,12 @@
     const showAnswersBtn = document.getElementById('showAnswersBtn');
     const answersContainer = document.getElementById('answersContainer');
 
-    // Render a question
     function showQuestion(index) {
-      const q = questions[index] ?? "";
       questionContainer.innerHTML = `
-        <label for="answer">${q}</label>
+        <label for="answer">${questions[index]}</label>
         <textarea id="answer" placeholder="Jawaban kamu..."></textarea>
       `;
-      if (index >= questions.length - 1) {
+      if (index === questions.length - 1) {
         nextBtn.style.display = "none";
         submitBtn.style.display = "inline-block";
       } else {
@@ -96,10 +89,8 @@
       }
     }
 
-    // Start with question 1 visible (original behavior)
     showQuestion(currentQuestion);
 
-    // Next button
     nextBtn.addEventListener('click', () => {
       const answerField = document.getElementById('answer');
       if (!emailInput.value.trim() || !answerField.value.trim()) return;
@@ -108,127 +99,77 @@
       showQuestion(currentQuestion);
     });
 
-    // AI Overview generator (safe, with praise + tips)
-    function generateOverview(answers = []) {
-      try {
-        const a = (i) => (answers[i] || "").toString().toLowerCase();
-        const out = [];
+    // Smarter AI Overview
+    function smartOverview(answers) {
+      const a = (i) => (answers[i] || "").toLowerCase();
+      let score = 0;
+      let issues = [];
 
-        // Junk food opinion (Q1 index 0)
-        if (a(0).includes("sehat")) {
-          out.push("⚠️ Kamu menganggap junk food sehat — sebaiknya batasi konsumsi makanan cepat saji karena tinggi lemak, garam, dan gula.");
-        } else if (a(0)) {
-          out.push("👍 Bagus! Kamu sadar junk food tidak sehat — pertahankan kebiasaan ini.");
-        }
+      // Junk food opinion
+      if (a(0).includes("sehat")) { score -= 2; issues.push("Menganggap junk food sehat"); }
+      else if (a(0)) { score += 1; }
 
-        // Minuman manis/soda (Q4 index 3)
-        if (a(3).includes("sering")) {
-          out.push("🥤 Kurangi minuman manis/bersoda untuk menjaga kesehatan gigi dan berat badan.");
-        } else if (a(3)) {
-          out.push("💧 Pilihan minuman kamu cukup sehat — pertahankan ya!");
-        }
+      // Junk food frequency
+      if (a(1).includes("sering")) { score -= 1; issues.push("Sering makan junk food"); }
+      else if (a(1).includes("jarang") || a(1).includes("tidak")) { score += 1; }
 
-        // Sayur (Q5 index 4)
-        if (a(4).includes("tidak") || a(4).includes("jarang")) {
-          out.push("🥦 Perbanyak konsumsi sayur dan buah setiap hari untuk serat, vitamin, dan mineral.");
-        } else if (a(4)) {
-          out.push("🌱 Konsumsi sayur dan buah kamu sudah baik — mantap, teruskan!");
-        }
+      // Soda
+      if (a(3).includes("sering")) { score -= 1; issues.push("Sering minum soda/manis"); }
+      else if (a(3)) { score += 1; }
 
-        // Sarapan (Q9 index 8)
-        if (a(8).includes("tidak")) {
-          out.push("🍳 Usahakan sarapan setiap pagi untuk energi dan konsentrasi.");
-        } else if (a(8)) {
-          out.push("☀️ Bagus! Sarapan teratur membantu menjaga energi sepanjang hari.");
-        }
+      // Sayur
+      if (a(4).includes("tidak") || a(4).includes("jarang")) { score -= 1; issues.push("Kurang sayur/buah"); }
+      else if (a(4)) { score += 1; }
 
-        // Balanced reminder
-        out.push("💡 Ingat: pola makan seimbang + cukup air + olahraga teratur = tubuh sehat dan bugar.");
+      // Sarapan
+      if (a(8).includes("tidak")) { score -= 1; issues.push("Tidak sarapan"); }
+      else if (a(8)) { score += 1; }
 
-        return out.join("<br>");
-      } catch {
-        return "⚙️ Ringkasan tidak tersedia saat ini, namun jawaban kamu sudah tersimpan.";
-      }
+      // Summary tone
+      let summary;
+      if (score <= -2) summary = "⚠️ Pola makan kamu perlu banyak perbaikan.";
+      else if (score <= 2) summary = "🙂 Pola makan kamu cukup, tapi masih bisa ditingkatkan.";
+      else summary = "🌟 Pola makan kamu sudah sangat baik — pertahankan!";
+
+      // Advice
+      let advice = [];
+      if (issues.includes("Menganggap junk food sehat")) advice.push("Kurangi konsumsi junk food, pilih makanan segar.");
+      if (issues.includes("Sering makan junk food")) advice.push("Batasi junk food, ganti dengan makanan bergizi.");
+      if (issues.includes("Sering minum soda/manis")) advice.push("Ganti minuman manis dengan air putih.");
+      if (issues.includes("Kurang sayur/buah")) advice.push("Perbanyak sayur dan buah setiap hari.");
+      if (issues.includes("Tidak sarapan")) advice.push("Biasakan sarapan untuk energi dan konsentrasi.");
+      if (advice.length === 0) advice.push("Pertahankan kebiasaan sehatmu dan terus aktif bergerak.");
+
+      return `<strong>📊 Ringkasan & Saran:</strong><br>${summary}<br>- ${advice.join("<br>- ")}`;
     }
 
-    // Submit
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const answerField = document.getElementById('answer');
       if (!answerField.value.trim()) return;
       tempAnswers[currentQuestion] = answerField.value.trim();
 
-      // Save locally first (always)
-      allAnswers.push({
-        email: emailInput.value.trim(),
-        answers: [...tempAnswers]
-      });
+      // Save locally
+      allAnswers.push({ email: emailInput.value.trim(), answers: [...tempAnswers] });
       localStorage.setItem("responses", JSON.stringify(allAnswers));
 
-      // Try Firebase save (non-blocking for UI)
+      // Try Firebase save
       try {
         await addDoc(collection(db, "responses"), {
           email: emailInput.value.trim(),
           answers: [...tempAnswers],
           timestamp: new Date()
         });
-        console.log("✅ Saved to Firestore");
       } catch (err) {
-        console.error("❌ Firebase save failed:", err);
         alert("⚠ Data disimpan lokal. Firebase gagal menyimpan.");
       }
 
-      // Show thank you (but don't hide the form)
+      // Show thank you + AI overview
       thankYouMessage.style.display = 'block';
-
-      // Show AI overview safely
-      aiOverview.innerHTML = `<strong>📊 Ringkasan & Saran:</strong><br>${generateOverview(tempAnswers)}`;
+      aiOverview.innerHTML = smartOverview(tempAnswers);
       aiOverview.style.display = 'block';
 
-      // Prepare for next response (keep questions visible)
+      // Reset for next run
       form.reset();
       currentQuestion = 0;
       tempAnswers = [];
-      showQuestion(currentQuestion);
-    });
-
-    // Tiny easter: click thank-you to reveal hidden line
-    thankYouMessage.addEventListener('click', () => {
-      hiddenInfo.style.display = 'inline';
-    });
-
-    // Protected answers viewer
-    showAnswersBtn.addEventListener('click', async () => {
-      const pass = prompt("Masukkan password untuk melihat jawaban:");
-      if (pass === "rahasia123") {
-        let combinedAnswers = [...allAnswers];
-        try {
-          const q = query(collection(db, "responses"), orderBy("timestamp"));
-          const snapshot = await getDocs(q);
-          snapshot.forEach(doc => {
-            combinedAnswers.push(doc.data());
-          });
-        } catch (err) {
-          console.warn("⚠ Could not load from Firebase, showing local only.");
-        }
-
-        if (combinedAnswers.length === 0) {
-          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
-        } else {
-          let html = "<table border='1' cellspacing='0' cellpadding='6'><tr><th>Email</th><th>Jawaban</th></tr>";
-          combinedAnswers.forEach(row => {
-            const safeEmail = (row.email ?? "").toString();
-            const safeAns = Array.isArray(row.answers) ? row.answers.join(" | ") : "";
-            html += `<tr><td>${safeEmail}</td><td>${safeAns}</td></tr>`;
-          });
-          html += "</table>";
-          answersContainer.innerHTML = html;
-        }
-        answersContainer.style.display = "block";
-      } else {
-        alert("Password salah!");
-      }
-    });
-  </script>
-</body>
-</html>
