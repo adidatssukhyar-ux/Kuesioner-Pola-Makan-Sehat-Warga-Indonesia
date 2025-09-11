@@ -32,7 +32,7 @@
     import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
       from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Firebase config
+    // Firebase config (your project)
     const firebaseConfig = {
       apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
       authDomain: "surveylive-c0691.firebaseapp.com",
@@ -120,9 +120,9 @@
           answers: [...tempAnswers],
           timestamp: new Date()
         });
-        console.log("Saved to Firebase");
+        console.log("✅ Saved to Firestore");
       } catch (err) {
-        console.error("Firebase save failed:", err);
+        console.error("❌ Firebase save failed:", err);
         alert("⚠ Data disimpan lokal. Firebase gagal menyimpan.");
       }
 
@@ -150,7 +150,7 @@
             combinedAnswers.push(doc.data());
           });
         } catch (err) {
-          console.warn("Could not load from Firebase, showing local only.");
+          console.warn("⚠ Could not load from Firebase, showing local only.");
         }
 
         if (combinedAnswers.length === 0) {
