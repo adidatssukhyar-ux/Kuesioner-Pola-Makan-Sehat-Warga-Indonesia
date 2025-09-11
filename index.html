@@ -80,7 +80,7 @@
     }
   }
 
-  // Initial render — this guarantees you SEE the first question
+  // Initial render — guarantees you SEE the first question
   document.addEventListener("DOMContentLoaded", () => {
     showQuestion(window.__surveyState.currentQuestion);
   });
@@ -123,9 +123,6 @@
   // Safe-guard: if core state is missing, bail gracefully
   const S = window.__surveyState;
   const D = window.__surveyDOM;
-  if (!S || !D) {
-    console.warn("Core script not found. The questions should still show.");
-  }
 
   // Firebase
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
@@ -156,34 +153,89 @@
     console.warn("Firebase init failed. Local save will still work.", e);
   }
 
-  // Gemini Overview
+  // Helper: very short prompt variant (used on retry)
+  function buildShortPrompt(questions, answers) {
+    const pairs = answers
+      .map((ans, i) => `Q${i+1}: ${ans}`)
+      .join("\n");
+    return `Ringkas pola makan dan beri 3-5 saran praktis, nada ramah, bahasa Indonesia, maksimal 120 kata.\n${pairs}`;
+  }
+
+  // Helper: local offline fallback so you always show something
+  function localFallbackSummary(questions, answers) {
+    const text = (i) => (answers[i] || "").toLowerCase();
+
+    const likesJunk = /ya|sering|suka|ok|boleh|sehat.*junk/.test(text(0)) || /sering|tiap|hampir/.test(text(1));
+    const freqJunk = /setiap|tiap|sering|3|4|5|hari/.test(text(1));
+    const sodaOften = /sering|ya|tiap|cukup|hampir/.test(text(3));
+    const veggiesOften = /sering|ya|tiap|setiap/.test(text(4));
+    const breakfastYes = /ya|sudah/.test(text(8));
+
+    const positives = [];
+    const improvements = [];
+
+    if (veggiesOften) positives.push("Kamu sudah cukup sering mengonsumsi sayur/buah — pertahankan.");
+    else improvements.push("Tambahkan sayur/buah di 2 porsi/hari (mis. 1 mangkuk sayur + 1 buah).");
+
+    if (breakfastYes) positives.push("Sarapan sudah dilakukan — bagus untuk energi dan fokus.");
+    else improvements.push("Coba sarapan ringan (telur + roti/ oatmeal + buah) agar tidak ‘balas dendam’ di siang hari.");
+
+    if (sodaOften) improvements.push("Kurangi minuman bersoda/berwarna jadi ≤1x/minggu, ganti air putih/teh tawar.");
+    if (likesJunk || freqJunk) improvements.push("Batasi junk food jadi ≤1–2x/minggu dan pilih porsi kecil atau versi dipanggang.");
+
+    if (positives.length === 0) positives.push("Kamu sudah punya beberapa kebiasaan baik — tinggal dirapikan sedikit.");
+
+    return `
+<strong>📊 Ringkasan & Saran (offline):</strong><br>
+${positives.map(s => "• " + s).join("<br>")}
+${improvements.length ? "<br>" + improvements.map(s => "• " + s).join("<br>") : ""}
+<br><em>(Catatan: Ringkasan ini dibuat tanpa AI karena koneksi/kuota API bermasalah.)</em>
+`.trim();
+  }
+
+  // Robust Gemini caller with retry + fallback
   async function generateOverview(answers = []) {
     const prompt = `
-    Buat ringkasan dan saran pola makan berdasarkan jawaban berikut:
-    ${answers.map((ans, i) => `${D.questions[i]}: ${ans}`).join("\n")}
-    Gunakan bahasa yang ramah, jelas, dan berikan tips yang relevan.
-    `;
+Buat ringkasan singkat (≤130 kata) tentang pola makan penjawab berikut, lalu beri 3–5 saran praktis dan spesifik. Nada ramah, bahasa Indonesia, jelas, tanpa menyalahkan.
+${answers.map((ans, i) => `${i+1}. ${D.questions[i]} Jawaban: ${ans}`).join("\n")}
+`;
 
+    // Show spinner
+    D.aiOverview.style.display = "block";
+    D.aiOverview.innerHTML = "⏳ Membuat ringkasan...";
+
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBPcdZLEOAb7zgjtj5Tu9lzQBD1SAFayDQ";
+    const body = (text) => ({
+      contents: [{ parts: [{ text }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
+    });
+
+    // Try once
     try {
-      const res = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBPcdZLEOAb7zgjtj5Tu9lzQBD1SAFayDQ",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        }
-      );
-      const data = await res.json();
-      const text =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        "Tidak ada ringkasan.";
-      return `<strong>📊 Ringkasan & Saran:</strong><br>${text}`;
-    } catch (err) {
-      console.error(err);
-      return "⚙ Ringkasan tidak tersedia saat ini, namun jawaban kamu sudah tersimpan.";
-    }
+      const r1 = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body(prompt))
+      });
+      const d1 = await r1.json();
+      const t1 = d1?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (t1) return `<strong>📊 Ringkasan & Saran:</strong><br>${t1}`;
+    } catch (_) {}
+
+    // Retry with shorter prompt
+    try {
+      const r2 = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body(buildShortPrompt(D.questions, answers)))
+      });
+      const d2 = await r2.json();
+      const t2 = d2?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (t2) return `<strong>📊 Ringkasan & Saran:</strong><br>${t2}`;
+    } catch (_) {}
+
+    // Final guaranteed fallback
+    return localFallbackSummary(D.questions, answers);
   }
 
   // Submit handler
