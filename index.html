@@ -3,118 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <title>Pola Makan Sehat Orang Indonesia</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #e5ffe5, #fffbe5);
-      margin: 0;
-      padding: 0;
-    }
-
-    .container {
-      max-width: 500px;
-      margin: 60px auto;
-      padding: 30px;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 2px 20px rgba(100,180,120,0.12);
-      border: 2px solid #b5e7b7;
-    }
-
-    h1 {
-      text-align: center;
-      color: #35a35c;
-      margin-bottom: 16px;
-    }
-
-    label {
-      display: block;
-      margin-top: 16px;
-      color: #22753e;
-      font-weight: 500;
-    }
-
-    input[type="email"], textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border-radius: 8px;
-      border: 1.5px solid #f5bc51;
-      font-size: 1em;
-      background: #fffde9;
-      box-sizing: border-box;
-    }
-
-    button {
-      margin-top: 20px;
-      width: 100%;
-      padding: 13px;
-      background: linear-gradient(90deg, #35a35c, #f5bc51);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1em;
-      font-weight: 500;
-      cursor: pointer;
-    }
-
-    #thankYouMessage {
-      margin-top: 24px;
-      color: #35a35c;
-      text-align: center;
-      font-size: 1.1em;
-      background: #eaffea;
-      padding: 15px;
-      border-radius: 10px;
-      border: 1.5px solid #b5e7b7;
-      cursor: pointer;
-    }
-
-    #hiddenInfo {
-      display: none;
-      color: #f5bc51;
-      font-size: 0.95em;
-      margin-top: 10px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      border: 1px solid #b5e7b7;
-      padding: 10px;
-      background: #fffde9;
-    }
-
-    th {
-      background: #f5bc51;
-      color: #22753e;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <h1>Pola Makan Sehat Orang Indonesia</h1>
     <form id="wizardForm">
       <label for="email">Email kamu:</label>
-      <input type="email" id="email" required placeholder="your@email.com">
+      <input type="email" name="email" id="email" required placeholder="your@email.com">
       <div id="questionContainer"></div>
       <button type="button" id="nextBtn">Next</button>
       <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
     </form>
 
-    <div id="thankYouMessage" style="display:none;">
-      Terimakasih telah menjawab, hasilnya akan dikirim ke email anda dalam waktu yang singkat
-      <div id="hiddenInfo">(probably 2 days)</div>
+    <div id="thankYouMessage" style="display:none; cursor:pointer;">
+      <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br>
+      <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
     </div>
 
     <hr>
     <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
-    <div id="answersContainer" style="display:none;"></div>
+    <div id="answersContainer" style="display:none; margin-top:10px;"></div>
   </div>
 
   <script>
@@ -132,7 +41,7 @@
     ];
 
     let currentQuestion = 0;
-    const answers = [];
+    let answers = [];
 
     const emailInput = document.getElementById('email');
     const questionContainer = document.getElementById('questionContainer');
@@ -141,8 +50,8 @@
     const thankYouMessage = document.getElementById('thankYouMessage');
     const hiddenInfo = document.getElementById('hiddenInfo');
     const form = document.getElementById('wizardForm');
-    const answersContainer = document.getElementById('answersContainer');
     const showAnswersBtn = document.getElementById('showAnswersBtn');
+    const answersContainer = document.getElementById('answersContainer');
 
     function showQuestion(index) {
       questionContainer.innerHTML = `
@@ -152,28 +61,14 @@
     }
 
     function loadStoredAnswers() {
-      const stored = localStorage.getItem('allAnswers');
+      const stored = localStorage.getItem("surveyAnswers");
       return stored ? JSON.parse(stored) : [];
     }
 
-    function saveAnswer(email, answers) {
-      const allAnswers = loadStoredAnswers();
-      allAnswers.push({ email, answers });
-      localStorage.setItem('allAnswers', JSON.stringify(allAnswers));
-    }
-
-    function renderAnswers() {
-      const allAnswers = loadStoredAnswers();
-      if (allAnswers.length === 0) {
-        answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
-      } else {
-        let html = "<table><tr><th>Email</th><th>Jawaban</th></tr>";
-        allAnswers.forEach(row => {
-          html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
-        });
-        html += "</table>";
-        answersContainer.innerHTML = html;
-      }
+    function saveAnswer(email, answersArray) {
+      const all = loadStoredAnswers();
+      all.push({ email, answers: answersArray });
+      localStorage.setItem("surveyAnswers", JSON.stringify(all));
     }
 
     showQuestion(currentQuestion);
@@ -208,34 +103,38 @@
       }
       answers[currentQuestion] = answerField.value;
 
-      saveAnswer(emailInput.value, answers);
+      saveAnswer(emailInput.value, [...answers]);
 
       form.reset();
       currentQuestion = 0;
-      answers.length = 0;
+      answers = [];
       showQuestion(currentQuestion);
       nextBtn.style.display = "inline-block";
       submitBtn.style.display = "none";
+
       form.style.display = 'none';
       thankYouMessage.style.display = 'block';
     });
 
     thankYouMessage.addEventListener('click', function() {
-      hiddenInfo.style.display = 'block';
+      hiddenInfo.style.display = 'inline';
     });
-
-    let liveViewerActive = false;
-    let liveInterval;
 
     showAnswersBtn.addEventListener('click', function() {
       const pass = prompt("Masukkan password untuk melihat jawaban:");
       if (pass === "rahasia123") {
-        answersContainer.style.display = "block";
-        renderAnswers();
-        if (!liveViewerActive) {
-          liveInterval = setInterval(renderAnswers, 2000);
-          liveViewerActive = true;
+        const allAnswers = loadStoredAnswers();
+        if (allAnswers.length === 0) {
+          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
+        } else {
+          let html = "<table border='1' cellpadding='5'><tr><th>Email</th><th>Jawaban</th></tr>";
+          allAnswers.forEach(row => {
+            html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
+          });
+          html += "</table>";
+          answersContainer.innerHTML = html;
         }
+        answersContainer.style.display = "block";
       } else {
         alert("Password salah!");
       }
