@@ -30,6 +30,20 @@
   </div>
 
   <script type="module">
+    // 📝 SURVEY QUESTIONS — edit here
+    const questions = [
+      "1. Menurut kamu makanan junk food sehat atau tidak?",
+      "2. Seberapa sering kamu mengonsumsi makanan junk food?",
+      "3. Berapa kali kamu makan dalam sehari?",
+      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
+      "5. Apakah kamu sering mengonsumsi sayur sayuran?",
+      "6. Sebutkan makanan yang bergizi dan tidak bergizi",
+      "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
+      "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
+      "9. Apakah kamu hari ini sudah sarapan?",
+      "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
+    ];
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
       from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
@@ -46,19 +60,6 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
-    const questions = [
-      "1. Menurut kamu makanan junk food sehat atau tidak?",
-      "2. Seberapa sering kamu mengonsumsi makanan junk food?",
-      "3. Berapa kali kamu makan dalam sehari?",
-      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
-      "5. Apakah kamu sering mengonsumsi sayur sayuran?",
-      "6. Sebutkan makanan yang bergizi dan tidak bergizi",
-      "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
-      "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
-      "9. Apakah kamu hari ini sudah sarapan?",
-      "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
-    ];
 
     let currentQuestion = 0;
     let tempAnswers = [];
@@ -188,4 +189,11 @@
             const safeAns = Array.isArray(row.answers) ? row.answers.join(" | ") : "";
             html += `<tr><td>${safeEmail}</td><td>${safeAns}</td></tr>`;
           });
-          html += "</table
+          html += "</table>";
+          answersContainer.innerHTML = html;
+        }
+        answersContainer.style.display = "block";
+      } else {
+        alert("Password salah!");
+      }
+    });
