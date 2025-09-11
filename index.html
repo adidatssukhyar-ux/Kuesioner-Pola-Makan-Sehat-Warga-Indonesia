@@ -74,12 +74,13 @@
         <label for="answer">${questions[index]}</label>
         <textarea id="answer" required placeholder="Jawaban kamu..."></textarea>
       `;
-      // Reset visibility
-      nextBtn.style.display = "inline-block";
-      submitBtn.style.display = "none";
+      // Toggle buttons based on position
       if (index === questions.length - 1) {
         nextBtn.style.display = "none";
         submitBtn.style.display = "inline-block";
+      } else {
+        nextBtn.style.display = "inline-block";
+        submitBtn.style.display = "none";
       }
     }
 
@@ -97,7 +98,7 @@
       e.preventDefault();
       const answerField = document.getElementById('answer');
       if (!answerField.value) return;
-      answers[currentQuestion] = answerField.value;
+      answers[currentQuestion] = answerField.value; // Save last answer
 
       await addDoc(collection(db, "responses"), {
         email: emailInput.value,
@@ -105,6 +106,7 @@
         timestamp: new Date()
       });
 
+      // Reset for next user
       form.reset();
       currentQuestion = 0;
       answers = [];
