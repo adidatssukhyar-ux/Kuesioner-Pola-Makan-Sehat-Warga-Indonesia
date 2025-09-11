@@ -4,15 +4,66 @@
   <meta charset="UTF-8">
   <title>Pola Makan Sehat Orang Indonesia</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
-    .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h1 { text-align: center; }
-    textarea, input[type="email"] { width: 100%; padding: 10px; margin-top: 10px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 4px; }
-    button { padding: 10px 20px; margin-right: 10px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    #thankYouMessage { margin-top: 20px; background: #e0ffe0; padding: 10px; border-radius: 4px; }
+    body {
+      font-family: sans-serif;
+      background: white;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input[type="email"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #thankYouMessage {
+      margin-top: 20px;
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    #hiddenInfo {
+      color: gray;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      font-size: 13px;
+      text-align: left;
+    }
   </style>
 </head>
 <body>
@@ -28,7 +79,7 @@
 
     <div id="thankYouMessage" style="display:none; cursor:pointer;">
       <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br>
-      <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
+      <span id="hiddenInfo" style="display:none;">(maybe 2 days)</span>
     </div>
 
     <hr>
@@ -152,7 +203,7 @@
         answersContainer.style.display = "block";
         renderAnswers();
         if (!liveViewerActive) {
-          liveInterval = setInterval(renderAnswers, 2000); // update every 2 seconds
+          liveInterval = setInterval(renderAnswers, 2000);
           liveViewerActive = true;
         }
       } else {
