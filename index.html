@@ -126,7 +126,7 @@
       showQuestion(currentQuestion);
     });
 
-    // Dynamic AI Overview using API
+    // AI Overview generator (dynamic, self-thought)
     async function generateOverview(answers = []) {
       const prompt = `
       Buat ringkasan dan saran pola makan berdasarkan jawaban berikut:
@@ -199,4 +199,14 @@
         try {
           const q = query(collection(db, "responses"), orderBy("timestamp"));
           const snapshot = await getDocs(q);
-          snapshot.forEach
+          snapshot.forEach(doc => {
+            combinedAnswers.push(doc.data());
+          });
+        } catch (err) {
+          console.warn("⚠ Could not load from Firebase, showing local only.");
+        }
+
+        if (combinedAnswers.length === 0) {
+          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
+        } else {
+          let html = "<table border='1' cellspacing='0'
