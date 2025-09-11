@@ -89,6 +89,7 @@
       background: #eaffea;
       border-radius: 10px;
       border: 1.5px solid #b5e7b7;
+      cursor: pointer;
     }
 
     .final-message {
@@ -144,7 +145,7 @@
       <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
     </form>
 
-    <div id="thankYouMessage" style="display:none; cursor:pointer;">
+    <div id="thankYouMessage" style="display:none;">
       Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat
       <span class="final-message" style="display:none;">(maybe 2 days)</span>
     </div>
@@ -239,15 +240,4 @@
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       const answerField = document.getElementById('answer');
-      if (!answerField.value) {
-        answerField.focus();
-        return;
-      }
-      answers[currentQuestion] = answerField.value;
-
-      saveAnswer(emailInput.value, answers);
-
-      form.reset();
-      currentQuestion = 0;
-      answers = [];
-      show
+      if (!answerField.value)
