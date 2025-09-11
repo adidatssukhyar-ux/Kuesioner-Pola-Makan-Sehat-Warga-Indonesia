@@ -100,7 +100,7 @@
       showQuestion(currentQuestion);
     });
 
-    // AI Overview generator (Gemini 2.0 Flash API with your key)
+    // AI Overview generator (Gemini 2.0 Flash API with new key)
     async function generateOverview(answers = []) {
       const prompt = `
       Buat ringkasan dan saran pola makan berdasarkan jawaban berikut:
@@ -110,7 +110,7 @@
 
       try {
         const res = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDXDp6pRZwU_87aSNhOrtke5wmkgkEEGEg",
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBPcdZLEOAb7zgjtj5Tu9lzQBD1SAFayDQ",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -182,20 +182,4 @@
         if (combinedAnswers.length === 0) {
           answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
         } else {
-          let html = "<table border='1' cellspacing='0' cellpadding='6'><tr><th>Email</th><th>Jawaban</th></tr>";
-          combinedAnswers.forEach(row => {
-            const safeEmail = (row.email ?? "").toString();
-            const safeAns = Array.isArray(row.answers) ? row.answers.join(" | ") : "";
-            html += `<tr><td>${safeEmail}</td><td>${safeAns}</td></tr>`;
-          });
-          html += "</table>";
-          answersContainer.innerHTML = html;
-        }
-        answersContainer.style.display = "block";
-      } else {
-        alert("Password salah!");
-      }
-    });
-  </script>
-</body>
-</html>
+          let html = "<table border='1' cellspacing='0' cellpadding='6'><tr><th>Email</th><th>Jawaban</th></
