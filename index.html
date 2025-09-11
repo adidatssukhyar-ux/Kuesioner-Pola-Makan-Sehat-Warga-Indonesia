@@ -16,11 +16,12 @@
 
       <button type="button" id="nextBtn">Next</button>
       <button type="submit" id="submitBtn" style="display:none;">Submit</button>
-      <div id="thankYouMessage" style="display:none;">
-        <span>Terima kasih atas jawaban kamu!</span><br>
-        <span class="final-message">Terimakasih telah menjawab pertanyaan ini, hasilnya akan dikirim ke email yang sudah di submit</span>
-      </div>
     </form>
+    <!-- Move thankYouMessage OUTSIDE the form for safety -->
+    <div id="thankYouMessage" style="display:none;">
+      <span>Terima kasih atas jawaban kamu!</span><br>
+      <span class="final-message">Terimakasih telah menjawab pertanyaan ini, hasilnya akan dikirim ke email yang sudah di submit</span>
+    </div>
   </div>
   <script src="script.js"></script>
 </body>
