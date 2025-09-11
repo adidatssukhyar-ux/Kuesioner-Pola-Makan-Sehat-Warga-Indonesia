@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vibe Survey</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Vibe & Mood Survey</h1>
+    <form id="vibeForm" action="https://formspree.io/f/your-form-id" method="POST">
+      <label for="email">Email:</label>
+      <input type="email" name="email" id="email" required placeholder="your@email.com">
+
+      <label for="question">What influences your mood the most?</label>
+      <textarea name="question" id="question" required placeholder="Type your answer here..."></textarea>
+
+      <button type="submit">Submit</button>
+      <div id="thankYouMessage" style="display:none;">Thank you for your response!</div>
+    </form>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
