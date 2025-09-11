@@ -21,6 +21,9 @@
       <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
     </div>
 
+    <!-- AI Overview box -->
+    <div id="aiOverview" style="display:none; margin-top:15px; padding:10px; border:1px solid #ccc; border-radius:5px; background:#f9f9f9;"></div>
+
     <hr>
     <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
     <div id="answersContainer" style="display:none; margin-top:10px;"></div>
@@ -32,7 +35,7 @@
     import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
       from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    // Firebase config (your project)
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
       authDomain: "surveylive-c0691.firebaseapp.com",
@@ -72,6 +75,7 @@
     const submitBtn = document.getElementById('submitBtn');
     const thankYouMessage = document.getElementById('thankYouMessage');
     const hiddenInfo = document.getElementById('hiddenInfo');
+    const aiOverview = document.getElementById('aiOverview');
     const form = document.getElementById('wizardForm');
     const showAnswersBtn = document.getElementById('showAnswersBtn');
     const answersContainer = document.getElementById('answersContainer');
@@ -100,6 +104,40 @@
       showQuestion(currentQuestion);
     });
 
+    // AI Overview generator
+    function generateOverview(answers) {
+      let advice = [];
+      
+      // Junk food opinion
+      if (answers[0]?.toLowerCase().includes("sehat")) {
+        advice.push("⚠️ Kamu menganggap junk food sehat — sebaiknya batasi konsumsi makanan cepat saji karena tinggi lemak, garam, dan gula.");
+      } else {
+        advice.push("👍 Kamu sadar junk food tidak sehat — pertahankan kebiasaan ini dan pilih makanan segar lebih sering.");
+      }
+
+      // Sayur & buah
+      if (answers[4]?.toLowerCase().includes("tidak") || answers[4]?.toLowerCase().includes("jarang")) {
+        advice.push("🥦 Perbanyak konsumsi sayur dan buah setiap hari untuk serat, vitamin, dan mineral.");
+      } else {
+        advice.push("🌱 Konsumsi sayur dan buah kamu sudah baik — teruskan!");
+      }
+
+      // Minuman manis
+      if (answers[3]?.toLowerCase().includes("sering")) {
+        advice.push("🥤 Kurangi minuman manis/bersoda untuk menjaga kesehatan gigi dan berat badan.");
+      }
+
+      // Sarapan
+      if (answers[8]?.toLowerCase().includes("tidak")) {
+        advice.push("🍳 Usahakan sarapan setiap pagi untuk energi dan konsentrasi.");
+      }
+
+      // Default encouragement
+      advice.push("💡 Ingat: pola makan seimbang + olahraga teratur = tubuh sehat dan bugar.");
+
+      return advice.join("<br>");
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const answerField = document.getElementById('answer');
@@ -125,6 +163,10 @@
         console.error("❌ Firebase save failed:", err);
         alert("⚠ Data disimpan lokal. Firebase gagal menyimpan.");
       }
+
+      // Generate and show AI overview
+      aiOverview.innerHTML = `<strong>📊 Ringkasan & Saran:</strong><br>${generateOverview(tempAnswers)}`;
+      aiOverview.style.display = 'block';
 
       // Reset UI
       form.reset();
@@ -158,16 +200,4 @@
         } else {
           let html = "<table border='1'><tr><th>Email</th><th>Jawaban</th></tr>";
           combinedAnswers.forEach(row => {
-            html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
-          });
-          html += "</table>";
-          answersContainer.innerHTML = html;
-        }
-        answersContainer.style.display = "block";
-      } else {
-        alert("Password salah!");
-      }
-    });
-  </script>
-</body>
-</html>
+            html += `<tr><td>${row.email}</td
