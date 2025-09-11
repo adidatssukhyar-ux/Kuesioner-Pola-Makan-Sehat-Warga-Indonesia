@@ -1,22 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Vibe Survey</title>
+  <title>Pola Makan Sehat Orang Indonesia</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>Vibe & Mood Survey</h1>
-    <form id="vibeForm" action="https://formspree.io/f/your-form-id" method="POST">
+    <h1>Pola Makan Sehat Orang Indonesia</h1>
+    <form id="surveyForm" action="#" method="POST">
       <label for="email">Email:</label>
       <input type="email" name="email" id="email" required placeholder="your@email.com">
+      
+      <label for="q1">1. Menurut kamu makanan junk food sehat atau tidak?</label>
+      <textarea name="q1" id="q1" required placeholder="Jawaban kamu..."></textarea>
 
-      <label for="question">What influences your mood the most?</label>
-      <textarea name="question" id="question" required placeholder="Type your answer here..."></textarea>
+      <label for="q2">2. Seberapa sering kamu mengonsumsi makanan junk food?</label>
+      <textarea name="q2" id="q2" required placeholder="Jawaban kamu..."></textarea>
+
+      <label for="q3">3. Berapa kali kamu makan dalam sehari?</label>
+      <textarea name="q3" id="q3" required placeholder="Jawaban kamu..."></textarea>
+
+      <label for="q4">4. Apakah kamu sering mengonsumsi soda/minuman berwarna?</label>
+      <textarea name="q4" id="q4" required placeholder="Jawaban kamu..."></textarea>
+
+      <label for="q5">5. Apakah kamu sering mengonsumsi sayur sayuran?</label>
+      <textarea name="q5" id="q5" required placeholder="Jawaban kamu..."></textarea>
+
+      <label for="q6">6. Sebutkan makanan yang bergizi dan tidak bergizi</label>
+      <textarea name="q6" id="q6" required placeholder="Jawaban kamu..."></textarea>
+
+      <label for="q7">7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?</label>
+      <textarea name="q7" id="q7" required placeholder="Jawaban kamu..."></textarea>
+
+      <label for="q8">8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?</label>
+      <textarea name="q8" id="q8" required placeholder="Jawaban kamu..."></textarea>
+
+      <label for="q9">9. Apakah kamu hari ini sudah sarapan?</label>
+      <textarea name="q9" id="q9" required placeholder="Jawaban kamu..."></textarea>
+
+      <label for="q10">10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?</label>
+      <textarea name="q10" id="q10" required placeholder="Jawaban kamu..."></textarea>
 
       <button type="submit">Submit</button>
-      <div id="thankYouMessage" style="display:none;">Thank you for your response!</div>
+      <div id="thankYouMessage" style="display:none;">Terima kasih atas jawaban kamu!</div>
     </form>
   </div>
   <script src="script.js"></script>
