@@ -16,13 +16,13 @@
       <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
     </form>
 
-    <div id="thankYouMessage" style="display:none; cursor:pointer; margin-top:15px;">
+    <div id="thankYouMessage" style="display:none; cursor:pointer; margin-top:12px;">
       <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br>
       <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
     </div>
 
-    <!-- AI Overview box -->
-    <div id="aiOverview" style="display:none; margin-top:15px; padding:10px; border:1px solid #ccc; border-radius:5px; background:#f9f9f9;"></div>
+    <!-- AI Overview box (new) -->
+    <div id="aiOverview" style="display:none; margin-top:12px; padding:10px; border:1px solid #ccc; border-radius:6px; background:#f9f9f9;"></div>
 
     <hr>
     <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
@@ -30,10 +30,12 @@
   </div>
 
   <script type="module">
+    // Firebase imports from CDN
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
       from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
+    // Firebase config (your project)
     const firebaseConfig = {
       apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
       authDomain: "surveylive-c0691.firebaseapp.com",
@@ -44,9 +46,11 @@
       measurementId: "G-83GZWBY7K5"
     };
 
+    // Init Firebase + Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Questions
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -64,6 +68,7 @@
     let tempAnswers = [];
     let allAnswers = JSON.parse(localStorage.getItem("responses") || "[]");
 
+    // DOM elements
     const emailInput = document.getElementById('email');
     const questionContainer = document.getElementById('questionContainer');
     const nextBtn = document.getElementById('nextBtn');
@@ -75,12 +80,14 @@
     const showAnswersBtn = document.getElementById('showAnswersBtn');
     const answersContainer = document.getElementById('answersContainer');
 
+    // Render a question
     function showQuestion(index) {
+      const q = questions[index] ?? "";
       questionContainer.innerHTML = `
-        <label for="answer">${questions[index]}</label>
+        <label for="answer">${q}</label>
         <textarea id="answer" placeholder="Jawaban kamu..."></textarea>
       `;
-      if (index === questions.length - 1) {
+      if (index >= questions.length - 1) {
         nextBtn.style.display = "none";
         submitBtn.style.display = "inline-block";
       } else {
@@ -89,8 +96,10 @@
       }
     }
 
+    // Start with question 1 visible (original behavior)
     showQuestion(currentQuestion);
 
+    // Next button
     nextBtn.addEventListener('click', () => {
       const answerField = document.getElementById('answer');
       if (!emailInput.value.trim() || !answerField.value.trim()) return;
@@ -99,56 +108,64 @@
       showQuestion(currentQuestion);
     });
 
-    // AI Overview generator
-    function generateOverview(answers) {
-      let advice = [];
+    // AI Overview generator (safe, with praise + tips)
+    function generateOverview(answers = []) {
+      try {
+        const a = (i) => (answers[i] || "").toString().toLowerCase();
+        const out = [];
 
-      // Junk food opinion
-      if (answers[0]?.toLowerCase().includes("sehat")) {
-        advice.push("⚠️ Kamu menganggap junk food sehat — sebaiknya batasi konsumsi makanan cepat saji karena tinggi lemak, garam, dan gula.");
-      } else {
-        advice.push("👍 Bagus! Kamu sadar junk food tidak sehat — pertahankan kebiasaan ini.");
+        // Junk food opinion (Q1 index 0)
+        if (a(0).includes("sehat")) {
+          out.push("⚠️ Kamu menganggap junk food sehat — sebaiknya batasi konsumsi makanan cepat saji karena tinggi lemak, garam, dan gula.");
+        } else if (a(0)) {
+          out.push("👍 Bagus! Kamu sadar junk food tidak sehat — pertahankan kebiasaan ini.");
+        }
+
+        // Minuman manis/soda (Q4 index 3)
+        if (a(3).includes("sering")) {
+          out.push("🥤 Kurangi minuman manis/bersoda untuk menjaga kesehatan gigi dan berat badan.");
+        } else if (a(3)) {
+          out.push("💧 Pilihan minuman kamu cukup sehat — pertahankan ya!");
+        }
+
+        // Sayur (Q5 index 4)
+        if (a(4).includes("tidak") || a(4).includes("jarang")) {
+          out.push("🥦 Perbanyak konsumsi sayur dan buah setiap hari untuk serat, vitamin, dan mineral.");
+        } else if (a(4)) {
+          out.push("🌱 Konsumsi sayur dan buah kamu sudah baik — mantap, teruskan!");
+        }
+
+        // Sarapan (Q9 index 8)
+        if (a(8).includes("tidak")) {
+          out.push("🍳 Usahakan sarapan setiap pagi untuk energi dan konsentrasi.");
+        } else if (a(8)) {
+          out.push("☀️ Bagus! Sarapan teratur membantu menjaga energi sepanjang hari.");
+        }
+
+        // Balanced reminder
+        out.push("💡 Ingat: pola makan seimbang + cukup air + olahraga teratur = tubuh sehat dan bugar.");
+
+        return out.join("<br>");
+      } catch {
+        return "⚙️ Ringkasan tidak tersedia saat ini, namun jawaban kamu sudah tersimpan.";
       }
-
-      // Sayur & buah
-      if (answers[4]?.toLowerCase().includes("tidak") || answers[4]?.toLowerCase().includes("jarang")) {
-        advice.push("🥦 Perbanyak konsumsi sayur dan buah setiap hari untuk serat, vitamin, dan mineral.");
-      } else {
-        advice.push("🌱 Konsumsi sayur dan buah kamu sudah baik — teruskan!");
-      }
-
-      // Minuman manis
-      if (answers[3]?.toLowerCase().includes("sering")) {
-        advice.push("🥤 Kurangi minuman manis/bersoda untuk menjaga kesehatan gigi dan berat badan.");
-      } else {
-        advice.push("💧 Pilihan minuman kamu sehat — pertahankan!");
-      }
-
-      // Sarapan
-      if (answers[8]?.toLowerCase().includes("tidak")) {
-        advice.push("🍳 Usahakan sarapan setiap pagi untuk energi dan konsentrasi.");
-      } else {
-        advice.push("☀️ Bagus! Sarapan teratur membantu menjaga energi sepanjang hari.");
-      }
-
-      advice.push("💡 Ingat: pola makan seimbang + olahraga teratur = tubuh sehat dan bugar.");
-      return advice.join("<br>");
     }
 
+    // Submit
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const answerField = document.getElementById('answer');
       if (!answerField.value.trim()) return;
       tempAnswers[currentQuestion] = answerField.value.trim();
 
-      // Save locally first
+      // Save locally first (always)
       allAnswers.push({
         email: emailInput.value.trim(),
         answers: [...tempAnswers]
       });
       localStorage.setItem("responses", JSON.stringify(allAnswers));
 
-      // Try Firebase save
+      // Try Firebase save (non-blocking for UI)
       try {
         await addDoc(collection(db, "responses"), {
           email: emailInput.value.trim(),
@@ -161,23 +178,26 @@
         alert("⚠ Data disimpan lokal. Firebase gagal menyimpan.");
       }
 
-      // Show AI overview
+      // Show thank you (but don't hide the form)
+      thankYouMessage.style.display = 'block';
+
+      // Show AI overview safely
       aiOverview.innerHTML = `<strong>📊 Ringkasan & Saran:</strong><br>${generateOverview(tempAnswers)}`;
       aiOverview.style.display = 'block';
 
-      // Reset UI for next run
+      // Prepare for next response (keep questions visible)
       form.reset();
       currentQuestion = 0;
       tempAnswers = [];
       showQuestion(currentQuestion);
-      form.style.display = 'none';
-      thankYouMessage.style.display = 'block';
     });
 
+    // Tiny easter: click thank-you to reveal hidden line
     thankYouMessage.addEventListener('click', () => {
       hiddenInfo.style.display = 'inline';
     });
 
+    // Protected answers viewer
     showAnswersBtn.addEventListener('click', async () => {
       const pass = prompt("Masukkan password untuk melihat jawaban:");
       if (pass === "rahasia123") {
@@ -195,6 +215,20 @@
         if (combinedAnswers.length === 0) {
           answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
         } else {
-          let html = "<table border='1'><tr><th>Email</th><th>Jawaban</th></tr>";
+          let html = "<table border='1' cellspacing='0' cellpadding='6'><tr><th>Email</th><th>Jawaban</th></tr>";
           combinedAnswers.forEach(row => {
-            html += `<tr><td>${row.email}</td><td>${row.answers.join
+            const safeEmail = (row.email ?? "").toString();
+            const safeAns = Array.isArray(row.answers) ? row.answers.join(" | ") : "";
+            html += `<tr><td>${safeEmail}</td><td>${safeAns}</td></tr>`;
+          });
+          html += "</table>";
+          answersContainer.innerHTML = html;
+        }
+        answersContainer.style.display = "block";
+      } else {
+        alert("Password salah!");
+      }
+    });
+  </script>
+</body>
+</html>
