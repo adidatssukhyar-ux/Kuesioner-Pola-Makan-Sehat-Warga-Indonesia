@@ -6,192 +6,185 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Pola Makan Sehat Orang Indonesia</h1>
-    <form id="wizardForm">
-      <label for="email">Email kamu:</label>
-      <input type="email" name="email" id="email" required placeholder="your@email.com">
-      <div id="questionContainer"></div>
-      <button type="button" id="nextBtn">Next</button>
-      <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
-    </form>
+<div class="container">
+  <h1>Pola Makan Sehat Orang Indonesia</h1>
+  <form id="wizardForm">
+    <label for="email">Email kamu:</label>
+    <input type="email" name="email" id="email" required placeholder="your@email.com">
+    <div id="questionContainer"></div>
+    <button type="button" id="nextBtn">Next</button>
+    <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
+  </form>
 
-    <div id="thankYouMessage" style="display:none; cursor:pointer; margin-top:12px;">
-      <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br>
-      <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
-    </div>
-
-    <!-- AI Overview box -->
-    <div id="aiOverview" style="display:none; margin-top:12px; padding:14px 16px; border:1px solid #ddd; border-radius:8px; background:linear-gradient(135deg,#ffffff,#f7f7f7); box-shadow:0 2px 6px rgba(0,0,0,0.05); font-size:14px; line-height:1.5em; color:#333;"></div>
-
-    <hr>
-    <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
-    <div id="answersContainer" style="display:none; margin-top:10px;"></div>
+  <div id="thankYouMessage" style="display:none; cursor:pointer; margin-top:12px;">
+    <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br>
+    <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
-      from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+  <div id="aiOverview" style="display:none; margin-top:12px; padding:14px 16px; border:1px solid #ddd; border-radius:8px; background:linear-gradient(135deg,#ffffff,#f7f7f7); box-shadow:0 2px 6px rgba(0,0,0,0.05); font-size:14px; line-height:1.5em; color:#333;"></div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
-      authDomain: "surveylive-c0691.firebaseapp.com",
-      projectId: "surveylive-c0691",
-      storageBucket: "surveylive-c0691.firebasestorage.app",
-      messagingSenderId: "894041077720",
-      appId: "1:894041077720:web:2115a27b69e8b81ab724ad",
-      measurementId: "G-83GZWBY7K5"
-    };
+  <hr>
+  <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
+  <div id="answersContainer" style="display:none; margin-top:10px;"></div>
+</div>
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
+  from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-    const questions = [
-      "1. Menurut kamu makanan junk food sehat atau tidak?",
-      "2. Seberapa sering kamu mengonsumsi makanan junk food?",
-      "3. Berapa kali kamu makan dalam sehari?",
-      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
-      "5. Apakah kamu sering mengonsumsi sayur sayuran?",
-      "6. Sebutkan makanan yang bergizi dan tidak bergizi",
-      "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
-      "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
-      "9. Apakah kamu hari ini sudah sarapan?",
-      "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
-    ];
+// 📝 Questions
+const questions = [
+  "1. Menurut kamu makanan junk food sehat atau tidak?",
+  "2. Seberapa sering kamu mengonsumsi makanan junk food?",
+  "3. Berapa kali kamu makan dalam sehari?",
+  "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
+  "5. Apakah kamu sering mengonsumsi sayur sayuran?",
+  "6. Sebutkan makanan yang bergizi dan tidak bergizi",
+  "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
+  "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
+  "9. Apakah kamu hari ini sudah sarapan?",
+  "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
+];
 
-    let currentQuestion = 0;
-    let tempAnswers = [];
-    let allAnswers = JSON.parse(localStorage.getItem("responses") || "[]");
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
+  authDomain: "surveylive-c0691.firebaseapp.com",
+  projectId: "surveylive-c0691",
+  storageBucket: "surveylive-c0691.firebasestorage.app",
+  messagingSenderId: "894041077720",
+  appId: "1:894041077720:web:2115a27b69e8b81ab724ad",
+  measurementId: "G-83GZWBY7K5"
+};
 
-    const emailInput = document.getElementById('email');
-    const questionContainer = document.getElementById('questionContainer');
-    const nextBtn = document.getElementById('nextBtn');
-    const submitBtn = document.getElementById('submitBtn');
-    const thankYouMessage = document.getElementById('thankYouMessage');
-    const hiddenInfo = document.getElementById('hiddenInfo');
-    const aiOverview = document.getElementById('aiOverview');
-    const form = document.getElementById('wizardForm');
-    const showAnswersBtn = document.getElementById('showAnswersBtn');
-    const answersContainer = document.getElementById('answersContainer');
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-    function showQuestion(index) {
-      const q = questions[index] ?? "";
-      questionContainer.innerHTML = `
-        <label for="answer">${q}</label>
-        <textarea id="answer" placeholder="Jawaban kamu..."></textarea>
-      `;
-      if (index >= questions.length - 1) {
-        nextBtn.style.display = "none";
-        submitBtn.style.display = "inline-block";
-      } else {
-        nextBtn.style.display = "inline-block";
-        submitBtn.style.display = "none";
+let currentQuestion = 0;
+let tempAnswers = [];
+let allAnswers = JSON.parse(localStorage.getItem("responses") || "[]");
+
+const emailInput = document.getElementById('email');
+const questionContainer = document.getElementById('questionContainer');
+const nextBtn = document.getElementById('nextBtn');
+const submitBtn = document.getElementById('submitBtn');
+const thankYouMessage = document.getElementById('thankYouMessage');
+const hiddenInfo = document.getElementById('hiddenInfo');
+const aiOverview = document.getElementById('aiOverview');
+const form = document.getElementById('wizardForm');
+const showAnswersBtn = document.getElementById('showAnswersBtn');
+const answersContainer = document.getElementById('answersContainer');
+
+function showQuestion(index) {
+  const q = questions[index] ?? "";
+  questionContainer.innerHTML = `
+    <label for="answer">${q}</label>
+    <textarea id="answer" placeholder="Jawaban kamu..."></textarea>
+  `;
+  if (index >= questions.length - 1) {
+    nextBtn.style.display = "none";
+    submitBtn.style.display = "inline-block";
+  } else {
+    nextBtn.style.display = "inline-block";
+    submitBtn.style.display = "none";
+  }
+}
+
+showQuestion(currentQuestion);
+
+nextBtn.addEventListener('click', () => {
+  const answerField = document.getElementById('answer');
+  if (!emailInput.value.trim() || !answerField.value.trim()) return;
+  tempAnswers[currentQuestion] = answerField.value.trim();
+  currentQuestion++;
+  showQuestion(currentQuestion);
+});
+
+// Gemini API call
+async function generateOverview(answers = []) {
+  const prompt = `
+  Buat ringkasan dan saran pola makan berdasarkan jawaban berikut:
+  ${answers.map((ans, i) => `${questions[i]}: ${ans}`).join("\n")}
+  Gunakan bahasa yang ramah, jelas, dan berikan tips yang relevan.
+  `;
+  try {
+    const res = await fetch(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBPcdZLEOAb7zgjtj5Tu9lzQBD1SAFayDQ",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
       }
-    }
+    );
+    const data = await res.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada ringkasan.";
+    return `<strong>📊 Ringkasan & Saran:</strong><br>${text}`;
+  } catch (err) {
+    console.error(err);
+    return "⚙ Ringkasan tidak tersedia saat ini, namun jawaban kamu sudah tersimpan.";
+  }
+}
 
-    showQuestion(currentQuestion);
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const answerField = document.getElementById('answer');
+  if (!answerField.value.trim()) return;
+  tempAnswers[currentQuestion] = answerField.value.trim();
 
-    nextBtn.addEventListener('click', () => {
-      const answerField = document.getElementById('answer');
-      if (!emailInput.value.trim() || !answerField.value.trim()) return;
-      tempAnswers[currentQuestion] = answerField.value.trim();
-      currentQuestion++;
-      showQuestion(currentQuestion);
+  allAnswers.push({
+    email: emailInput.value.trim(),
+    answers: [...tempAnswers]
+  });
+  localStorage.setItem("responses", JSON.stringify(allAnswers));
+
+  try {
+    await addDoc(collection(db, "responses"), {
+      email: emailInput.value.trim(),
+      answers: [...tempAnswers],
+      timestamp: new Date()
     });
+  } catch (err) {
+    console.error("Firebase save failed:", err);
+  }
 
-    // AI Overview generator (Gemini 2.0 Flash API with your key)
-    async function generateOverview(answers = []) {
-      const prompt = `
-      Buat ringkasan dan saran pola makan berdasarkan jawaban berikut:
-      ${answers.map((ans, i) => `${questions[i]}: ${ans}`).join("\n")}
-      Gunakan bahasa yang ramah, jelas, dan berikan tips yang relevan.
-      `;
+  thankYouMessage.style.display = 'block';
+  aiOverview.innerHTML = await generateOverview(tempAnswers);
+  aiOverview.style.display = 'block';
 
-      try {
-        const res = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBPcdZLEOAb7zgjtj5Tu9lzQBD1SAFayDQ",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }]
-            })
-          }
-        );
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada ringkasan.";
-        return `<strong>📊 Ringkasan & Saran:</strong><br>${text}`;
-      } catch (err) {
-        console.error(err);
-        return "⚙ Ringkasan tidak tersedia saat ini, namun jawaban kamu sudah tersimpan.";
-      }
-    }
+  form.reset();
+  currentQuestion = 0;
+  tempAnswers = [];
+  showQuestion(currentQuestion);
+});
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const answerField = document.getElementById('answer');
-      if (!answerField.value.trim()) return;
-      tempAnswers[currentQuestion] = answerField.value.trim();
+thankYouMessage.addEventListener('click', () => {
+  hiddenInfo.style.display = 'inline';
+});
 
-      allAnswers.push({
-        email: emailInput.value.trim(),
-        answers: [...tempAnswers]
+showAnswersBtn.addEventListener('click', async () => {
+  const pass = prompt("Masukkan password untuk melihat jawaban:");
+  if (pass === "rahasia123") {
+    let combinedAnswers = [...allAnswers];
+    try {
+      const q = query(collection(db, "responses"), orderBy("timestamp"));
+      const snapshot = await getDocs(q);
+      snapshot.forEach(doc => {
+        combinedAnswers.push(doc.data());
       });
-      localStorage.setItem("responses", JSON.stringify(allAnswers));
+    } catch (err) {
+      console.warn("⚠ Could not load from Firebase, showing local only.");
+    }
 
-      try {
-        await addDoc(collection(db, "responses"), {
-          email: emailInput.value.trim(),
-          answers: [...tempAnswers],
-          timestamp: new Date()
-        });
-      } catch (err) {
-        console.error("Firebase save failed:", err);
-      }
-
-      thankYouMessage.style.display = 'block';
-
-      aiOverview.innerHTML = await generateOverview(tempAnswers);
-      aiOverview.style.display = 'block';
-
-      form.reset();
-      currentQuestion = 0;
-      tempAnswers = [];
-      showQuestion(currentQuestion);
-    });
-
-    thankYouMessage.addEventListener('click', () => {
-      hiddenInfo.style.display = 'inline';
-    });
-
-    showAnswersBtn.addEventListener('click', async () => {
-      const pass = prompt("Masukkan password untuk melihat jawaban:");
-      if (pass === "rahasia123") {
-        let combinedAnswers = [...allAnswers];
-        try {
-          const q = query(collection(db, "responses"), orderBy("timestamp"));
-          const snapshot = await getDocs(q);
-          snapshot.forEach(doc => {
-            combinedAnswers.push(doc.data());
-          });
-        } catch (err) {
-          console.warn("⚠ Could not load from Firebase, showing local only.");
-        }
-
-        if (combinedAnswers.length === 0) {
-          answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
-        } else {
-          let html = "<table border='1' cellspacing='0' cellpadding='6'><tr><th>Email</th><th>Jawaban</th></tr>";
-          combinedAnswers.forEach(row => {
-            const safeEmail = (row.email ?? "").toString();
-            const safeAns = Array.isArray(row.answers) ? row.answers.join(" | ") : "";
-            html += `<tr><td>${safeEmail}</td><td>${safeAns}</td></tr>`;
-          });
-          html += "</table>";
-          answersContainer.innerHTML = html;
-        }
-        answersContainer.style.display = "block";
-      } else {
-        alert("Password salah!");
-     
+    if (combinedAnswers.length === 0) {
+      answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
+    } else {
+      let html = "<table border='1' cellspacing='0' cellpadding='6'><tr><th>Email</th><th>Jawaban</th></tr>";
+      combinedAnswers.forEach(row => {
+        const safeEmail = (row.email ?? "").toString();
+        const safeAns = Array.isArray(row.answers) ? row.answers.join(" | ") : "";
+        html += `<tr><td>${safeEmail}</td><td>${safeAns}</td></tr>`;
+      });
+      html +=
