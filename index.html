@@ -30,20 +30,6 @@
   </div>
 
   <script type="module">
-    // 📝 SURVEY QUESTIONS — edit here
-    const questions = [
-      "1. Menurut kamu makanan junk food sehat atau tidak?",
-      "2. Seberapa sering kamu mengonsumsi makanan junk food?",
-      "3. Berapa kali kamu makan dalam sehari?",
-      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
-      "5. Apakah kamu sering mengonsumsi sayur sayuran?",
-      "6. Sebutkan makanan yang bergizi dan tidak bergizi",
-      "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
-      "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
-      "9. Apakah kamu hari ini sudah sarapan?",
-      "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
-    ];
-
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy } 
       from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
@@ -60,6 +46,19 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    const questions = [
+      "1. Menurut kamu makanan junk food sehat atau tidak?",
+      "2. Seberapa sering kamu mengonsumsi makanan junk food?",
+      "3. Berapa kali kamu makan dalam sehari?",
+      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
+      "5. Apakah kamu sering mengonsumsi sayur sayuran?",
+      "6. Sebutkan makanan yang bergizi dan tidak bergizi",
+      "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
+      "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
+      "9. Apakah kamu hari ini sudah sarapan?",
+      "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
+    ];
 
     let currentQuestion = 0;
     let tempAnswers = [];
@@ -111,7 +110,7 @@
 
       try {
         const res = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDXDp6pRZwU_87aSNhOrtke5wmkgkEEGEg",
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=YOUR_GEMINI_API_KEY",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -197,3 +196,6 @@
         alert("Password salah!");
       }
     });
+  </script>
+</body>
+</html>
