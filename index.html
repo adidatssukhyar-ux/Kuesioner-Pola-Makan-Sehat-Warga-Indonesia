@@ -4,32 +4,6 @@
   <meta charset="UTF-8">
   <title>Pola Makan Sehat Orang Indonesia</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    /* AI Overview styling to match form */
-    #aiOverview {
-      margin-top: 12px;
-      padding: 14px 16px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #ffffff, #f7f7f7);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      font-size: 14px;
-      line-height: 1.5em;
-      color: #333;
-      animation: fadeInUp 0.4s ease;
-      display: none;
-    }
-    #aiOverview strong {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 15px;
-      color: #222;
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
 </head>
 <body>
   <div class="container">
@@ -48,7 +22,7 @@
     </div>
 
     <!-- AI Overview box -->
-    <div id="aiOverview"></div>
+    <div id="aiOverview" style="display:none; margin-top:12px; padding:14px 16px; border:1px solid #ddd; border-radius:8px; background:linear-gradient(135deg,#ffffff,#f7f7f7); box-shadow:0 2px 6px rgba(0,0,0,0.05); font-size:14px; line-height:1.5em; color:#333;"></div>
 
     <hr>
     <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
@@ -61,7 +35,7 @@
       from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_KEY",
+      apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
       authDomain: "surveylive-c0691.firebaseapp.com",
       projectId: "surveylive-c0691",
       storageBucket: "surveylive-c0691.firebasestorage.app",
@@ -209,4 +183,20 @@
         if (combinedAnswers.length === 0) {
           answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
         } else {
-          let html = "<table border='1' cellspacing='0' cellpadding='6'><tr
+          let html = "<table border='1' cellspacing='0' cellpadding='6'><tr><th>Email</th><th>Jawaban</th></tr>";
+          combinedAnswers.forEach(row => {
+            const safeEmail = (row.email ?? "").toString();
+            const safeAns = Array.isArray(row.answers) ? row.answers.join(" | ") : "";
+            html += `<tr><td>${safeEmail}</td><td>${safeAns}</td></tr>`;
+          });
+          html += "</table>";
+          answersContainer.innerHTML = html;
+        }
+        answersContainer.style.display = "block";
+      } else {
+        alert("Password salah!");
+      }
+    });
+  </script>
+</body>
+</html>
