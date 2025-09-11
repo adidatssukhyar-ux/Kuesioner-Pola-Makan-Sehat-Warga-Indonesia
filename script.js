@@ -61,6 +61,5 @@ form.addEventListener('submit', function(e) {
   answers[currentQuestion] = answerField.value;
   form.style.display = 'none';
   thankYouMessage.style.display = 'block';
-  // Here you could send the answers to a backend or external service
-  // Example: console.log({ email: emailInput.value, answers });
+  // You can process/email the answers here if you add a backend or service
 });
