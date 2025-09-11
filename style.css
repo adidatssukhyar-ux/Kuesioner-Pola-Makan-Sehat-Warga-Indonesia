@@ -1,0 +1,66 @@
+body {
+  background: #f2f6fc;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 400px;
+  margin: 60px auto;
+  padding: 30px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(120,120,160,0.09);
+}
+
+h1 {
+  text-align: center;
+  color: #374785;
+}
+
+label {
+  display: block;
+  margin-top: 16px;
+  color: #24305e;
+  font-weight: 500;
+}
+
+input[type="email"], textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 1px solid #a8a8c7;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+button[type="submit"] {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  background: #374785;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button[type="submit"]:hover {
+  background: #24305e;
+}
+
+#thankYouMessage {
+  margin-top: 18px;
+  color: #09a66e;
+  text-align: center;
+  font-size: 1.1em;
+}
