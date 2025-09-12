@@ -1,321 +1,245 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Pola Makan Sehat Orang Indonesia</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e5ffe5, #fffbe5);
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 60px auto;
+      padding: 30px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 20px rgba(100,180,120,0.12);
+      border: 2px solid #b5e7b7;
+    }
+
+    h1 {
+      text-align: center;
+      color: #35a35c;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-top: 16px;
+      color: #22753e;
+      font-weight: 500;
+    }
+
+    input[type="email"], textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1.5px solid #f5bc51;
+      font-size: 1em;
+      background: #fffde9;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(90deg, #35a35c, #f5bc51);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    #thankYouMessage {
+      margin-top: 24px;
+      color: #35a35c;
+      text-align: center;
+      font-size: 1.1em;
+      background: #eaffea;
+      padding: 15px;
+      border-radius: 10px;
+      border: 1.5px solid #b5e7b7;
+      cursor: pointer;
+    }
+
+    #hiddenInfo {
+      display: none;
+      color: #f5bc51;
+      font-size: 0.95em;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #b5e7b7;
+      padding: 10px;
+      background: #fffde9;
+    }
+
+    th {
+      background: #f5bc51;
+      color: #22753e;
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-  <h1>Pola Makan Sehat Orang Indonesia</h1>
+  <div class="container">
+    <h1>Pola Makan Sehat Orang Indonesia</h1>
+    <form id="wizardForm">
+      <label for="email">Email kamu:</label>
+      <input type="email" id="email" required placeholder="your@email.com">
+      <div id="questionContainer"></div>
+      <button type="button" id="nextBtn">Next</button>
+      <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
+    </form>
 
-  <form id="wizardForm">
-    <label for="email">Email kamu:</label>
-    <input type="email" name="email" id="email" required placeholder="your@email.com" />
-    <div id="questionContainer" style="margin-top:12px;"></div>
-    <button type="button" id="nextBtn" style="margin-top:12px;">Next</button>
-    <button type="submit" id="submitBtn" style="display:none; margin-top:12px;">Kirim</button>
-  </form>
+    <div id="thankYouMessage" style="display:none;">
+      Terimakasih telah menjawab, hasilnya akan dikirim ke email anda dalam waktu yang singkat
+      <div id="hiddenInfo">(probably 2 days)</div>
+    </div>
 
-  <div id="thankYouMessage" style="display:none; cursor:pointer; margin-top:12px;">
-    <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br />
-    <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
+    <hr>
+    <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
+    <div id="answersContainer" style="display:none;"></div>
   </div>
 
-  <div id="aiOverview" style="display:none; margin-top:12px; padding:14px 16px; border:1px solid #ddd; border-radius:8px; background:linear-gradient(135deg,#ffffff,#f7f7f7); box-shadow:0 2px 6px rgba(0,0,0,0.05); font-size:14px; line-height:1.5em; color:#333;"></div>
+  <script>
+    const questions = [
+      "1. Menurut kamu makanan junk food sehat atau tidak?",
+      "2. Seberapa sering kamu mengonsumsi makanan junk food?",
+      "3. Berapa kali kamu makan dalam sehari?",
+      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
+      "5. Apakah kamu sering mengonsumsi sayur sayuran?",
+      "6. Sebutkan makanan yang bergizi dan tidak bergizi",
+      "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
+      "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
+      "9. Apakah kamu hari ini sudah sarapan?",
+      "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
+    ];
 
-  <hr />
-  <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
-  <div id="answersContainer" style="display:none; margin-top:10px;"></div>
-</div>
+    let currentQuestion = 0;
+    const answers = [];
 
-<!-- Script 1: Always-render core (no imports, guaranteed to run) -->
-<script>
-  // 📝 Questions (visible and easy to edit)
-  const questions = [
-    "1. Menurut kamu makanan junk food sehat atau tidak?",
-    "2. Seberapa sering kamu mengonsumsi makanan junk food?",
-    "3. Berapa kali kamu makan dalam sehari?",
-    "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
-    "5. Apakah kamu sering mengonsumsi sayur sayuran?",
-    "6. Sebutkan makanan yang bergizi dan tidak bergizi",
-    "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
-    "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
-    "9. Apakah kamu hari ini sudah sarapan?",
-    "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
-  ];
+    const emailInput = document.getElementById('email');
+    const questionContainer = document.getElementById('questionContainer');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const thankYouMessage = document.getElementById('thankYouMessage');
+    const hiddenInfo = document.getElementById('hiddenInfo');
+    const form = document.getElementById('wizardForm');
+    const answersContainer = document.getElementById('answersContainer');
+    const showAnswersBtn = document.getElementById('showAnswersBtn');
 
-  // Global-ish state the module script can also read
-  window.__surveyState = {
-    currentQuestion: 0,
-    tempAnswers: [],
-    allAnswers: JSON.parse(localStorage.getItem("responses") || "[]"),
-  };
+    function showQuestion(index) {
+      questionContainer.innerHTML = `
+        <label for="answer">${questions[index]}</label>
+        <textarea id="answer" required placeholder="Jawaban kamu..."></textarea>
+      `;
+    }
 
-  // DOM refs
-  const emailInput = document.getElementById("email");
-  const questionContainer = document.getElementById("questionContainer");
-  const nextBtn = document.getElementById("nextBtn");
-  const submitBtn = document.getElementById("submitBtn");
-  const form = document.getElementById("wizardForm");
-  const thankYouMessage = document.getElementById("thankYouMessage");
-  const hiddenInfo = document.getElementById("hiddenInfo");
-  const aiOverview = document.getElementById("aiOverview");
-  const showAnswersBtn = document.getElementById("showAnswersBtn");
-  const answersContainer = document.getElementById("answersContainer");
+    function loadStoredAnswers() {
+      const stored = localStorage.getItem('allAnswers');
+      return stored ? JSON.parse(stored) : [];
+    }
 
-  // Render one question
-  function showQuestion(index) {
-    const q = questions[index] ?? "";
-    questionContainer.innerHTML = `
-      <label for="answer">${q}</label>
-      <textarea id="answer" placeholder="Jawaban kamu..." style="width:100%; min-height:110px; margin-top:8px;"></textarea>
-    `;
-    if (index >= questions.length - 1) {
-      nextBtn.style.display = "none";
-      submitBtn.style.display = "inline-block";
-    } else {
+    function saveAnswer(email, answers) {
+      const allAnswers = loadStoredAnswers();
+      allAnswers.push({ email, answers });
+      localStorage.setItem('allAnswers', JSON.stringify(allAnswers));
+    }
+
+    function renderAnswers() {
+      const allAnswers = loadStoredAnswers();
+      if (allAnswers.length === 0) {
+        answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
+      } else {
+        let html = "<table><tr><th>Email</th><th>Jawaban</th></tr>";
+        allAnswers.forEach(row => {
+          html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
+        });
+        html += "</table>";
+        answersContainer.innerHTML = html;
+      }
+    }
+
+    showQuestion(currentQuestion);
+
+    nextBtn.addEventListener('click', function() {
+      const answerField = document.getElementById('answer');
+      if (!emailInput.value) {
+        emailInput.focus();
+        return;
+      }
+      if (!answerField.value) {
+        answerField.focus();
+        return;
+      }
+      answers[currentQuestion] = answerField.value;
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        showQuestion(currentQuestion);
+        if (currentQuestion === questions.length - 1) {
+          nextBtn.style.display = "none";
+          submitBtn.style.display = "inline-block";
+        }
+      }
+    });
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const answerField = document.getElementById('answer');
+      if (!answerField.value) {
+        answerField.focus();
+        return;
+      }
+      answers[currentQuestion] = answerField.value;
+
+      saveAnswer(emailInput.value, answers);
+
+      form.reset();
+      currentQuestion = 0;
+      answers.length = 0;
+      showQuestion(currentQuestion);
       nextBtn.style.display = "inline-block";
       submitBtn.style.display = "none";
-    }
-  }
-
-  // Initial render — guarantees you SEE the first question
-  document.addEventListener("DOMContentLoaded", () => {
-    showQuestion(window.__surveyState.currentQuestion);
-  });
-
-  // Next button: capture answer and advance
-  nextBtn.addEventListener("click", () => {
-    const s = window.__surveyState;
-    const answerField = document.getElementById("answer");
-    if (!emailInput.value.trim() || !answerField.value.trim()) return;
-    s.tempAnswers[s.currentQuestion] = answerField.value.trim();
-    s.currentQuestion++;
-    showQuestion(s.currentQuestion);
-  });
-
-  // Thank-you playful reveal
-  thankYouMessage.addEventListener("click", () => {
-    hiddenInfo.style.display = "inline";
-  });
-
-  // Expose some things for the module script
-  window.__surveyDOM = {
-    emailInput,
-    questionContainer,
-    nextBtn,
-    submitBtn,
-    form,
-    thankYouMessage,
-    hiddenInfo,
-    aiOverview,
-    showAnswersBtn,
-    answersContainer,
-    showQuestion, // so the module can reuse it
-    questions
-  };
-</script>
-
-<!-- Script 2: Enhancements (Firebase, Gemini, viewer).
-     If this fails for any reason, questions still show from Script 1. -->
-<script type="module">
-  // Safe-guard: if core state is missing, bail gracefully
-  const S = window.__surveyState;
-  const D = window.__surveyDOM;
-
-  // Firebase
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    orderBy,
-  } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
-    authDomain: "surveylive-c0691.firebaseapp.com",
-    projectId: "surveylive-c0691",
-    storageBucket: "surveylive-c0691.firebasestorage.app",
-    messagingSenderId: "894041077720",
-    appId: "1:894041077720:web:2115a27b69e8b81ab724ad",
-    measurementId: "G-83GZWBY7K5",
-  };
-
-  let db = null;
-  try {
-    const app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-  } catch (e) {
-    console.warn("Firebase init failed. Local save will still work.", e);
-  }
-
-  // Helper: very short prompt variant (used on retry)
-  function buildShortPrompt(questions, answers) {
-    const pairs = answers
-      .map((ans, i) => Q${i+1}: ${ans})
-      .join("\n");
-    return Ringkas pola makan dan beri 3-5 saran praktis, nada ramah, bahasa Indonesia, maksimal 120 kata.\n${pairs};
-  }
-
-  // Helper: local offline fallback so you always show something
-  function localFallbackSummary(questions, answers) {
-    const text = (i) => (answers[i] || "").toLowerCase();
-
-    const likesJunk = /ya|sering|suka|ok|boleh|sehat.*junk/.test(text(0)) || /sering|tiap|hampir/.test(text(1));
-    const freqJunk = /setiap|tiap|sering|3|4|5|hari/.test(text(1));
-    const sodaOften = /sering|ya|tiap|cukup|hampir/.test(text(3));
-    const veggiesOften = /sering|ya|tiap|setiap/.test(text(4));
-    const breakfastYes = /ya|sudah/.test(text(8));
-
-    const positives = [];
-    const improvements = [];
-
-    if (veggiesOften) positives.push("Kamu sudah cukup sering mengonsumsi sayur/buah — pertahankan.");
-    else improvements.push("Tambahkan sayur/buah di 2 porsi/hari (mis. 1 mangkuk sayur + 1 buah).");
-
-    if (breakfastYes) positives.push("Sarapan sudah dilakukan — bagus untuk energi dan fokus.");
-    else improvements.push("Coba sarapan ringan (telur + roti/ oatmeal + buah) agar tidak ‘balas dendam’ di siang hari.");
-
-    if (sodaOften) improvements.push("Kurangi minuman bersoda/berwarna jadi ≤1x/minggu, ganti air putih/teh tawar.");
-    if (likesJunk || freqJunk) improvements.push("Batasi junk food jadi ≤1–2x/minggu dan pilih porsi kecil atau versi dipanggang.");
-
-    if (positives.length === 0) positives.push("Kamu sudah punya beberapa kebiasaan baik — tinggal dirapikan sedikit.");
-
-    return `
-<strong>📊 Ringkasan & Saran (offline):</strong><br>
-${positives.map(s => "• " + s).join("<br>")}
-${improvements.length ? "<br>" + improvements.map(s => "• " + s).join("<br>") : ""}
-<br><em>(Catatan: Ringkasan ini dibuat tanpa AI karena koneksi/kuota API bermasalah.)</em>
-`.trim();
-  }
-
-  // Robust Gemini caller with retry + fallback
-  async function generateOverview(answers = []) {
-    const prompt = `
-Buat ringkasan singkat (≤130 kata) tentang pola makan penjawab berikut, lalu beri 3–5 saran praktis dan spesifik. Nada ramah, bahasa Indonesia, jelas, tanpa menyalahkan.
-${answers.map((ans, i) => ${i+1}. ${D.questions[i]} Jawaban: ${ans}).join("\n")}
-`;
-
-    // Show spinner
-    D.aiOverview.style.display = "block";
-    D.aiOverview.innerHTML = "⏳ Membuat ringkasan...";
-
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBPcdZLEOAb7zgjtj5Tu9lzQBD1SAFayDQ";
-    const body = (text) => ({
-      contents: [{ parts: [{ text }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 300 }
+      form.style.display = 'none';
+      thankYouMessage.style.display = 'block';
     });
 
-    // Try once
-    try {
-      const r1 = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body(prompt))
-      });
-      const d1 = await r1.json();
-      const t1 = d1?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-      if (t1) return <strong>📊 Ringkasan & Saran:</strong><br>${t1};
-    } catch (_) {}
-
-    // Retry with shorter prompt
-    try {
-      const r2 = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body(buildShortPrompt(D.questions, answers)))
-      });
-      const d2 = await r2.json();
-      const t2 = d2?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-      if (t2) return <strong>📊 Ringkasan & Saran:</strong><br>${t2};
-    } catch (_) {}
-
-    // Final guaranteed fallback
-    return localFallbackSummary(D.questions, answers);
-  }
-
-  // Submit handler
-  D.form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const s = S;
-    const answerField = document.getElementById("answer");
-    if (!answerField?.value?.trim()) return;
-
-    s.tempAnswers[s.currentQuestion] = answerField.value.trim();
-
-    // Local save
-    s.allAnswers.push({
-      email: D.emailInput.value.trim(),
-      answers: [...s.tempAnswers],
+    thankYouMessage.addEventListener('click', function() {
+      hiddenInfo.style.display = 'block';
     });
-    localStorage.setItem("responses", JSON.stringify(s.allAnswers));
 
-    // Firebase save (best-effort)
-    if (db) {
-      try {
-        await addDoc(collection(db, "responses"), {
-          email: D.emailInput.value.trim(),
-          answers: [...s.tempAnswers],
-          timestamp: new Date(),
-        });
-      } catch (err) {
-        console.error("Firebase save failed:", err);
+    let liveViewerActive = false;
+    let liveInterval;
+
+    showAnswersBtn.addEventListener('click', function() {
+      const pass = prompt("Masukkan password untuk melihat jawaban:");
+      if (pass === "rahasia123") {
+        answersContainer.style.display = "block";
+        renderAnswers();
+        if (!liveViewerActive) {
+          liveInterval = setInterval(renderAnswers, 2000);
+          liveViewerActive = true;
+        }
+      } else {
+        alert("Password salah!");
       }
-    }
-
-    // Thank you + AI overview
-    D.thankYouMessage.style.display = "block";
-    D.aiOverview.innerHTML = await generateOverview(s.tempAnswers);
-    D.aiOverview.style.display = "block";
-
-    // Reset for next respondent
-    D.form.reset();
-    S.currentQuestion = 0;
-    S.tempAnswers = [];
-    D.showQuestion(S.currentQuestion);
-  });
-
-  // Viewer (password: rahasia123)
-  D.showAnswersBtn.addEventListener("click", async () => {
-    const pass = prompt("Masukkan password untuk melihat jawaban:");
-    if (pass !== "rahasia123") {
-      alert("Password salah!");
-      return;
-    }
-
-    let combined = [...S.allAnswers];
-
-    if (db) {
-      try {
-        const q = query(collection(db, "responses"), orderBy("timestamp"));
-        const snapshot = await getDocs(q);
-        snapshot.forEach((doc) => combined.push(doc.data()));
-      } catch (err) {
-        console.warn("Could not load from Firebase, showing local only.");
-      }
-    }
-
-    if (combined.length === 0) {
-      D.answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
-    } else {
-      let html =
-        "<table border='1' cellspacing='0' cellpadding='6'><tr><th>Email</th><th>Jawaban</th></tr>";
-      combined.forEach((row) => {
-        const safeEmail = (row.email ?? "").toString();
-        const safeAns = Array.isArray(row.answers)
-          ? row.answers.join(" | ")
-          : "";
-        html += <tr><td>${safeEmail}</td><td>${safeAns}</td></tr>;
-      });
-      html += "</table>";
-      D.answersContainer.innerHTML = html;
-    }
-    D.answersContainer.style.display = "block";
-  });
-</script>
+    });
+  </script>
 </body>
 </html>
