@@ -26,12 +26,12 @@
 
   <hr />
   <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
+  <button id="clearLocalBtn" type="button" style="margin-left:8px;">🗑 Hapus Jawaban Lokal</button>
   <div id="answersContainer" style="display:none; margin-top:10px;"></div>
 </div>
 
-<!-- Script 1: Always-render core (no imports, guaranteed to run) -->
+<!-- Script 1: Always-render core -->
 <script>
-  // 📝 Questions (visible and easy to edit)
   const questions = [
     "1. Menurut kamu makanan junk food sehat atau tidak?",
     "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -45,14 +45,12 @@
     "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
   ];
 
-  // Global-ish state the module script can also read
   window.__surveyState = {
     currentQuestion: 0,
     tempAnswers: [],
     allAnswers: JSON.parse(localStorage.getItem("responses") || "[]"),
   };
 
-  // DOM refs
   const emailInput = document.getElementById("email");
   const questionContainer = document.getElementById("questionContainer");
   const nextBtn = document.getElementById("nextBtn");
@@ -62,9 +60,9 @@
   const hiddenInfo = document.getElementById("hiddenInfo");
   const aiOverview = document.getElementById("aiOverview");
   const showAnswersBtn = document.getElementById("showAnswersBtn");
+  const clearLocalBtn = document.getElementById("clearLocalBtn");
   const answersContainer = document.getElementById("answersContainer");
 
-  // Render one question
   function showQuestion(index) {
     const q = questions[index] ?? "";
     questionContainer.innerHTML = `
@@ -80,12 +78,10 @@
     }
   }
 
-  // Initial render — guarantees you SEE the first question
   document.addEventListener("DOMContentLoaded", () => {
     showQuestion(window.__surveyState.currentQuestion);
   });
 
-  // Next button: capture answer and advance
   nextBtn.addEventListener("click", () => {
     const s = window.__surveyState;
     const answerField = document.getElementById("answer");
@@ -95,12 +91,19 @@
     showQuestion(s.currentQuestion);
   });
 
-  // Thank-you playful reveal
   thankYouMessage.addEventListener("click", () => {
     hiddenInfo.style.display = "inline";
   });
 
-  // Expose some things for the module script
+  // Clear local answers button
+  clearLocalBtn.addEventListener("click", () => {
+    if (confirm("Hapus semua jawaban yang tersimpan di browser ini?")) {
+      localStorage.removeItem("responses");
+      alert("Jawaban lokal dihapus.");
+      location.reload();
+    }
+  });
+
   window.__surveyDOM = {
     emailInput,
     questionContainer,
@@ -112,28 +115,18 @@
     aiOverview,
     showAnswersBtn,
     answersContainer,
-    showQuestion, // so the module can reuse it
+    showQuestion,
     questions
   };
 </script>
 
-<!-- Script 2: Enhancements (Firebase, Gemini, viewer).
-     If this fails for any reason, questions still show from Script 1. -->
+<!-- Script 2: Firebase + Gemini + Viewer -->
 <script type="module">
-  // Safe-guard: if core state is missing, bail gracefully
   const S = window.__surveyState;
   const D = window.__surveyDOM;
 
-  // Firebase
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    orderBy,
-  } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
@@ -150,205 +143,31 @@
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
   } catch (e) {
-    console.warn("Firebase init gagal. Penyimpanan lokal tetap berjalan.", e);
+    console.warn("Firebase init gagal.", e);
   }
 
-  // ===== Calorie helpers and offline fallback =====
+  // Calorie helpers
   function guessDailyCalorie(answers) {
-    const a1 = (answers[1] || "").toLowerCase(); // frekuensi junk
-    const a4 = (answers[4] || "").toLowerCase(); // sayur sering?
-    const a8 = (answers[8] || "").toLowerCase(); // sarapan?
-    let low = 1800, high = 2200; // rentang umum aman untuk dewasa (tanpa data tubuh/aktivitas)
-
+    const a1 = (answers[1] || "").toLowerCase();
+    const a4 = (answers[4] || "").toLowerCase();
+    const a8 = (answers[8] || "").toLowerCase();
+    let low = 1800, high = 2200;
     if (/sering|tiap|setiap|hampir/.test(a1)) { low = 1700; high = 2100; }
     if (/sering|ya|tiap|setiap/.test(a4)) { low += 50; high += 100; }
     if (/ya|sudah/.test(a8)) { low += 50; high += 50; }
-
-    // Boundaries
     low = Math.max(1600, Math.min(low, 2200));
     high = Math.max(low + 200, Math.min(high, 2400));
     return [low, high];
   }
-
   function splitMeals(totalLow, totalHigh) {
-    // Breakfast 25%, Lunch 35%, Dinner 30%, Snacks 10%
     const pct = { b: 0.25, l: 0.35, d: 0.30, s: 0.10 };
     const fmt = (x) => Math.round(x);
     return {
-      low: {
-        b: fmt(totalLow * pct.b), l: fmt(totalLow * pct.l),
-        d: fmt(totalLow * pct.d), s: fmt(totalLow * pct.s)
-      },
-      high: {
-        b: fmt(totalHigh * pct.b), l: fmt(totalHigh * pct.l),
-        d: fmt(totalHigh * pct.d), s: fmt(totalHigh * pct.s)
-      }
+      low: { b: fmt(totalLow * pct.b), l: fmt(totalLow * pct.l), d: fmt(totalLow * pct.d), s: fmt(totalLow * pct.s) },
+      high: { b: fmt(totalHigh * pct.b), l: fmt(totalHigh * pct.l), d: fmt(totalHigh * pct.d), s: fmt(totalHigh * pct.s) }
     };
   }
-
   function sampleMenus() {
-    // Perkiraan kalori kasar per porsi, untuk edukasi (bukan medis)
     return [
       { name: "Sarapan: Oatmeal + pisang + susu rendah lemak", kcal: 350 },
-      { name: "Makan siang: Nasi merah 150g + ayam panggang 120g + tumis buncis", kcal: 600 },
-      { name: "Makan malam: Gado-gado tanpa kerupuk + telur rebus", kcal: 500 },
-      { name: "Snack: Yogurt tawar + buah potong / kacang panggang", kcal: 150 }
-    ];
-  }
-
-  function localFallbackCalorieBlock(answers) {
-    const [low, high] = guessDailyCalorie(answers);
-    const split = splitMeals(low, high);
-    const menus = sampleMenus();
-
-    return `
-<strong>🔥 Rekomendasi Kalori (offline):</strong><br>
-• Target harian: sekitar ${low}–${high} kkal (asumsi dewasa, data tubuh & aktivitas tidak tersedia).<br>
-• Pembagian makan:<br>
-— Sarapan: ${split.low.b}–${split.high.b} kkal | Siang: ${split.low.l}–${split.high.l} kkal | Malam: ${split.low.d}–${split.high.d} kkal | Snack: ${split.low.s}–${split.high.s} kkal<br>
-• Contoh menu:<br>
-${menus.map(m => "— " + m.name + " (~" + m.kcal + " kkal)").join("<br>")}
-<br><em>Catatan: Angka bersifat perkiraan untuk edukasi, bukan saran medis.</em>
-`.trim();
-  }
-
-  // ===== Gemini Overview with calorie recommendations =====
-  function buildShortPrompt(questions, answers) {
-    const pairs = answers.map((ans, i) => `Q${i+1}: ${ans}`).join("\n");
-    return `Ringkas jawaban, lalu berikan rekomendasi kalori HARIAN (rentang) + pembagian per makan (sarapan/siang/malam/snack) + 2-3 contoh menu sehat ala Indonesia dengan estimasi kalori. Batas 150 kata, bahasa Indonesia, ramah, praktis.\n${pairs}`;
-  }
-
-  async function generateOverview(answers = []) {
-    const qa = answers.map((ans, i) => `${i+1}. ${D.questions[i]} Jawaban: ${ans}`).join("\n");
-    const prompt = `
-Tujuan: Ringkasan pola makan + rekomendasi kalori yang praktis untuk edukasi.
-Instruksi:
-1) Ringkas kebiasaan secara singkat.
-2) Beri rekomendasi kalori harian dalam rentang (contoh: 1800–2200 kkal) dengan catatan asumsi karena data tubuh/aktivitas tidak ada.
-3) Beri pembagian kalori per makan: sarapan 25%, siang 35%, malam 30%, snack 10% (angka kisaran).
-4) Beri 2–3 contoh menu sehat khas Indonesia dengan perkiraan kalori per menu (angka realistis, bukan presisi medis).
-5) Nada ramah, tidak menghakimi, ≤170 kata, bahasa Indonesia.
-Data:
-${qa}
-`;
-
-    // Show spinner
-    D.aiOverview.style.display = "block";
-    D.aiOverview.innerHTML = "⏳ Membuat ringkasan & rekomendasi kalori...";
-
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBPcdZLEOAb7zgjtj5Tu9lzQBD1SAFayDQ";
-    const body = (text) => ({
-      contents: [{ parts: [{ text }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 380 }
-    });
-
-    // Try once
-    try {
-      const r1 = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body(prompt))
-      });
-      const d1 = await r1.json();
-      const t1 = d1?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-      if (t1) return `<strong>📊 Ringkasan & Saran + Kalori:</strong><br>${t1}`;
-    } catch (_) {}
-
-    // Retry with shorter prompt
-    try {
-      const r2 = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body(buildShortPrompt(D.questions, answers)))
-      });
-      const d2 = await r2.json();
-      const t2 = d2?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-      if (t2) return `<strong>📊 Ringkasan & Saran + Kalori:</strong><br>${t2}`;
-    } catch (_) {}
-
-    // Final guaranteed fallback: offline ringkasan + kalori
-    const offline = localFallbackCalorieBlock(answers);
-    return offline;
-  }
-
-  // ===== Submit handler (save + AI overview) =====
-  D.form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const s = S;
-    const answerField = document.getElementById("answer");
-    if (!answerField?.value?.trim()) return;
-
-    s.tempAnswers[s.currentQuestion] = answerField.value.trim();
-
-    // Local save
-    s.allAnswers.push({
-      email: D.emailInput.value.trim(),
-      answers: [...s.tempAnswers],
-    });
-    localStorage.setItem("responses", JSON.stringify(s.allAnswers));
-
-    // Firebase save (best-effort)
-    if (db) {
-      try {
-        await addDoc(collection(db, "responses"), {
-          email: D.emailInput.value.trim(),
-          answers: [...s.tempAnswers],
-          timestamp: new Date(),
-        });
-      } catch (err) {
-        console.error("Firebase save failed:", err);
-      }
-    }
-
-    // Thank you + AI overview
-    D.thankYouMessage.style.display = "block";
-    D.aiOverview.innerHTML = await generateOverview(s.tempAnswers);
-    D.aiOverview.style.display = "block";
-
-    // Reset for next respondent
-    D.form.reset();
-    S.currentQuestion = 0;
-    S.tempAnswers = [];
-    D.showQuestion(S.currentQuestion);
-  });
-
-  // ===== Viewer (password: rahasia123) =====
-  D.showAnswersBtn.addEventListener("click", async () => {
-    const pass = prompt("Masukkan password untuk melihat jawaban:");
-    if (pass !== "rahasia123") {
-      alert("Password salah!");
-      return;
-    }
-
-    let combined = [...S.allAnswers];
-
-    if (db) {
-      try {
-        const q = query(collection(db, "responses"), orderBy("timestamp"));
-        const snapshot = await getDocs(q);
-        snapshot.forEach((doc) => combined.push(doc.data()));
-      } catch (err) {
-        console.warn("Tidak bisa memuat dari Firebase, tampilkan lokal saja.");
-      }
-    }
-
-    if (combined.length === 0) {
-      D.answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
-    } else {
-      let html =
-        "<table border='1' cellspacing='0' cellpadding='6'><tr><th>Email</th><th>Jawaban</th></tr>";
-      combined.forEach((row) => {
-        const safeEmail = (row.email ?? "").toString();
-        const safeAns = Array.isArray(row.answers)
-          ? row.answers.join(" | ")
-          : "";
-        html += `<tr><td>${safeEmail}</td><td>${safeAns}</td></tr>`;
-      });
-      html += "</table>";
-      D.answersContainer.innerHTML = html;
-    }
-    D.answersContainer.style.display = "block";
-  });
-</script>
-</body>
-</html>
+      { name: "Makan siang: Nasi merah 150g +
