@@ -103,8 +103,13 @@
     hiddenInfo.style.display = "inline";
   });
 
-  // Tombol hapus jawaban lokal (hanya localStorage)
+  // Tombol hapus jawaban lokal (dengan passcode)
   clearLocalBtn.addEventListener("click", () => {
+    const pass = prompt("Masukkan passcode untuk menghapus jawaban lokal:");
+    if (pass !== "password") {
+      alert("Passcode salah. Jawaban lokal tidak dihapus.");
+      return;
+    }
     if (confirm("Hapus semua jawaban yang tersimpan di browser ini?")) {
       localStorage.removeItem("responses");
       alert("Jawaban lokal dihapus.");
@@ -368,3 +373,4 @@ ${qa}
 </script>
 </body>
 </html>
+```
