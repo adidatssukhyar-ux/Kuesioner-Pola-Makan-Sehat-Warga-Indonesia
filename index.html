@@ -4,136 +4,209 @@
   <meta charset="UTF-8">
   <title>Pola Makan Sehat Orang Indonesia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ====================================================== -->
+  <!--                      STYLING SECTION                  -->
+  <!-- ====================================================== -->
+
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #e5ffe5, #fffbe5);
-      margin: 0;
-      padding: 0;
-    }
+    /* 1 */ body {
+    /* 2 */   font-family: 'Segoe UI', sans-serif;
+    /* 3 */   background: linear-gradient(135deg, #e5ffe5, #fffbe5);
+    /* 4 */   margin: 0;
+    /* 5 */   padding: 0;
+    /* 6 */ }
 
-    .container {
-      max-width: 500px;
-      margin: 60px auto;
-      padding: 30px;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 2px 20px rgba(100,180,120,0.12);
-      border: 2px solid #b5e7b7;
-    }
+    /* 7 */ .container {
+    /* 8 */   max-width: 500px;
+    /* 9 */   margin: 60px auto;
+    /* 10 */  padding: 30px;
+    /* 11 */  background: #fff;
+    /* 12 */  border-radius: 16px;
+    /* 13 */  box-shadow: 0 2px 20px rgba(100,180,120,0.12);
+    /* 14 */  border: 2px solid #b5e7b7;
+    /* 15 */ }
 
-    h1 {
-      text-align: center;
-      color: #35a35c;
-      margin-bottom: 16px;
-    }
+    /* 16 */ h1 {
+    /* 17 */   text-align: center;
+    /* 18 */   color: #35a35c;
+    /* 19 */   margin-bottom: 16px;
+    /* 20 */ }
 
-    label {
-      display: block;
-      margin-top: 16px;
-      color: #22753e;
-      font-weight: 500;
-    }
+    /* 21 */ label {
+    /* 22 */   display: block;
+    /* 23 */   margin-top: 16px;
+    /* 24 */   color: #22753e;
+    /* 25 */   font-weight: 500;
+    /* 26 */ }
 
-    input[type="email"], textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border-radius: 8px;
-      border: 1.5px solid #f5bc51;
-      font-size: 1em;
-      background: #fffde9;
-      box-sizing: border-box;
-    }
+    /* 27 */ input[type="email"],
+    /* 28 */ textarea {
+    /* 29 */   width: 100%;
+    /* 30 */   padding: 10px;
+    /* 31 */   margin-top: 8px;
+    /* 32 */   border-radius: 8px;
+    /* 33 */   border: 1.5px solid #f5bc51;
+    /* 34 */   font-size: 1em;
+    /* 35 */   background: #fffde9;
+    /* 36 */   box-sizing: border-box;
+    /* 37 */ }
 
-    button {
-      margin-top: 20px;
-      width: 100%;
-      padding: 13px;
-      background: linear-gradient(90deg, #35a35c, #f5bc51);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1em;
-      font-weight: 500;
-      cursor: pointer;
-    }
+    /* 38 */ button {
+    /* 39 */   margin-top: 20px;
+    /* 40 */   width: 100%;
+    /* 41 */   padding: 13px;
+    /* 42 */   background: linear-gradient(90deg, #35a35c, #f5bc51);
+    /* 43 */   color: #fff;
+    /* 44 */   border: none;
+    /* 45 */   border-radius: 8px;
+    /* 46 */   font-size: 1.1em;
+    /* 47 */   font-weight: 500;
+    /* 48 */   cursor: pointer;
+    /* 49 */ }
 
-    #thankYouMessage {
-      margin-top: 24px;
-      color: #35a35c;
-      text-align: center;
-      font-size: 1.1em;
-      background: #eaffea;
-      padding: 15px;
-      border-radius: 10px;
-      border: 1.5px solid #b5e7b7;
-      cursor: pointer;
-    }
+    /* 50 */ #thankYouMessage {
+    /* 51 */   margin-top: 24px;
+    /* 52 */   color: #35a35c;
+    /* 53 */   text-align: center;
+    /* 54 */   font-size: 1.1em;
+    /* 55 */   background: #eaffea;
+    /* 56 */   padding: 15px;
+    /* 57 */   border-radius: 10px;
+    /* 58 */   border: 1.5px solid #b5e7b7;
+    /* 59 */   cursor: pointer;
+    /* 60 */ }
 
-    #hiddenInfo {
-      display: none;
-      color: #f5bc51;
-      font-size: 0.95em;
-      margin-top: 10px;
-    }
+    /* 61 */ #hiddenInfo {
+    /* 62 */   display: none;
+    /* 63 */   color: #f5bc51;
+    /* 64 */   font-size: 0.95em;
+    /* 65 */   margin-top: 10px;
+    /* 66 */ }
 
-    #aiOverview {
-      display: none;
-      margin-top: 20px;
-      padding: 15px;
-      background: #fffde9;
-      border-radius: 10px;
-      border: 1.5px solid #f5bc51;
-      color: #22753e;
-      font-size: 1em;
-    }
+    /* 67 */ #aiOverview {
+    /* 68 */   display: none;
+    /* 69 */   margin-top: 20px;
+    /* 70 */   padding: 15px;
+    /* 71 */   background: #fffde9;
+    /* 72 */   border-radius: 10px;
+    /* 73 */   border: 1.5px solid #f5bc51;
+    /* 74 */   color: #22753e;
+    /* 75 */   font-size: 1em;
+    /* 76 */ }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
+    /* 77 */ table {
+    /* 78 */   width: 100%;
+    /* 79 */   border-collapse: collapse;
+    /* 80 */   margin-top: 20px;
+    /* 81 */ }
 
-    th, td {
-      border: 1px solid #b5e7b7;
-      padding: 10px;
-      background: #fffde9;
-    }
+    /* 82 */ th,
+    /* 83 */ td {
+    /* 84 */   border: 1px solid #b5e7b7;
+    /* 85 */   padding: 10px;
+    /* 86 */   background: #fffde9;
+    /* 87 */ }
 
-    th {
-      background: #f5bc51;
-      color: #22753e;
-    }
+    /* 88 */ th {
+    /* 89 */   background: #f5bc51;
+    /* 90 */   color: #22753e;
+    /* 91 */ }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Pola Makan Sehat Orang Indonesia</h1>
-    <form id="wizardForm">
-      <label for="email">Email kamu:</label>
-      <input type="email" id="email" required placeholder="your@email.com">
-      <div id="questionContainer"></div>
-      <button type="button" id="nextBtn">Next</button>
-      <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
-    </form>
 
+  <!-- CONTAINER START -->
+  <div class="container">
+
+    <!-- TITLE -->
+    <h1>Pola Makan Sehat Orang Indonesia</h1>
+
+
+    <!-- ============================ -->
+    <!--     SURVEY FORM SECTION      -->
+    <!-- ============================ -->
+    <form id="wizardForm">
+
+      <!-- Email Input -->
+      <label for="email">Email kamu:</label>
+      <input
+        type="email"
+        id="email"
+        required
+        placeholder="your@email.com"
+      >
+
+      <!-- Question will be injected here -->
+      <div id="questionContainer"></div>
+
+      <!-- Next / Submit Buttons -->
+      <button
+        type="button"
+        id="nextBtn"
+      >
+        Next
+      </button>
+      <button
+        type="submit"
+        id="submitBtn"
+        style="display:none;"
+      >
+        Kirim
+      </button>
+
+    </form>
+    <!-- SURVEY FORM END -->
+
+
+    <!-- ============================ -->
+    <!--   THANK YOU MESSAGE SECTION  -->
+    <!-- ============================ -->
     <div id="thankYouMessage" style="display:none;">
       Terimakasih telah menjawab, hasilnya akan dikirim ke email anda dalam waktu yang singkat
       <div id="hiddenInfo">(probably 2 days)</div>
     </div>
+    <!-- THANK YOU MESSAGE END -->
 
+
+    <!-- ============================ -->
+    <!--      AI OVERVIEW SECTION     -->
+    <!-- ============================ -->
     <div id="aiOverview">
       <strong>AI Overview:</strong>
       <div id="aiContent"></div>
     </div>
+    <!-- AI OVERVIEW END -->
 
+
+    <!-- ============================ -->
+    <!--      ANSWER VIEWER SECTION   -->
+    <!-- ============================ -->
     <hr>
-    <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
-    <div id="answersContainer" style="display:none;"></div>
-  </div>
+    <button
+      id="showAnswersBtn"
+      type="button"
+    >
+      📋 Lihat Semua Jawaban
+    </button>
+    <div
+      id="answersContainer"
+      style="display:none;"
+    ></div>
+    <!-- ANSWER VIEWER END -->
 
+  </div>
+  <!-- CONTAINER END -->
+
+
+  <!-- ====================================================== -->
+  <!--                    JAVASCRIPT SECTION                 -->
+  <!--                     (full logic here)                 -->
+  <!-- ====================================================== -->
   <script>
+    // 92
+    // SURVEY QUESTIONS ARRAY
+    // 93
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -146,97 +219,57 @@
       "9. Apakah kamu hari ini sudah sarapan?",
       "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
     ];
+    // 106
 
-    let currentQuestion = 0;
-    const answers = [];
+    // STATE: CURRENT QUESTION INDEX
+    let currentQuestion = 0;     // 107
+    const answers = [];          // 108
 
-    const emailInput = document.getElementById('email');
-    const questionContainer = document.getElementById('questionContainer');
-    const nextBtn = document.getElementById('nextBtn');
-    const submitBtn = document.getElementById('submitBtn');
-    const thankYouMessage = document.getElementById('thankYouMessage');
-    const hiddenInfo = document.getElementById('hiddenInfo');
-    const form = document.getElementById('wizardForm');
-    const answersContainer = document.getElementById('answersContainer');
-    const showAnswersBtn = document.getElementById('showAnswersBtn');
-    const aiOverview = document.getElementById('aiOverview');
-    const aiContent = document.getElementById('aiContent');
+    // DOM ELEMENTS
+    const emailInput       = document.getElementById("email");                   // 109
+    const questionContainer= document.getElementById("questionContainer");        // 110
+    const nextBtn          = document.getElementById("nextBtn");                 // 111
+    const submitBtn        = document.getElementById("submitBtn");               // 112
+    const thankYouMessage  = document.getElementById("thankYouMessage");         // 113
+    const hiddenInfo       = document.getElementById("hiddenInfo");              // 114
+    const aiOverview       = document.getElementById("aiOverview");              // 115
+    const aiContent        = document.getElementById("aiContent");               // 116
+    const showAnswersBtn   = document.getElementById("showAnswersBtn");          // 117
+    const answersContainer = document.getElementById("answersContainer");         // 118
 
+    // FUNCTION: Show a question by index
     function showQuestion(index) {
-      questionContainer.innerHTML = `
-        <label for="answer">${questions[index]}</label>
-        <textarea id="answer" required placeholder="Jawaban kamu..."></textarea>
-      `;
+      // build HTML
+      let htmlString  = "";
+      htmlString     += "<label for='answer'>" + questions[index] + "</label>";
+      htmlString     += "<textarea id='answer' required placeholder='Jawaban kamu...'></textarea>";
+      questionContainer.innerHTML = htmlString;
     }
+    // 130
 
-    function loadStoredAnswers() {
-      const stored = localStorage.getItem('allAnswers');
-      return stored ? JSON.parse(stored) : [];
-    }
+    // Call first question
+    showQuestion(currentQuestion);  // 131
 
-    function saveAnswer(email, answers) {
-      const allAnswers = loadStoredAnswers();
-      allAnswers.push({ email, answers });
-      localStorage.setItem('allAnswers', JSON.stringify(allAnswers));
-    }
-
-    function renderAnswers() {
-      const allAnswers = loadStoredAnswers();
-      if (allAnswers.length === 0) {
-        answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
-      } else {
-        let html = "<table><tr><th>Email</th><th>Jawaban</th></tr>";
-        allAnswers.forEach(row => {
-          html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
-        });
-        html += "</table>";
-        answersContainer.innerHTML = html;
+    // FUNCTION: Load stored answers from localStorage
+    function loadStoredAnswers() {    // 132
+      const stored = localStorage.getItem("allAnswers");  // 133
+      if (!stored) {               // 134
+        return [];                 // 135
       }
+      return JSON.parse(stored);   // 136
     }
+    // 137
 
-    function generateAIOverview(answers) {
-      const calorieDB = {
-        "nasi merah": 110,
-        "brokoli": 55,
-        "apel": 52,
-        "pisang": 89,
-        "dada ayam": 165,
-        "tempe": 192,
-        "tahu": 76,
-        "wortel": 41,
-        "bayam": 23,
-        "ikan salmon": 208,
-        "oatmeal": 68
-      };
-
-      const foundFoods = [];
-
-      answers.forEach(ans => {
-        for (const food in calorieDB) {
-          if (ans.toLowerCase().includes(food)) {
-            foundFoods.push(`${food}: ~${calorieDB[food]} kcal per 100g`);
-          }
-        }
-      });
-
-      let summary = "";
-      if (foundFoods.length > 0) {
-        summary += "Kamu menyebut beberapa makanan sehat:<ul>";
-        foundFoods.forEach(item => {
-          summary += `<li>${item}</li>`;
-        });
-        summary += "</ul><p>Totalnya ringan dan bergizi 💪</p>";
-      } else {
-        summary = "Tidak ada makanan sehat yang terdeteksi secara eksplisit, tapi semangat kamu tetap keren 😎";
-      }
-
-      aiContent.innerHTML = summary;
-      aiOverview.style.display = "block";
+    // FUNCTION: Save a submission
+    function saveAnswer(email, answersArray) { // 138
+      const allAnswers = loadStoredAnswers(); // 139
+      const entry      = { email: email, answers: answersArray }; // 140
+      allAnswers.push(entry);                 // 141
+      localStorage.setItem("allAnswers", JSON.stringify(allAnswers)); // 142
     }
+    // 143
 
-    showQuestion(currentQuestion);
-
-    nextBtn.addEventListener('click', function() {
-      const answerField = document.getElementById('answer');
-      if (!emailInput.value) {
-        emailInput.focus();
+    // FUNCTION: Render saved answers in a table
+    function renderAnswers() {               // 144
+      const allAnswers = loadStoredAnswers(); // 145
+      if (allAnswers.length === 0) {         
