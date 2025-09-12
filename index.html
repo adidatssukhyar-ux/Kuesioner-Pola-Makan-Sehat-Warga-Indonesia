@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <title>Pola Makan Sehat Orang Indonesia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ========================= -->
+  <!--        STYLING            -->
+  <!-- ========================= -->
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -78,6 +82,17 @@
       margin-top: 10px;
     }
 
+    #aiOverview {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      background: #fffde9;
+      border-radius: 10px;
+      border: 1.5px solid #f5bc51;
+      color: #22753e;
+      font-size: 1em;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -97,8 +112,11 @@
   </style>
 </head>
 <body>
+
   <div class="container">
     <h1>Pola Makan Sehat Orang Indonesia</h1>
+
+    <!-- Survey Form -->
     <form id="wizardForm">
       <label for="email">Email kamu:</label>
       <input type="email" id="email" required placeholder="your@email.com">
@@ -107,16 +125,27 @@
       <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
     </form>
 
+    <!-- Thank You Message -->
     <div id="thankYouMessage" style="display:none;">
       Terimakasih telah menjawab, hasilnya akan dikirim ke email anda dalam waktu yang singkat
       <div id="hiddenInfo">(probably 2 days)</div>
     </div>
 
+    <!-- AI Overview -->
+    <div id="aiOverview">
+      <strong>AI Overview:</strong>
+      <div id="aiContent"></div>
+    </div>
+
+    <!-- Answer Viewer -->
     <hr>
     <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
     <div id="answersContainer" style="display:none;"></div>
   </div>
 
+  <!-- ========================= -->
+  <!--        JAVASCRIPT         -->
+  <!-- ========================= -->
   <script>
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
@@ -134,15 +163,16 @@
     let currentQuestion = 0;
     const answers = [];
 
-    const emailInput = document.getElementById('email');
-    const questionContainer = document.getElementById('questionContainer');
-    const nextBtn = document.getElementById('nextBtn');
-    const submitBtn = document.getElementById('submitBtn');
-    const thankYouMessage = document.getElementById('thankYouMessage');
-    const hiddenInfo = document.getElementById('hiddenInfo');
-    const form = document.getElementById('wizardForm');
-    const answersContainer = document.getElementById('answersContainer');
-    const showAnswersBtn = document.getElementById('showAnswersBtn');
+    const emailInput       = document.getElementById("email");
+    const questionContainer= document.getElementById("questionContainer");
+    const nextBtn          = document.getElementById("nextBtn");
+    const submitBtn        = document.getElementById("submitBtn");
+    const thankYouMessage  = document.getElementById("thankYouMessage");
+    const hiddenInfo       = document.getElementById("hiddenInfo");
+    const aiOverview       = document.getElementById("aiOverview");
+    const aiContent        = document.getElementById("aiContent");
+    const showAnswersBtn   = document.getElementById("showAnswersBtn");
+    const answersContainer = document.getElementById("answersContainer");
 
     function showQuestion(index) {
       questionContainer.innerHTML = `
@@ -152,14 +182,14 @@
     }
 
     function loadStoredAnswers() {
-      const stored = localStorage.getItem('allAnswers');
+      const stored = localStorage.getItem("allAnswers");
       return stored ? JSON.parse(stored) : [];
     }
 
     function saveAnswer(email, answers) {
       const allAnswers = loadStoredAnswers();
       allAnswers.push({ email, answers });
-      localStorage.setItem('allAnswers', JSON.stringify(allAnswers));
+      localStorage.setItem("allAnswers", JSON.stringify(allAnswers));
     }
 
     function renderAnswers() {
@@ -169,77 +199,55 @@
       } else {
         let html = "<table><tr><th>Email</th><th>Jawaban</th></tr>";
         allAnswers.forEach(row => {
-          html += `<tr><td>${row.email}</td><td>${row.answers.join(" | ")}</td></tr>`;
+          html += `<tr><td>${row.email}</td><td>${row.answers.join("<br>")}</td></tr>`;
         });
         html += "</table>";
         answersContainer.innerHTML = html;
       }
     }
 
+    function generateAIOverview(answers) {
+      const calorieDB = {
+        "nasi merah": 110,
+        "brokoli": 55,
+        "apel": 52,
+        "pisang": 89,
+        "dada ayam": 165,
+        "tempe": 192,
+        "tahu": 76,
+        "wortel": 41,
+        "bayam": 23,
+        "salmon": 208,
+        "oatmeal": 68
+      };
+
+      const foundFoods = new Set();
+
+      answers.forEach(ans => {
+        const lower = ans.toLowerCase();
+        for (const food in calorieDB) {
+          if (lower.includes(food)) {
+            foundFoods.add(food);
+          }
+        }
+      });
+
+      let summary = "";
+      if (foundFoods.size > 0) {
+        summary += "<p>Kamu menyebut beberapa makanan sehat:</p><ul>";
+        foundFoods.forEach(food => {
+          summary += `<li>${food}: ~${calorieDB[food]} kcal per 100g</li>`;
+        });
+        summary += "</ul><p>Totalnya ringan dan bergizi 💪</p>";
+      } else {
+        summary = "<p>Tidak ada makanan sehat yang terdeteksi secara eksplisit, tapi semangat kamu tetap keren 😎</p>";
+      }
+
+      aiContent.innerHTML = summary;
+      aiOverview.style.display = "block";
+    }
+
     showQuestion(currentQuestion);
 
-    nextBtn.addEventListener('click', function() {
-      const answerField = document.getElementById('answer');
-      if (!emailInput.value) {
-        emailInput.focus();
-        return;
-      }
-      if (!answerField.value) {
-        answerField.focus();
-        return;
-      }
-      answers[currentQuestion] = answerField.value;
-      currentQuestion++;
-      if (currentQuestion < questions.length) {
-        showQuestion(currentQuestion);
-        if (currentQuestion === questions.length - 1) {
-          nextBtn.style.display = "none";
-          submitBtn.style.display = "inline-block";
-        }
-      }
-    });
-
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const answerField = document.getElementById('answer');
-      if (!answerField.value) {
-        answerField.focus();
-        return;
-      }
-      answers[currentQuestion] = answerField.value;
-
-      saveAnswer(emailInput.value, answers);
-
-      form.reset();
-      currentQuestion = 0;
-      answers.length = 0;
-      showQuestion(currentQuestion);
-      nextBtn.style.display = "inline-block";
-      submitBtn.style.display = "none";
-      form.style.display = 'none';
-      thankYouMessage.style.display = 'block';
-    });
-
-    thankYouMessage.addEventListener('click', function() {
-      hiddenInfo.style.display = 'block';
-    });
-
-    let liveViewerActive = false;
-    let liveInterval;
-
-    showAnswersBtn.addEventListener('click', function() {
-      const pass = prompt("Masukkan password untuk melihat jawaban:");
-      if (pass === "rahasia123") {
-        answersContainer.style.display = "block";
-        renderAnswers();
-        if (!liveViewerActive) {
-          liveInterval = setInterval(renderAnswers, 2000);
-          liveViewerActive = true;
-        }
-      } else {
-        alert("Password salah!");
-      }
-    });
-  </script>
-</body>
-</html>
+    nextBtn.addEventListener("click", function() {
+      const answerField = document.getElementById("answer");
