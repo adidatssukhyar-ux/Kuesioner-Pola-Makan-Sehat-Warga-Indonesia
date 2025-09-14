@@ -2,83 +2,252 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Pola Makan Sehat</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🥗 Pola Makan Sehat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- ML5.js, Chart.js & Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/ml5@0.6.0/dist/ml5.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font:1em/1.4 'Segoe UI',sans-serif;background:#f5fcf7;color:#333;padding:20px}
-    .container{max-width:500px;margin:0 auto;background:#fff;padding:24px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.05);transition:max-width .3s}
-    .container.wide{max-width:90%}
-    .logo{text-align:center;margin-bottom:16px}
-    .logo img{width:80px;border-radius:8px}
-    h1,h2{text-align:center;color:#2a7955;margin-bottom:16px}
-    h1{font-size:1.8em}h2{font-size:1.3em}
-    section{display:none}section.active{display:block}
-    .question-text,label{display:block;margin-top:16px;font-weight:600;color:#2a7955}
-    textarea,input{width:100%;padding:10px;margin-top:8px;border:1px solid #cdefe1;border-radius:8px;font-size:1em}
-    textarea{resize:vertical}
-    .btn{display:block;width:100%;padding:12px;margin-top:20px;background:linear-gradient(90deg,#2a7955,#5fb58c);color:#fff;border:none;border-radius:8px;font-size:1em;cursor:pointer}
-    .btn:hover{background:linear-gradient(90deg,#236643,#4fa27f)}
-    .project-credit{text-align:center;font-size:.85em;color:#666;margin-top:16px}
-    #aiOverview{min-height:80px;padding:12px;border:1px solid #cdefe1;border-radius:8px;background:#f0fff8}
-    .spinner-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;visibility:hidden;z-index:1000}
-    .spinner-overlay.active{visibility:visible}
-    .spinner{width:50px;height:50px;border:6px solid #cdefe1;border-top-color:#2a7955;border-radius:50%;animation:spin 1s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .analysis-flex{display:flex;gap:24px;flex-wrap:wrap;margin-top:16px}
-    .analysis-photo,.analysis-list{flex:1;min-width:200px;position:relative}
-    #preview{display:none;margin:12px auto;max-height:120px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
-    .chart-container{text-align:center;margin-top:12px}
-    canvas{max-width:100%;height:auto;display:block;margin:0 auto}
-    .food-list{margin-top:8px;max-height:200px;overflow-y:auto;border:1px solid #cdefe1;border-radius:8px;background:#f0fff8}
-    .food-item{padding:8px 10px;border-bottom:1px solid #e0e0e0;cursor:pointer;font-size:.95em}
-    .food-item:last-child{border-bottom:none}
-    .food-item:hover{background:rgba(42,121,85,.1)}
-    #foodDetailPanel{display:none;margin-top:8px;padding:12px;background:#fff;border:1px solid #cdefe1;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.1);position:relative}
-    #foodDetailPanel.show{display:block}
-    #foodDetailPanel .close-btn{position:absolute;top:8px;right:8px;background:none;border:none;font-size:1.2em;cursor:pointer;color:#666}
+    :root {
+      --primary: #35a35c;
+      --secondary: #f5bc51;
+      --accent: #5c97f5;
+      --bg: #f0f6f9;
+      --card: #ffffff;
+      --text: #333333;
+      --muted: #777777;
+      --radius: 12px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      --transition: 0.3s ease;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 540px;
+      margin: auto;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+    .header img {
+      width: 60px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      font-size: 1.8rem;
+    }
+    section {
+      display: none;
+      padding: 24px;
+    }
+    section.active {
+      display: block;
+    }
+    .question-text,
+    label,
+    .analysis-list h2 {
+      font-weight: 600;
+      color: var(--primary);
+      margin-top: 16px;
+    }
+    textarea,
+    input[type="url"],
+    input[type="file"],
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border: 1px solid #cdefe1;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      transition: border-color var(--transition);
+    }
+    textarea:focus,
+    input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin-top: 24px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition);
+    }
+    .btn:hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+    }
+    .project-credit {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 12px;
+    }
+    #aiOverview {
+      min-height: 100px;
+      padding: 16px;
+      border: 1px solid #cdefe1;
+      border-radius: var(--radius);
+      background: #fcfdfd;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .spinner-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      visibility: hidden;
+      z-index: 1000;
+    }
+    .spinner-overlay.active {
+      visibility: visible;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 6px solid #cdefe1;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .analysis-flex {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      margin-top: 16px;
+    }
+    .analysis-photo,
+    .analysis-list {
+      flex: 1;
+      min-width: 200px;
+    }
+    #preview {
+      display: none;
+      margin: 16px auto;
+      max-height: 140px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .chart-container {
+      margin-top: 16px;
+      text-align: center;
+    }
+    canvas {
+      max-width: 100%;
+      height: auto !important;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .food-list {
+      margin-top: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #cdefe1;
+      border-radius: var(--radius);
+      background: #fcfdfd;
+    }
+    .food-item {
+      padding: 10px;
+      border-bottom: 1px solid #e0e0e0;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+    .food-item:last-child {
+      border-bottom: none;
+    }
+    .food-item:hover {
+      background: rgba(53, 163, 92, 0.1);
+    }
+    #foodDetailPanel {
+      display: none;
+      margin-top: 8px;
+      padding: 16px;
+      background: #ffffff;
+      border: 1px solid #cdefe1;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    #foodDetailPanel.show {
+      display: block;
+    }
+    #foodDetailPanel .close-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
-  <div class="container" id="mainContainer">
-    <div class="logo">
-      <img src="https://yt3.ggpht.com/a/AATXAJwRp9NDxa9WX7nh8uuO9TUCUCMqCRE5yJp4CQ=s900-c-k-c0xffffffff-no-rj-mo"
-           alt="Logo Sekolah Al Ikhlas">
-    </div>
-    <h1>Pola Makan Sehat</h1>
 
-    <!-- STEP 1: Survey -->
+  <div class="container" id="mainContainer">
+    <div class="header">
+      <img src="https://yt3.ggpht.com/a/AATXAJwRp9NDxa9WX7nh8uuO9TUCUCMqCRE5yJp4CQ=s900-c-k-c0xffffffff-no-rj-mo"
+           alt="Logo Al Ikhlas">
+      <h1>🥗 Pola Makan Sehat</h1>
+    </div>
+
+    <!-- STEP 1 -->
     <section id="step1" class="active">
-      <div class="question-text" id="question"></div>
+      <div class="question-text" id="question">1. Menurut kamu junk food sehat atau tidak?</div>
       <textarea id="answer" placeholder="Tuliskan jawaban…"></textarea>
-      <button id="step1Next" class="btn">Next</button>
+      <button id="step1Next" class="btn">Next ➡️</button>
       <div class="project-credit">Karya Kelompok 1 — Proyek 1</div>
     </section>
 
-    <!-- STEP 2: AI Overview -->
+    <!-- STEP 2 -->
     <section id="step2">
-      <h2>Overview AI</h2>
+      <h2>🤖 Overview AI</h2>
       <div id="aiOverview"></div>
-      <button id="step2Next" class="btn">Lanjut ke Analisis</button>
+      <button id="step2Next" class="btn">Lanjut ke Analisis 🚀</button>
     </section>
 
-    <!-- STEP 3: Photo Analysis & Food Search -->
+    <!-- STEP 3 -->
     <section id="step3">
-      <h2>Analisis Makanan Anda!</h2>
+      <h2>📸 Analisis Makanan Anda!</h2>
       <div class="analysis-flex">
+
         <!-- Photo + Charts -->
         <div class="analysis-photo">
-          <label for="imageUrl">URL Foto (opsional)</label>
+          <label for="imageUrl">🌐 URL Foto (opsional)</label>
           <input type="url" id="imageUrl" placeholder="https://…">
-          <label for="foodPhoto">Atau Pilih File</label>
+          <label for="foodPhoto">📁 Pilih File</label>
           <input type="file" id="foodPhoto" accept="image/*">
-          <button id="photoSubmit" class="btn">Analisis Foto</button>
+          <button id="photoSubmit" class="btn">Analisis Foto 🍽️</button>
           <img id="preview" alt="Preview Gambar">
-          <div id="photoAnalysis"></div>
+          <div id="photoAnalysis" style="margin-top:12px;color:var(--primary);font-weight:600;"></div>
+
           <div class="chart-container">
             <canvas id="pieCan" width="350" height="350"></canvas>
           </div>
@@ -86,9 +255,10 @@
             <canvas id="barCan" width="350" height="350"></canvas>
           </div>
         </div>
-        <!-- Food Search & Detail -->
+
+        <!-- Searchable List -->
         <div class="analysis-list">
-          <label>Pilih Makanan Lain</label>
+          <h2>🍛 Pilih Makanan Lain</h2>
           <input type="text" id="foodSearch" placeholder="Cari makanan…">
           <div id="foodList" class="food-list"></div>
           <div id="foodDetailPanel">
@@ -96,6 +266,7 @@
             <div id="foodDetails"></div>
           </div>
         </div>
+
       </div>
     </section>
   </div>
@@ -106,7 +277,8 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const qs = [
+    // Survey questions
+    const questions = [
       "1. Menurut kamu junk food sehat atau tidak?",
       "2. Seberapa sering konsumsi junk food?",
       "3. Berapa kali makan sehari?",
@@ -120,50 +292,75 @@
     ];
     let idx = 0, answers = [];
 
-    const step1 = document.getElementById("step1"),
-          step2 = document.getElementById("step2"),
-          step3 = document.getElementById("step3"),
-          qEl    = document.getElementById("question"),
-          aEl    = document.getElementById("answer"),
-          btn1   = document.getElementById("step1Next"),
-          btn2   = document.getElementById("step2Next"),
-          aiDiv  = document.getElementById("aiOverview"),
-          spinner = document.getElementById("spinner");
+    // Macro DB
+    const foods = [
+      { key:"apple",        name:"Apel",       p:0.3, c:14, f:0.2, e:52 },
+      { key:"banana",       name:"Pisang",     p:1.3, c:23, f:0.3, e:96 },
+      { key:"nasigoreng",   name:"Nasi Goreng",p:7,   c:50, f:15,  e:350 },
+      { key:"sotoayam",     name:"Soto Ayam",  p:8,   c:10, f:5,   e:120 },
+      { key:"rendang",      name:"Rendang",    p:14,  c:2,  f:30,  e:320 },
+      { key:"bakso",        name:"Bakso",      p:6,   c:5,  f:7,   e:120 },
+      { key:"miegoreng",    name:"Mie Goreng", p:8,   c:60, f:20,  e:400 },
+      { key:"pecellele",    name:"Pecel Lele", p:20,  c:10, f:15,  e:260 },
+      { key:"ayamgoreng",   name:"Ayam Goreng",p:25,  c:0,  f:20,  e:300 },
+      { key:"pempek",       name:"Pempek",     p:12,  c:30, f:5,   e:220 },
+      { key:"gadogado",     name:"Gado Gado",  p:10,  c:20, f:10,  e:220 },
+      { key:"ketoprak",     name:"Ketoprak",   p:8,   c:30, f:10,  e:260 },
+      { key:"lontongsayur", name:"Lontong Sayur",p:4, c:40, f:8,   e:260 },
+      { key:"sotobetawi",   name:"Soto Betawi",p:9,   c:10, f:20,  e:240 },
+      { key:"martabaktelor",name:"Martabak Telor",p:14,c:10,f:20,  e:300 },
+      { key:"martabakmanis",name:"Martabak Manis",p:6, c:45, f:15,  e:330 },
+      { key:"buburayam",    name:"Bubur Ayam", p:5,   c:30, f:3,   e:180 },
+      { key:"nasipadang",   name:"Nasi Padang", p:8,   c:45, f:15,  e:360 },
+      { key:"nasiuduk",     name:"Nasi Uduk",   p:6,   c:50, f:15,  e:350 },
+      { key:"escampur",     name:"Es Campur",   p:2,   c:30, f:5,   e:180 }
+    ];
+    const db = Object.fromEntries(foods.map(f=>[f.key,f]));
 
-    const imageUrl  = document.getElementById("imageUrl"),
-          foodPhoto = document.getElementById("foodPhoto"),
-          photoBtn  = document.getElementById("photoSubmit"),
-          preview   = document.getElementById("preview"),
-          analysis  = document.getElementById("photoAnalysis"),
-          pieCan    = document.getElementById("pieCan"),
-          barCan    = document.getElementById("barCan");
-
-    const foodSearch = document.getElementById("foodSearch"),
+    // DOM refs
+    const step1      = document.getElementById("step1"),
+          step2      = document.getElementById("step2"),
+          step3      = document.getElementById("step3"),
+          qEl        = document.getElementById("question"),
+          aEl        = document.getElementById("answer"),
+          btn1       = document.getElementById("step1Next"),
+          btn2       = document.getElementById("step2Next"),
+          aiDiv      = document.getElementById("aiOverview"),
+          spinner    = document.getElementById("spinner"),
+          imageUrl   = document.getElementById("imageUrl"),
+          foodPhoto  = document.getElementById("foodPhoto"),
+          photoBtn   = document.getElementById("photoSubmit"),
+          preview    = document.getElementById("preview"),
+          analysis   = document.getElementById("photoAnalysis"),
+          pieCan     = document.getElementById("pieCan"),
+          barCan     = document.getElementById("barCan"),
+          foodSearch = document.getElementById("foodSearch"),
           foodList   = document.getElementById("foodList"),
           detailPan  = document.getElementById("foodDetailPanel"),
           closeBtn   = detailPan.querySelector(".close-btn"),
           foodDet    = document.getElementById("foodDetails");
 
     function showQuestion(i) {
-      qEl.textContent = qs[i];
+      qEl.textContent = questions[i];
       aEl.value = "";
-      btn1.textContent = i < qs.length-1 ? "Next" : "Submit";
+      btn1.textContent = i < questions.length - 1 ? "Next ➡️" : "Submit ✔️";
     }
     showQuestion(idx);
 
+    // Step1 → Step2
     btn1.onclick = async () => {
-      const v = aEl.value.trim();
-      if (!v) return alert("Isi jawaban dulu.");
-      answers[idx] = v;
-      if (idx < qs.length-1) {
-        idx++; showQuestion(idx);
+      const resp = aEl.value.trim();
+      if (!resp) return alert("Isi jawaban dulu.");
+      answers[idx] = resp;
+      if (idx < questions.length - 1) {
+        idx++; showQuestion(idx); 
       } else {
         confetti({ particleCount:100, spread:60, origin:{ y:0.4 } });
         step1.classList.replace("active","hidden");
         step2.classList.add("active");
         spinner.classList.add("active");
         aiDiv.textContent = "Memuat overview AI…";
-        const prompt = answers.map((a,i)=>`${qs[i]}\nJawaban: ${a}`).join("\n\n");
+        const prompt = answers.map((a,i)=>`${questions[i]}\nJawaban: ${a}`).join("\n\n");
         try {
           const res = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0`,
@@ -173,8 +370,8 @@
               body: JSON.stringify({ contents:[{ parts:[{ text:`Ringkas pola makan:\n\n${prompt}` }] }] })
             }
           );
-          const json = await res.json();
-          aiDiv.innerHTML = (json.candidates?.[0]?.content?.parts?.[0]?.text||"AI gagal").replace(/\n/g,"<br>");
+          const j = await res.json();
+          aiDiv.innerHTML = (j.candidates?.[0]?.content?.parts?.[0]?.text||"AI gagal 😢").replace(/\n/g,"<br>");
         } catch {
           aiDiv.innerHTML = "<span style='color:red'>Error AI.</span>";
         } finally {
@@ -183,6 +380,7 @@
       }
     };
 
+    // Step2 → Step3
     btn2.onclick = () => {
       step2.classList.replace("active","hidden");
       step3.classList.add("active");
@@ -190,94 +388,75 @@
       buildFoodList();
     };
 
-    const foods = [
-      {k:"apple",n:"Apel",p:0.3,c:14,f:0.2,e:52},
-      {k:"banana",n:"Pisang",p:1.3,c:23,f:0.3,e:96},
-      {k:"nasigoreng",n:"Nasi Goreng",p:7,c:50,f:15,e:350},
-      {k:"sotoayam",n:"Soto Ayam",p:8,c:10,f:5,e:120},
-      {k:"rendang",n:"Rendang",p:14,c:2,f:30,e:320},
-      {k:"bakso",n:"Bakso",p:6,c:5,f:7,e:120},
-      {k:"miegoreng",n:"Mie Goreng",p:8,c:60,f:20,e:400},
-      {k:"pecellele",n:"Pecel Lele",p:20,c:10,f:15,e:260},
-      {k:"ayamgoreng",n:"Ayam Goreng",p:25,c:0,f:20,e:300},
-      {k:"pempek",n:"Pempek",p:12,c:30,f:5,e:220},
-      {k:"gadogado",n:"Gado Gado",p:10,c:20,f:10,e:220},
-      {k:"ketoprak",n:"Ketoprak",p:8,c:30,f:10,e:260},
-      {k:"lontongsayur",n:"Lontong Sayur",p:4,c:40,f:8,e:260},
-      {k:"sotobetawi",n:"Soto Betawi",p:9,c:10,f:20,e:240},
-      {k:"martabaktelor",n:"Martabak Telor",p:14,c:10,f:20,e:300},
-      {k:"martabakmanis",n:"Martabak Manis",p:6,c:45,f:15,e:330},
-      {k:"buburayam",n:"Bubur Ayam",p:5,c:30,f:3,e:180},
-      {k:"nasipadang",n:"Nasi Padang",p:8,c:45,f:15,e:360},
-      {k:"nasiuduk",n:"Nasi Uduk",p:6,c:50,f:15,e:350},
-      {k:"escampur",n:"Es Campur",p:2,c:30,f:5,e:180}
-    ];
-    const db = Object.fromEntries(foods.map(f=>[f.k,f]));
-
+    // Searchable list
     function buildFoodList() {
       foodList.innerHTML = "";
       foodSearch.value = "";
       detailPan.classList.remove("show");
-      foods.forEach(f=>{
-        const d=document.createElement("div");
-        d.className="food-item"; d.textContent=f.n;
-        d.onclick=()=>showFood(f);
-        foodList.append(d);
+      foods.forEach(f => {
+        const el = document.createElement("div");
+        el.className = "food-item";
+        el.textContent = f.name;
+        el.onclick = () => showFood(f);
+        foodList.append(el);
       });
     }
-
-    foodSearch.oninput = ()=>{
-      const q=foodSearch.value.toLowerCase();
-      document.querySelectorAll(".food-item").forEach(el=>
-        el.style.display = el.textContent.toLowerCase().includes(q) ? "" : "none"
-      );
+    foodSearch.oninput = () => {
+      const q = foodSearch.value.toLowerCase();
+      document.querySelectorAll(".food-item").forEach(el => {
+        el.style.display = el.textContent.toLowerCase().includes(q) ? "" : "none";
+      });
       detailPan.classList.remove("show");
     };
-
-    function showFood(f){
-      foodDet.innerHTML=`
-        <h4>${f.n}</h4>
-        <p>Protein: ${f.p} g</p>
-        <p>Karbo: ${f.c} g</p>
-        <p>Lemak: ${f.f} g</p>
-        <p>Energi: ${f.e} kcal</p>`;
+    function showFood(f) {
+      foodDet.innerHTML = `
+        <h4>${f.name}</h4>
+        <p>Protein 🌱: ${f.p} g</p>
+        <p>Karbo 🍚: ${f.c} g</p>
+        <p>Lemak 🧈: ${f.f} g</p>
+        <p>Energi 🔥: ${f.e} kcal</p>`;
       detailPan.classList.add("show");
     }
-    closeBtn.onclick = ()=> detailPan.classList.remove("show");
+    closeBtn.onclick = () => detailPan.classList.remove("show");
 
-    photoBtn.onclick = async ()=>{
+    // Photo analysis & charts
+    photoBtn.onclick = async () => {
       let src = imageUrl.value.trim();
-      if(!src && foodPhoto.files[0]) src = URL.createObjectURL(foodPhoto.files[0]);
-      if(!src) return alert("Masukkan URL atau pilih file.");
-      preview.src = src; preview.style.display="block"; analysis.textContent="";
+      if (!src && foodPhoto.files[0]) src = URL.createObjectURL(foodPhoto.files[0]);
+      if (!src) return alert("Masukkan URL atau pilih file.");
+      preview.src = src; preview.style.display = "block";
+      analysis.textContent = "";
       spinner.classList.add("active");
-      const clf = await ml5.imageClassifier("MobileNet"),
-            [res] = await clf.classify(preview),
-            key = res.label.split(",")[0].toLowerCase(),
-            info = db[key] || {n:key,p:5,c:20,f:5,e:120},
-            total = info.p+info.c+info.f,
-            pct   = [info.p,info.c,info.f].map(v=>Math.round(v/total*100));
-      renderPie(pct,["Protein","Karbo","Lemak"],pieCan);
-      renderBar([info.p,info.c,info.f,info.e],["P(g)","C(g)","L(g)","kcal"],barCan);
-      analysis.innerHTML=`<p>${info.n}: ${info.p}g P, ${info.c}g C, ${info.f}g L, ${info.e} kcal</p>`;
+
+      const clf = await ml5.imageClassifier("MobileNet");
+      const [res] = await clf.classify(preview);
+      const key   = res.label.split(",")[0].toLowerCase();
+      const info  = db[key] || { name:key, p:5, c:20, f:5, e:120 };
+      const total = info.p + info.c + info.f;
+      const pct   = [info.p, info.c, info.f].map(v => Math.round(v/total*100));
+
+      renderPie(pct, ["Protein","Karbo","Lemak"], pieCan);
+      renderBar([info.p,info.c,info.f,info.e], ["P(g)","C(g)","L(g)","kcal"], barCan);
+
+      analysis.innerHTML = `<p>🍽️ <strong>${info.name}</strong>: ${info.p}g P, ${info.c}g C, ${info.f}g L, ${info.e} kcal</p>`;
       spinner.classList.remove("active");
     };
 
-    function clearChart(c){ if(c._chart) c._chart.destroy(); }
-    function renderPie(data,labels,c){
+    function clearChart(c) { if (c._chart) c._chart.destroy(); }
+    function renderPie(data, labels, c) {
       clearChart(c);
-      c._chart=new Chart(c.getContext("2d"),{
-        type:"pie",
-        data:{labels,datasets:[{data,backgroundColor:["#35a35c","#f5bc51","#e57373"]}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}},animation:{animateScale:true,duration:800}}
+      c._chart = new Chart(c.getContext("2d"), {
+        type: "pie",
+        data: { labels, datasets: [{ data, backgroundColor:[ "var(--primary)","var(--secondary)","var(--accent)" ] }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:"bottom" } } }
       });
     }
-    function renderBar(data,labels,c){
+    function renderBar(data, labels, c) {
       clearChart(c);
-      c._chart=new Chart(c.getContext("2d"),{
-        type:"bar",
-        data:{labels,datasets:[{label:"Jumlah",data,backgroundColor:["#35a35c","#f5bc51","#e57373","#5c97f5"]}]},
-        options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,animation:{duration:1000}}
+      c._chart = new Chart(c.getContext("2d"), {
+        type: "bar",
+        data: { labels, datasets: [{ label:"Jumlah", data, backgroundColor:[ "var(--primary)","var(--secondary)","var(--accent)","#888" ] }] },
+        options: { indexAxis:"y", responsive:true, maintainAspectRatio:false }
       });
     }
   });
