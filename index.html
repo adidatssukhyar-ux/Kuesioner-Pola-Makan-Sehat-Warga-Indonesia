@@ -2,105 +2,27 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Survey Ringkas & Overview AI</title>
+  <title>Survey + AI Overview</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- OG stylesheet -->
+  <!-- your style.css -->
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Controller script deferred -->
-  <script defer>
-    // Daftar pertanyaan
-    const questions = [
-      "1. Menurut kamu makanan junk food sehat atau tidak?",
-      "2. Seberapa sering kamu mengonsumsi junk food?",
-      "3. Berapa kali kamu makan dalam sehari?",
-      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
-      "5. Apakah kamu sering mengonsumsi sayur-sayuran?",
-      "6. Sebutkan satu makanan bergizi dan satu yang tidak bergizi.",
-      "7. Menurut kamu, seberapa penting nutrisi seimbang?",
-      "8. Buah atau sayur mana yang paling sering kamu konsumsi?",
-      "9. Apa tantanganmu untuk makan lebih sehat?",
-      "10. Langkah apa yang akan kamu ambil untuk pola makan lebih baik?"
-    ];
-    let idx = 0, answers = [];
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const qc       = document.getElementById("questionContainer");
-      const nextBtn  = document.getElementById("nextBtn");
-      const submitBtn= document.getElementById("submitBtn");
-      const survey   = document.getElementById("questionSection");
-      const overview = document.getElementById("overviewSection");
-      const aiDiv    = document.getElementById("aiOverview");
-
-      function showQuestion(i) {
-        qc.innerHTML = `
-          <p class="question-text">${questions[i]}</p>
-          <textarea id="answer" placeholder="Tuliskan jawaban kamu di sini..."></textarea>
-        `;
-        nextBtn.hidden   = (i === questions.length - 1);
-        submitBtn.hidden = (i !== questions.length - 1);
-      }
-
-      // Tampilkan pertanyaan pertama
-      showQuestion(0);
-
-      // Next langkah
-      nextBtn.addEventListener("click", () => {
-        const val = document.getElementById("answer").value.trim();
-        if (!val) return alert("Isi jawaban dulu.");
-        answers.push(val);
-        idx++;
-        showQuestion(idx);
-      });
-
-      // Submit akhir, panggil Gemini AI untuk overview
-      submitBtn.addEventListener("click", async () => {
-        const last = document.getElementById("answer").value.trim();
-        if (last) answers.push(last);
-
-        // Siapkan prompt dengan pasang Q&A
-        const qaPairs = answers
-          .map((a,i) => `${questions[i]}\nJawaban: ${a}`)
-          .join("\n\n");
-        const prompt = `
-Ringkas respons berikut dan berikan overview singkat tentang pola makan:
-${qaPairs}
-        `;
-
-        aiDiv.innerHTML = `<p style="font-style:italic;">Membuat overview AI…</p>`;
-
-        try {
-          const res = await fetch(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0',
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
-            }
-          );
-          const data = await res.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text
-                       || 'AI gagal merespons.';
-          aiDiv.innerHTML = `<p>${text.replace(/\n/g,'<br>')}</p>`;
-        } catch (err) {
-          aiDiv.innerHTML = `<p style="color:red;">Error saat memanggil AI overview.</p>`;
-          console.error(err);
-        }
-
-        survey.hidden   = true;
-        overview.hidden = false;
-      });
-    });
-  </script>
 
   <style>
     .hidden { display: none; }
-    .question-text { font-weight: 600; margin-top: 16px; }
-    textarea { width: 100%; height: 100px; margin-top: 8px; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-    button { margin: 12px 8px 0 0; padding: 8px 16px; border:none; background:#35a35c; color:#fff; border-radius:4px; cursor:pointer; }
-    button[hidden] { display:none; }
-    #overviewSection { margin-top: 32px; }
+    .question-text { font-weight:600; margin-top:16px; }
+    textarea {
+      width:100%; height:120px; margin-top:8px;
+      padding:8px; box-sizing:border-box;
+      border:1px solid #ccc; border-radius:4px;
+    }
+    button {
+      margin:12px 8px 0 0; padding:8px 16px;
+      border:none; background:#35a35c; color:#fff;
+      border-radius:4px; cursor:pointer;
+    }
+    button[disabled] { opacity:0.6; cursor:default; }
+    #overviewSection { margin-top:32px; }
   </style>
 </head>
 
@@ -108,18 +30,118 @@ ${qaPairs}
   <div class="container">
     <h1>Survey Ringkas</h1>
 
-    <!-- Section pertanyaan -->
+    <!-- QUESTION FLOW -->
     <section id="questionSection">
       <div id="questionContainer"></div>
       <button id="nextBtn">Next</button>
-      <button id="submitBtn" hidden>Submit</button>
+      <button id="submitBtn" class="hidden">Submit</button>
     </section>
 
-    <!-- Section overview AI -->
+    <!-- AI OVERVIEW -->
     <section id="overviewSection" class="hidden">
       <h2>Overview AI</h2>
       <div id="aiOverview"></div>
     </section>
   </div>
+
+  <script>
+  // your Gemini API key
+  const API_KEY = "AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0";
+
+  //–– your 10 questions
+  const questions = [
+    "1. Menurut kamu makanan junk food sehat atau tidak?",
+    "2. Seberapa sering kamu mengonsumsi junk food?",
+    "3. Berapa kali kamu makan dalam sehari?",
+    "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
+    "5. Apakah kamu sering mengonsumsi sayur-sayuran?",
+    "6. Sebutkan satu makanan bergizi dan satu yang tidak bergizi.",
+    "7. Menurut kamu, seberapa penting nutrisi seimbang?",
+    "8. Buah atau sayur mana yang paling sering kamu konsumsi?",
+    "9. Apa tantanganmu untuk makan lebih sehat?",
+    "10. Langkah apa yang akan kamu ambil untuk pola makan lebih baik?"
+  ];
+
+  document.addEventListener("DOMContentLoaded", () => {
+    console.clear();
+    console.log("⚙️ Survey init");
+
+    let idx = 0, answers = [];
+
+    // DOM refs
+    const qs          = document.getElementById("questionSection");
+    const ovs         = document.getElementById("overviewSection");
+    const qc          = document.getElementById("questionContainer");
+    const nextBtn     = document.getElementById("nextBtn");
+    const submitBtn   = document.getElementById("submitBtn");
+    const aiOverview  = document.getElementById("aiOverview");
+
+    // render question i
+    function showQuestion(i) {
+      console.log("Showing question", i);
+      qc.innerHTML = `
+        <p class="question-text">${questions[i]}</p>
+        <textarea id="answer" placeholder="Tuliskan jawaban di sini..."></textarea>
+      `;
+      nextBtn.classList.toggle("hidden", i === questions.length - 1);
+      submitBtn.classList.toggle("hidden", i !== questions.length - 1);
+    }
+
+    // kick off
+    showQuestion(idx);
+
+    // Next click
+    nextBtn.addEventListener("click", () => {
+      const val = document.getElementById("answer").value.trim();
+      if (!val) return alert("Isi jawaban dulu.");
+      answers.push(val);
+      idx++;
+      showQuestion(idx);
+    });
+
+    // Submit click → AI call
+    submitBtn.addEventListener("click", async () => {
+      const last = document.getElementById("answer").value.trim();
+      if (last) answers.push(last);
+
+      // build prompt from Q&A
+      const qaPairs = answers
+        .map((a,i) => `${questions[i]}\nJawaban: ${a}`)
+        .join("\n\n");
+      const prompt = `Ringkas respons berikut dan berikan overview pola makan:\n\n${qaPairs}`;
+
+      // show loading
+      aiOverview.innerHTML = `<p style="font-style:italic;">Membuat overview AI…</p>`;
+
+      try {
+        console.log("→ Sending to Gemini…");
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
+          }
+        );
+        console.log("AI response status", res.status);
+        const data = await res.json();
+        console.log("AI raw response", data);
+
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) throw new Error("No AI text in response");
+
+        aiOverview.innerHTML = `<p>${text.replace(/\n/g,"<br>")}</p>`;
+      } catch (err) {
+        console.error("AI fetch error:", err);
+        aiOverview.innerHTML = `<p style="color:red;">Gagal memuat overview AI.</p>`;
+      }
+
+      qs.classList.add("hidden");
+      ovs.classList.remove("hidden");
+    });
+  });
+  </script>
 </body>
 </html>
