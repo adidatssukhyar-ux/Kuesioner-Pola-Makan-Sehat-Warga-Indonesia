@@ -150,7 +150,7 @@
           `Ringkas jawaban berikut (10 poin) dan berikan rekomendasi kalori harian untuk hidup sehat:\n\n` +
           answers.map((a,i)=>`${i+1}. ${a}`).join("\n");
         const resp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, 
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0}`, 
           {
             method: "POST",
             headers:{ "Content-Type":"application/json" },
@@ -231,7 +231,7 @@
 
         // Vision API: label detection
         const visionResp = await fetch(
-          `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`, 
+          `https://vision.googleapis.com/v1/images:annotate?key=${AIzaSyBT7Sv_4m4u_lHZnMzD5BfYrZbcHilsUSE}`, 
           {
             method: "POST",
             headers:{ "Content-Type":"application/json" },
