@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Pola Makan Sehat & Analisis Makanan</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- ML5.js & Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/ml5@0.6.0/dist/ml5.min.js" defer></script>
@@ -24,6 +24,10 @@
       border-radius: 16px;
       box-shadow: 0 2px 20px rgba(100,180,120,0.12);
       border: 2px solid #b5e7b7;
+      transition: max-width 0.3s;
+    }
+    .container.wide {
+      max-width: 90%;
     }
     h1 {
       text-align: center;
@@ -39,25 +43,23 @@
       font-weight: 500;
       font-size: 1.08em;
     }
-    input[type="email"], textarea, input[type="url"], input[type="file"], input[type="text"] {
+    input, textarea {
       width: 100%;
       padding: 10px;
       margin-top: 8px;
       border-radius: 8px;
       border: 1.5px solid #f5bc51;
-      font-size: 1em;
       background: #fffde9;
       box-sizing: border-box;
       transition: border-color 0.2s;
+      font-size: 1em;
     }
     input:focus, textarea:focus {
       border-color: #35a35c;
       outline: none;
     }
-    textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
+    textarea { min-height: 80px; resize: vertical; }
+
     button {
       margin-top: 20px;
       width: 100%;
@@ -104,12 +106,12 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ——— Step 3 two-column layout ——— */
+    /* ——— Step 3 split layout ——— */
     .analysis-flex {
       display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap;
     }
     .analysis-photo, .analysis-list {
-      flex: 1; min-width: 200px;
+      flex: 1; min-width: 200px; position: relative;
     }
     .analysis-list h2 {
       font-size: 1.2em; color: #22753e; margin-bottom: 8px;
@@ -131,31 +133,30 @@
     .food-item:hover { background: rgba(53,163,92,0.1); }
     .food-item span { color: #22753e; font-weight: 500; }
 
-    /* ——— Modal ——— */
-    .modal {
-      position: fixed; top:0; left:0; right:0; bottom:0;
-      background: rgba(0,0,0,0.5);
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; visibility: hidden; transition: all 0.2s;
-      z-index: 2000;
+    /* ——— Inline detail panel ——— */
+    #foodDetailPanel {
+      position: absolute;
+      top: 56px; left: 0; right: 0;
+      background: #fff;
+      border: 1px solid #b5e7b7;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 16px;
+      z-index: 5;
     }
-    .modal.active { opacity:1; visibility: visible; }
-    .modal-content {
-      background: #fff; padding: 24px; border-radius: 12px;
-      width: 90%; max-width:360px; position: relative;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    #foodDetailPanel.hidden { display: none; }
+    #foodDetailPanel .close-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: none; border: none; font-size: 1.2em;
+      cursor: pointer; color: #666;
     }
-    .modal-close {
-      position: absolute; top:12px; right:12px;
-      background:none; border:none; font-size:1.5em; color:#666; cursor:pointer;
-    }
-    .modal-close:hover { color:#333; }
-    .modal-content h3 { margin-top:0; color:#35a35c; }
-    .modal-content p { margin:8px 0; color:#22753e; }
+    #foodDetailPanel .close-btn:hover { color: #333; }
+    #foodDetailPanel h3 { margin-top: 0; color: #35a35c; }
+    #foodDetailPanel p { margin: 6px 0; color: #22753e; }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="mainContainer">
     <h1>Pola Makan Sehat</h1>
 
     <!-- STEP 1: Survey -->
@@ -189,11 +190,13 @@
           <canvas id="macroPie"></canvas>
           <canvas id="macroBar"></canvas>
         </div>
+
         <!-- Right: Food Search & List -->
         <div class="analysis-list">
           <h2>Analisis makanan yang Anda makan!</h2>
           <input type="text" id="foodSearchRight" placeholder="Cari makanan..." />
           <div id="foodListRight" class="food-list"></div>
+          <div id="foodDetailPanel" class="hidden"></div>
         </div>
       </div>
     </section>
@@ -204,17 +207,9 @@
     <div class="spinner"></div>
   </div>
 
-  <!-- Modal for Food Details -->
-  <div id="foodModal" class="modal">
-    <div class="modal-content">
-      <button id="modalClose" class="modal-close">×</button>
-      <div id="modalBody"></div>
-    </div>
-  </div>
-
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // 1) Survey Questions
+    // 1) Survey questions
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi junk food?",
@@ -255,45 +250,42 @@
     const macroDB = Object.fromEntries(macroDBList.map(o=>[o.key,o]));
 
     // DOM refs
-    const s1  = document.getElementById("step1");
-    const s2  = document.getElementById("step2");
-    const s3  = document.getElementById("step3");
-    const qC  = document.getElementById("questionContainer");
-    const btn1= document.getElementById("step1Next");
-    const btn2= document.getElementById("step2Next");
-    const aiD = document.getElementById("aiOverview");
-    const spinner = document.getElementById("spinner");
-
-    const imageUrl = document.getElementById("imageUrl");
-    const foodPhoto= document.getElementById("foodPhoto");
-    const photoBtn = document.getElementById("photoSubmit");
-    const preview  = document.getElementById("foodPreview");
-    const analysis = document.getElementById("photoAnalysis");
-    const pieCan   = document.getElementById("macroPie");
-    const barCan   = document.getElementById("macroBar");
-
+    const mainContainer   = document.getElementById("mainContainer");
+    const s1              = document.getElementById("step1");
+    const s2              = document.getElementById("step2");
+    const s3              = document.getElementById("step3");
+    const qC              = document.getElementById("questionContainer");
+    const btn1            = document.getElementById("step1Next");
+    const btn2            = document.getElementById("step2Next");
+    const aiD             = document.getElementById("aiOverview");
+    const spinner         = document.getElementById("spinner");
+    const imageUrl        = document.getElementById("imageUrl");
+    const foodPhoto       = document.getElementById("foodPhoto");
+    const photoBtn        = document.getElementById("photoSubmit");
+    const preview         = document.getElementById("foodPreview");
+    const analysis        = document.getElementById("photoAnalysis");
+    const pieCan          = document.getElementById("macroPie");
+    const barCan          = document.getElementById("macroBar");
     const foodListRight   = document.getElementById("foodListRight");
     const foodSearchRight = document.getElementById("foodSearchRight");
-    const modal           = document.getElementById("foodModal");
-    const modalClose      = document.getElementById("modalClose");
-    const modalBody       = document.getElementById("modalBody");
+    const detailPanel     = document.getElementById("foodDetailPanel");
 
-    // showQuestion
+    // Render question
     function showQuestion(i) {
       qC.innerHTML = `
         <p class="question-text">${questions[i]}</p>
         <textarea id="answer" placeholder="Tuliskan jawaban..."></textarea>
       `;
-      btn1.textContent = i < questions.length-1 ? "Next" : "Submit";
+      btn1.textContent = i < questions.length - 1 ? "Next" : "Submit";
     }
     showQuestion(idx);
 
     // Step1 → Step2 (AI)
-    btn1.addEventListener("click", async() => {
+    btn1.addEventListener("click", async () => {
       const v = document.getElementById("answer").value.trim();
       if (!v) return alert("Isi jawaban dulu.");
       answers.push(v);
-      if (idx < questions.length-1) {
+      if (idx < questions.length - 1) {
         idx++; showQuestion(idx);
       } else {
         s1.classList.add("hidden");
@@ -307,10 +299,12 @@
             {
               method:"POST",
               headers:{"Content-Type":"application/json"},
-              body:JSON.stringify({ contents:[{ parts:[{ text:`Ringkas pola makan:\n\n${prompt}` }] }] })
+              body: JSON.stringify({
+                contents:[{ parts:[{ text:`Ringkas pola makan:\n\n${prompt}` }] }]
+              })
             }
           );
-          const j = await res.json();
+          const j   = await res.json();
           const txt = j.candidates?.[0]?.content?.parts?.[0]?.text || "AI gagal.";
           aiD.innerHTML = `<p>${txt.replace(/\n/g,"<br>")}</p>`;
         } catch {
@@ -324,17 +318,20 @@
     btn2.addEventListener("click", () => {
       s2.classList.add("hidden");
       s3.classList.remove("hidden");
+      mainContainer.classList.add("wide");
       buildFoodList();
     });
 
-    // buildFoodListRight
+    // Build right-hand list
     function buildFoodList() {
+      detailPanel.classList.add("hidden");
+      foodSearchRight.value = "";
       foodListRight.innerHTML = "";
       macroDBList.forEach(item => {
         const div = document.createElement("div");
         div.className = "food-item";
         div.innerHTML = `<span>${item.name}</span>`;
-        div.onclick = () => showModal(item);
+        div.onclick = () => showFoodDetails(item);
         foodListRight.append(div);
       });
     }
@@ -343,25 +340,26 @@
       document.querySelectorAll(".food-item").forEach(el => {
         el.style.display = el.textContent.toLowerCase().includes(q) ? "" : "none";
       });
+      detailPanel.classList.add("hidden");
     });
 
-    // showModal
-    function showModal(item) {
-      modalBody.innerHTML = `
+    // Inline detail panel
+    function showFoodDetails(item) {
+      detailPanel.innerHTML = `
+        <button class="close-btn">&times;</button>
         <h3>${item.name}</h3>
         <p>Protein: ${item.protein} g</p>
         <p>Karbo: ${item.carbs} g</p>
         <p>Lemak: ${item.fats} g</p>
         <p>Energi: ${item.energy} kcal</p>
       `;
-      modal.classList.add("active");
+      detailPanel.classList.remove("hidden");
+      detailPanel.querySelector(".close-btn")
+        .addEventListener("click", () => detailPanel.classList.add("hidden"));
     }
-    modalClose.addEventListener("click", () => {
-      modal.classList.remove("active");
-    });
 
     // Photo analysis & charts
-    photoBtn.addEventListener("click", async() => {
+    photoBtn.addEventListener("click", async () => {
       let src = imageUrl.value.trim();
       if (!src && foodPhoto.files[0]) src = URL.createObjectURL(foodPhoto.files[0]);
       if (!src) return alert("Masukkan URL atau pilih file.");
@@ -370,12 +368,12 @@
       spinner.classList.add("active");
 
       const classifier = await ml5.imageClassifier("MobileNet");
-      const [res] = await classifier.classify(preview);
-      const key = res.label.split(",")[0].toLowerCase();
-      const info= macroDB[key] || { name:key, protein:5, carbs:20, fats:5, energy:120 };
+      const [res]      = await classifier.classify(preview);
+      const key        = res.label.split(",")[0].toLowerCase();
+      const info       = macroDB[key] || { name:key, protein:5, carbs:20, fats:5, energy:120 };
 
-      // pie
-      const total = info.protein+info.carbs+info.fats;
+      // Pie chart
+      const total = info.protein + info.carbs + info.fats;
       const pct   = [
         Math.round(info.protein/total*100),
         Math.round(info.carbs/total*100),
@@ -383,9 +381,9 @@
       ];
       renderPie(pct, ["Protein","Karbo","Lemak"], pieCan);
 
-      // bar
+      // Bar chart
       renderBar(
-        [info.protein,info.carbs,info.fats,info.energy],
+        [info.protein, info.carbs, info.fats, info.energy],
         ["Protein(g)","Karbo(g)","Lemak(g)","Energi(kcal)"],
         barCan
       );
@@ -394,21 +392,21 @@
       spinner.classList.remove("active");
     });
 
-    // chart helpers
-    function clearChart(c) { if(c._chart) c._chart.destroy(); }
+    // Chart helpers
+    function clearChart(c) { if (c._chart) c._chart.destroy(); }
     function renderPie(data, labels, c) {
       clearChart(c);
       c._chart = new Chart(c.getContext("2d"), {
-        type:"pie",
-        data:{ labels, datasets:[{ data, backgroundColor:["#35a35c","#f5bc51","#e57373"] }]},
+        type: "pie",
+        data: { labels, datasets:[{ data, backgroundColor:["#35a35c","#f5bc51","#e57373"] }] },
         options:{ responsive:true, animation:{ animateScale:true, duration:800, easing:"easeOutQuad" }, plugins:{ legend:{ position:"bottom" }}}
       });
     }
     function renderBar(data, labels, c) {
       clearChart(c);
       c._chart = new Chart(c.getContext("2d"), {
-        type:"bar",
-        data:{ labels, datasets:[{ label:"Jumlah", data, backgroundColor:["#35a35c","#f5bc51","#e57373","#5c97f5"] }]},
+        type: "bar",
+        data:{ labels, datasets:[{ label:"Jumlah", data, backgroundColor:["#35a35c","#f5bc51","#e57373","#5c97f5"] }] },
         options:{ indexAxis:"y", responsive:true, animation:{ duration:1000, easing:"easeOutBounce" }}
       });
     }
