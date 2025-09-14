@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Pola Makan Sehat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- Gemini & UI libs -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Chart.js & Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
   <style>
@@ -41,7 +41,10 @@
       background:var(--primary);
       padding:16px;
     }
-    .logo img { width:60px; border-radius:8px }
+    .logo img {
+      width:60px;
+      border-radius:8px;
+    }
     h1 {
       text-align:center;
       margin:16px 0;
@@ -55,81 +58,74 @@
       margin-bottom:16px;
       font-size:1.1rem;
     }
+    .question-text {
+      font-weight:600;
+      color:var(--primary);
+      margin-bottom:12px;
+    }
+    textarea, input[type="text"] {
+      width:100%; padding:12px; border:1px solid #cdefe1;
+      border-radius:var(--radius); font-size:1rem;
+      transition:border-color .3s;
+    }
+    textarea:focus, input:focus {
+      border-color:var(--primary); outline:none;
+    }
+    .btn {
+      display:block; width:100%; padding:14px; margin-top:24px;
+      background:var(--primary); color:#fff; border:none;
+      border-radius:var(--radius); font-size:1rem;
+      cursor:pointer; transition:background .3s, transform .3s;
+    }
+    .btn:disabled {
+      background:#ccc; cursor:not-allowed;
+    }
+    .btn:not(:disabled):hover {
+      background:var(--accent); transform:translateY(-2px);
+    }
+    .project-credit {
+      text-align:center; color:var(--muted);
+      font-size:.85rem; margin-top:12px;
+    }
     .food-list {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-      max-height:240px;
-      overflow-y:auto;
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:8px; max-height:240px; overflow-y:auto;
       margin-bottom:12px;
     }
     .food-item {
-      padding:10px;
-      background:#fcfcfc;
-      border:1px solid #e0e0e0;
-      border-radius:var(--radius);
-      text-align:center;
-      cursor:pointer;
-      transition:background var(--transition),border-color var(--transition);
+      padding:10px; background:#fcfcfc; border:1px solid #e0e0e0;
+      border-radius:var(--radius); text-align:center; cursor:pointer;
+      transition:background var(--transition), border-color var(--transition);
     }
     .food-item.selected {
-      background:var(--accent);
-      color:white;
+      background:var(--accent); color:white;
       border-color:var(--accent);
     }
     .food-item:hover {
       border-color:var(--primary);
     }
     .count {
-      margin-bottom:12px;
-      color:var(--muted);
-      font-size:.95rem;
-    }
-    .btn {
-      display:block;
-      width:100%;
-      padding:14px;
-      margin-top:16px;
-      background:var(--primary);
-      color:white;
-      border:none;
-      border-radius:var(--radius);
-      font-size:1rem;
-      cursor:pointer;
-      transition:background var(--transition),transform var(--transition);
-    }
-    .btn:disabled {
-      background:#ccc;
-      cursor:not-allowed;
-    }
-    .btn:not(:disabled):hover {
-      background:var(--accent);
-      transform:translateY(-2px);
+      margin-bottom:12px; color:var(--muted); font-size:.95rem;
     }
     .summary {
-      background:#fcfcfc;
-      padding:16px;
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
+      background:#fcfcfc; padding:16px;
+      border-radius:var(--radius); box-shadow:var(--shadow);
       margin-bottom:16px;
     }
-    #aiReview {
-      min-height:100px;
-      padding:16px;
-      background:#fff;
-      border:1px solid #e0e0e0;
-      border-radius:var(--radius);
-      line-height:1.5;
+    #aiOverview, #aiReview {
+      min-height:100px; padding:16px;
+      border:1px solid #e0e0e0; border-radius:var(--radius);
+      background:#fff; line-height:1.6;
+      margin-bottom:16px;
     }
     .spinner-overlay {
-      position:fixed; inset:0;
-      background:rgba(255,255,255,0.7);
-      display:flex;align-items:center;justify-content:center;
+      position:fixed; inset:0; background:rgba(255,255,255,0.7);
+      display:flex; align-items:center; justify-content:center;
       visibility:hidden; z-index:1000;
     }
     .spinner-overlay.active { visibility:visible }
     .spinner {
-      width:50px;height:50px;
+      width:50px; height:50px;
       border:6px solid #e0e0e0;
       border-top-color:var(--primary);
       border-radius:50%;
@@ -142,35 +138,51 @@
   <div class="container" id="mainContainer">
     <div class="logo">
       <img src="https://yt3.ggpht.com/a/AATXAJwRp9NDxa9WX7nh8uuO9TUCUCMqCRE5yJp4CQ=s900-c-k-c0xffffffff-no-rj-mo"
-           alt="Logo Sekolah Al Ikhlas">
+           alt="Logo Al Ikhlas">
     </div>
     <h1>Pola Makan Sehat</h1>
 
-    <!-- STEP 1: Breakfast -->
-    <section id="stepBreakfast" class="active">
-      <div class="step-title">Pilih 3 makanan untuk Sarapan</div>
+    <!-- STEP 1: Survey -->
+    <section id="stepSurvey" class="active">
+      <div class="step-title">Survey Singkat</div>
+      <div class="question-text" id="surveyQ"></div>
+      <textarea id="surveyA" rows="3" placeholder="Tuliskan jawaban…"></textarea>
+      <button id="surveyNext" class="btn">Next</button>
+      <div class="project-credit">Karya Kelompok 1 — Proyek 1</div>
+    </section>
+
+    <!-- STEP 2: AI Overview -->
+    <section id="stepOverview">
+      <div class="step-title">Overview AI</div>
+      <div id="aiOverview">Memuat overview AI…</div>
+      <button id="overviewNext" class="btn">Lanjut ke Pemilihan Menu</button>
+    </section>
+
+    <!-- STEP 3A: Breakfast -->
+    <section id="stepBreakfast">
+      <div class="step-title">Sarapan: pilih 3 menu</div>
       <div id="count-breakfast" class="count">Dipilih: 0/3</div>
       <div id="list-breakfast" class="food-list"></div>
-      <button id="next-breakfast" class="btn" disabled>Next: Lunch</button>
+      <button id="next-breakfast" class="btn" disabled>Next: Siang</button>
     </section>
 
-    <!-- STEP 2: Lunch -->
+    <!-- STEP 3B: Lunch -->
     <section id="stepLunch">
-      <div class="step-title">Pilih 3 makanan untuk Makan Siang</div>
+      <div class="step-title">Makan Siang: pilih 3 menu</div>
       <div id="count-lunch" class="count">Dipilih: 0/3</div>
       <div id="list-lunch" class="food-list"></div>
-      <button id="next-lunch" class="btn" disabled>Next: Dinner</button>
+      <button id="next-lunch" class="btn" disabled>Next: Malam</button>
     </section>
 
-    <!-- STEP 3: Dinner -->
+    <!-- STEP 3C: Dinner -->
     <section id="stepDinner">
-      <div class="step-title">Pilih 3 makanan untuk Makan Malam</div>
+      <div class="step-title">Makan Malam: pilih 3 menu</div>
       <div id="count-dinner" class="count">Dipilih: 0/3</div>
       <div id="list-dinner" class="food-list"></div>
       <button id="next-dinner" class="btn" disabled>Lihat Ringkasan</button>
     </section>
 
-    <!-- STEP 4: Review -->
+    <!-- STEP 4: Summary & AI Review -->
     <section id="stepReview">
       <div class="step-title">Ringkasan Pilihan</div>
       <div class="summary">
@@ -179,7 +191,7 @@
         <strong>Malam:</strong> <span id="sel-dinner"></span>
       </div>
       <button id="btnReview" class="btn">Dapatkan Review AI</button>
-      <div id="aiReview" style="margin-top:16px;"></div>
+      <div id="aiReview">Menunggu permintaan...</div>
     </section>
   </div>
 
@@ -189,6 +201,21 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
+    // Survey questions
+    const surveyQs = [
+      "1. Apakah Anda rutin sarapan?",
+      "2. Seberapa sering makan siang di luar?",
+      "3. Apakah Anda sering ngemil?",
+      "4. Seberapa penting nutrisi seimbang bagi Anda?",
+      "5. Buah/sayur favorit?",
+      "6. Apakah Anda minum cukup air tiap hari?",
+      "7. Seberapa sering makan fast food?",
+      "8. Apakah Anda memperhatikan porsi makan?",
+      "9. Olahraga rutin?",
+      "10. Apa tantangan terbesar pola makan Anda?"
+    ];
+    let si=0, sa=[];
+
     // food database
     const foods = [
       "Apel","Pisang","Nasi Goreng","Soto Ayam","Rendang","Bakso",
@@ -196,72 +223,136 @@
       "Ketoprak","Lontong Sayur","Soto Betawi","Martabak Telor",
       "Martabak Manis","Bubur Ayam","Nasi Padang","Nasi Uduk","Es Campur"
     ];
+    const sel={ breakfast:[], lunch:[], dinner:[] };
 
-    // selections
-    const sel = { breakfast:[], lunch:[], dinner:[] };
+    // refs
+    const stepSurvey    = document.getElementById("stepSurvey"),
+          stepOverview  = document.getElementById("stepOverview"),
+          stepBreakfast = document.getElementById("stepBreakfast"),
+          stepLunch     = document.getElementById("stepLunch"),
+          stepDinner    = document.getElementById("stepDinner"),
+          stepReview    = document.getElementById("stepReview"),
+          surveyQ       = document.getElementById("surveyQ"),
+          surveyA       = document.getElementById("surveyA"),
+          surveyNext    = document.getElementById("surveyNext"),
+          aiOverview    = document.getElementById("aiOverview"),
+          overviewNext  = document.getElementById("overviewNext"),
+          spinner       = document.getElementById("spinner"),
+          mainCon       = document.getElementById("mainContainer");
 
-    // utility: populate and handle selection
-    function setupStep(type) {
-      const listEl = document.getElementById("list-"+type);
-      const countEl = document.getElementById("count-"+type);
-      const btn = document.getElementById("next-"+type);
-      // populate
+    // meal step refs
+    const btnBreakfast = document.getElementById("next-breakfast"),
+          btnLunch     = document.getElementById("next-lunch"),
+          btnDinner    = document.getElementById("next-dinner"),
+          listBreakfast= document.getElementById("list-breakfast"),
+          listLunch    = document.getElementById("list-lunch"),
+          listDinner   = document.getElementById("list-dinner"),
+          cntBreakfast = document.getElementById("count-breakfast"),
+          cntLunch     = document.getElementById("count-lunch"),
+          cntDinner    = document.getElementById("count-dinner"),
+          selB         = document.getElementById("sel-breakfast"),
+          selL         = document.getElementById("sel-lunch"),
+          selD         = document.getElementById("sel-dinner"),
+          btnReview    = document.getElementById("btnReview"),
+          aiReview     = document.getElementById("aiReview"),
+          close        = null;
+
+    // Survey flow
+    function renderSurvey(i){
+      surveyQ.textContent = surveyQs[i];
+      surveyA.value = "";
+      surveyNext.textContent = i < surveyQs.length-1 ? "Next" : "Submit";
+    }
+    renderSurvey(si);
+
+    surveyNext.onclick = async () => {
+      if (!surveyA.value.trim()) return alert("Isi jawaban.");
+      sa[si] = surveyA.value.trim();
+      if (si < surveyQs.length-1) {
+        si++; renderSurvey(si);
+      } else {
+        confetti({ particleCount:100, spread:60, origin:{ y:0.4 } });
+        stepSurvey.classList.replace("active","hidden");
+        stepOverview.classList.add("active");
+        spinner.classList.add("active");
+        aiOverview.textContent = "Memuat overview AI…";
+        const prompt = sa.map((a,i)=>`${surveyQs[i]}: ${a}`).join("\n");
+        try {
+          const res = await fetch(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
+            {
+              method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
+            }
+          );
+          const j = await res.json();
+          aiOverview.innerHTML = (j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.").replace(/\n/g,"<br>");
+        } catch {
+          aiOverview.textContent = "Error AI.";
+        } finally {
+          spinner.classList.remove("active");
+        }
+      }
+    };
+
+    overviewNext.onclick = () => {
+      stepOverview.classList.replace("active","hidden");
+      stepBreakfast.classList.add("active");
+      mainCon.classList.add("wide");
+      setupMeal("breakfast", listBreakfast, cntBreakfast, btnBreakfast);
+      setupMeal("lunch",     listLunch,     cntLunch,     btnLunch);
+      setupMeal("dinner",    listDinner,    cntDinner,    btnDinner);
+    };
+
+    // meal selection helper
+    function setupMeal(type, listEl, countEl, btnEl) {
       foods.forEach(name => {
         const d = document.createElement("div");
         d.className = "food-item";
         d.textContent = name;
         d.onclick = () => {
           const arr = sel[type];
-          const idx = arr.indexOf(name);
-          if (idx >= 0) {
-            arr.splice(idx,1);
+          const ix = arr.indexOf(name);
+          if (ix >= 0) {
+            arr.splice(ix,1);
             d.classList.remove("selected");
           } else if (arr.length < 3) {
             arr.push(name);
             d.classList.add("selected");
           }
           countEl.textContent = `Dipilih: ${arr.length}/3`;
-          btn.disabled = arr.length !== 3;
+          btnEl.disabled = (arr.length !== 3);
         };
         listEl.append(d);
       });
-      return btn;
     }
 
-    // initialize steps
-    const btnBreakfast = setupStep("breakfast");
-    const btnLunch     = setupStep("lunch");
-    const btnDinner    = setupStep("dinner");
-    const mainCon      = document.getElementById("mainContainer");
-
-    // navigation
     btnBreakfast.onclick = () => {
-      document.getElementById("stepBreakfast").classList.replace("active","hidden");
-      document.getElementById("stepLunch").classList.add("active");
-      mainCon.classList.add("wide");
+      stepBreakfast.classList.replace("active","hidden");
+      stepLunch.classList.add("active");
     };
     btnLunch.onclick = () => {
-      document.getElementById("stepLunch").classList.replace("active","hidden");
-      document.getElementById("stepDinner").classList.add("active");
+      stepLunch.classList.replace("active","hidden");
+      stepDinner.classList.add("active");
     };
     btnDinner.onclick = () => {
-      document.getElementById("stepDinner").classList.replace("active","hidden");
-      document.getElementById("sel-breakfast").textContent = sel.breakfast.join(", ");
-      document.getElementById("sel-lunch").textContent     = sel.lunch.join(", ");
-      document.getElementById("sel-dinner").textContent    = sel.dinner.join(", ");
-      document.getElementById("stepReview").classList.add("active");
+      stepDinner.classList.replace("active","hidden");
+      selB.textContent = sel.breakfast.join(", ");
+      selL.textContent = sel.lunch.join(", ");
+      selD.textContent = sel.dinner.join(", ");
+      stepReview.classList.add("active");
     };
 
-    // review with Gemini
-    document.getElementById("btnReview").onclick = async () => {
-      const spinner = document.getElementById("spinner");
+    // AI review meals
+    btnReview.onclick = async () => {
       spinner.classList.add("active");
-      const prompt = 
+      const prompt =
         `Tinjau menu saya:\n` +
         `Sarapan: ${sel.breakfast.join(", ")}\n` +
         `Makan siang: ${sel.lunch.join(", ")}\n` +
         `Makan malam: ${sel.dinner.join(", ")}\n` +
-        `Berikan saran perbaikan jika perlu.`;
+        `Beri saran perbaikan.`;
       try {
         const res = await fetch(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
@@ -272,15 +363,14 @@
           }
         );
         const j = await res.json();
-        const txt = j.candidates?.[0]?.content?.parts?.[0]?.text || 
-                    "Maaf, AI gagal membuat review.";
-        document.getElementById("aiReview").innerHTML = txt.replace(/\n/g,"<br>");
+        aiReview.innerHTML = (j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.").replace(/\n/g,"<br>");
       } catch {
-        document.getElementById("aiReview").textContent = "Error AI.";
+        aiReview.textContent = "Error AI.";
       } finally {
         spinner.classList.remove("active");
       }
     };
+
   });
   </script>
 </body>
