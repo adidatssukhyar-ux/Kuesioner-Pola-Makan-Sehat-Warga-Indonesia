@@ -26,9 +26,8 @@
       border: 2px solid #b5e7b7;
       transition: max-width 0.3s;
     }
-    .container.wide {
-      max-width: 90%;
-    }
+    .container.wide { max-width: 90%; }
+
     h1 {
       text-align: center;
       color: #35a35c;
@@ -55,8 +54,7 @@
       font-size: 1em;
     }
     input:focus, textarea:focus {
-      border-color: #35a35c;
-      outline: none;
+      border-color: #35a35c; outline: none;
     }
     textarea { min-height: 80px; resize: vertical; }
 
@@ -65,28 +63,22 @@
       width: 100%;
       padding: 13px;
       background: linear-gradient(90deg, #35a35c 40%, #f5bc51 100%);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1em;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s, box-shadow 0.2s;
+      color: #fff; border: none; border-radius: 8px;
+      font-size: 1.1em; font-weight: 500; cursor: pointer;
       box-shadow: 0 2px 10px rgba(53,163,92,0.08);
+      transition: background 0.2s, box-shadow 0.2s;
     }
     button:hover {
       background: linear-gradient(90deg, #22753e 30%, #e9b742 100%);
       box-shadow: 0 4px 16px rgba(53,163,92,0.15);
     }
 
-    /* ——— Helpers ——— */
     .hidden { display: none; }
     .question-text {
-      margin-top: 16px;
-      font-size: 1.1em;
-      font-weight: 600;
-      color: #22753e;
+      margin-top: 16px; font-size: 1.1em; font-weight: 600; color: #22753e;
     }
+
+    /* Spinner overlay */
     .spinner-overlay {
       position: fixed; top:0; left:0; right:0; bottom:0;
       background: rgba(255,255,255,0.6);
@@ -99,14 +91,12 @@
     }
     .spinner {
       width: 50px; height: 50px;
-      border: 6px solid #f5bc51;
-      border-top-color: #35a35c;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+      border: 6px solid #f5bc51; border-top-color: #35a35c;
+      border-radius: 50%; animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ——— Step 3 split layout ——— */
+    /* Step 3 two-column layout */
     .analysis-flex {
       display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap;
     }
@@ -117,32 +107,25 @@
       font-size: 1.2em; color: #22753e; margin-bottom: 8px;
     }
     .food-list {
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1.5px solid #b5e7b7;
-      border-radius: 8px;
+      max-height: 300px; overflow-y: auto;
+      border: 1.5px solid #b5e7b7; border-radius: 8px;
       background: #fffde9;
     }
     .food-item {
-      padding: 10px;
-      border-bottom: 1px solid #e0e0e0;
-      cursor: pointer;
-      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px; border-bottom: 1px solid #e0e0e0;
+      cursor: pointer; display: flex; justify-content: space-between;
+      align-items: center;
     }
     .food-item:last-child { border-bottom: none; }
     .food-item:hover { background: rgba(53,163,92,0.1); }
     .food-item span { color: #22753e; font-weight: 500; }
 
-    /* ——— Inline detail panel ——— */
+    /* Inline detail panel under search */
     #foodDetailPanel {
-      position: absolute;
-      top: 56px; left: 0; right: 0;
-      background: #fff;
-      border: 1px solid #b5e7b7;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 16px;
-      z-index: 5;
+      position: absolute; top: 56px; left: 0; right: 0;
+      background: #fff; border: 1px solid #b5e7b7;
+      border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 16px; z-index: 5;
     }
     #foodDetailPanel.hidden { display: none; }
     #foodDetailPanel .close-btn {
@@ -153,6 +136,11 @@
     #foodDetailPanel .close-btn:hover { color: #333; }
     #foodDetailPanel h3 { margin-top: 0; color: #35a35c; }
     #foodDetailPanel p { margin: 6px 0; color: #22753e; }
+
+    /* Constrain chart size */
+    .analysis-photo canvas {
+      max-width: 100%; height: 150px; margin-top: 24px;
+    }
   </style>
 </head>
 <body>
@@ -195,8 +183,8 @@
         <div class="analysis-list">
           <h2>Analisis makanan yang Anda makan!</h2>
           <input type="text" id="foodSearchRight" placeholder="Cari makanan..." />
-          <div id="foodListRight" class="food-list"></div>
           <div id="foodDetailPanel" class="hidden"></div>
+          <div id="foodListRight" class="food-list"></div>
         </div>
       </div>
     </section>
@@ -209,7 +197,7 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // 1) Survey questions
+    // Survey questions
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi junk food?",
@@ -224,28 +212,24 @@
     ];
     let idx = 0, answers = [];
 
-    // 2) Macro DB
+    // Macro DB with added items
     const macroDBList = [
-      { key:"apple",   name:"Apel",         protein:0.3, carbs:14,   fats:0.2, energy:52 },
-      { key:"banana",  name:"Pisang",       protein:1.3, carbs:23,   fats:0.3, energy:96 },
-      { key:"orange",  name:"Jeruk",        protein:0.9, carbs:12,   fats:0.1, energy:47 },
-      { key:"grapes",  name:"Anggur",       protein:0.6, carbs:17,   fats:0.4, energy:69 },
-      { key:"rice",    name:"Nasi Putih",   protein:2.7, carbs:28,   fats:0.3, energy:130 },
-      { key:"pasta",   name:"Pasta",        protein:5,   carbs:25,   fats:1.1, energy:131 },
-      { key:"bread",   name:"Roti",         protein:8,   carbs:49,   fats:3.2, energy:265 },
-      { key:"chicken", name:"Ayam Panggang",protein:27,  carbs:0,    fats:3.6, energy:165 },
-      { key:"beef",    name:"Daging Sapi",  protein:26,  carbs:0,    fats:17,  energy:250 },
-      { key:"salmon",  name:"Salmon",       protein:20,  carbs:0,    fats:13,  energy:208 },
-      { key:"pizza",   name:"Pizza",        protein:12,  carbs:33,   fats:10,  energy:266 },
-      { key:"burger",  name:"Burger",       protein:25,  carbs:30,   fats:20,  energy:295 },
-      { key:"salad",   name:"Salad",        protein:2,   carbs:5,    fats:0.2, energy:35 },
-      { key:"egg",     name:"Telur Rebus",  protein:6,   carbs:0.6,  fats:5.3, energy:78 },
-      { key:"milk",    name:"Susu",         protein:3.4, carbs:5,    fats:1,   energy:42 },
-      { key:"yogurt",  name:"Yogurt",       protein:10,  carbs:17,   fats:10,  energy:141 },
-      { key:"potato",  name:"Kentang",      protein:2,   carbs:17,   fats:0.1, energy:77 },
-      { key:"cake",    name:"Kue",          protein:4,   carbs:40,   fats:20,  energy:347 },
-      { key:"chocolate",name:"Cokelat",     protein:7.5, carbs:60,   fats:30,  energy:546 },
-      { key:"noodles", name:"Mie",          protein:4.5, carbs:35,   fats:2.9, energy:138 }
+      { key:"apple",      name:"Apel",         protein:0.3, carbs:14,   fats:0.2, energy:52 },
+      { key:"banana",     name:"Pisang",       protein:1.3, carbs:23,   fats:0.3, energy:96 },
+      { key:"orange",     name:"Jeruk",        protein:0.9, carbs:12,   fats:0.1, energy:47 },
+      { key:"rice",       name:"Nasi Putih",   protein:2.7, carbs:28,   fats:0.3, energy:130 },
+      { key:"sushi",      name:"Sushi",        protein:6,   carbs:36,   fats:1.5, energy:200 },
+      { key:"steak",      name:"Steak",        protein:27,  carbs:0,    fats:19,  energy:271 },
+      { key:"burger",     name:"Burger",       protein:25,  carbs:30,   fats:20,  energy:295 },
+      { key:"rendang",    name:"Rendang",      protein:25,  carbs:5,    fats:38,  energy:300 },
+      { key:"nasi goreng",name:"Nasi Goreng", protein:7.5, carbs:49,  fats:9.5, energy:333 },
+      { key:"mie goreng", name:"Mie Goreng",   protein:8,   carbs:45,   fats:10,  energy:300 },
+      { key:"soto",       name:"Soto",         protein:8,   carbs:17,   fats:4,   energy:140 },
+      { key:"gado-gado",  name:"Gado-gado",    protein:9,   carbs:20,   fats:15,  energy:260 },
+      { key:"bakso",      name:"Bakso",        protein:12,  carbs:5,    fats:6,   energy:130 },
+      { key:"sate",       name:"Sate",         protein:18,  carbs:3,    fats:10,  energy:200 },
+      { key:"tempe",      name:"Tempe",        protein:19,  carbs:9,    fats:11,  energy:192 },
+      { key:"tahu",       name:"Tahu",         protein:8,   carbs:2,    fats:5,   energy:80 }
     ];
     const macroDB = Object.fromEntries(macroDBList.map(o=>[o.key,o]));
 
@@ -270,7 +254,7 @@
     const foodSearchRight = document.getElementById("foodSearchRight");
     const detailPanel     = document.getElementById("foodDetailPanel");
 
-    // Render question
+    // Render survey question
     function showQuestion(i) {
       qC.innerHTML = `
         <p class="question-text">${questions[i]}</p>
@@ -280,7 +264,7 @@
     }
     showQuestion(idx);
 
-    // Step1 → Step2 (AI)
+    // Step1 → AI Overview
     btn1.addEventListener("click", async () => {
       const v = document.getElementById("answer").value.trim();
       if (!v) return alert("Isi jawaban dulu.");
@@ -314,7 +298,7 @@
       }
     });
 
-    // Step2 → Step3
+    // AI Overview → Photo step
     btn2.addEventListener("click", () => {
       s2.classList.add("hidden");
       s3.classList.remove("hidden");
@@ -322,7 +306,7 @@
       buildFoodList();
     });
 
-    // Build right-hand list
+    // Build searchable food list
     function buildFoodList() {
       detailPanel.classList.add("hidden");
       foodSearchRight.value = "";
@@ -332,7 +316,7 @@
         div.className = "food-item";
         div.innerHTML = `<span>${item.name}</span>`;
         div.onclick = () => showFoodDetails(item);
-        foodListRight.append(div);
+        foodListRight.append(div);  
       });
     }
     foodSearchRight.addEventListener("input", () => {
@@ -343,7 +327,7 @@
       detailPanel.classList.add("hidden");
     });
 
-    // Inline detail panel
+    // Show inline detail panel below search
     function showFoodDetails(item) {
       detailPanel.innerHTML = `
         <button class="close-btn">&times;</button>
@@ -375,9 +359,9 @@
       // Pie chart
       const total = info.protein + info.carbs + info.fats;
       const pct   = [
-        Math.round(info.protein/total*100),
-        Math.round(info.carbs/total*100),
-        Math.round(info.fats/total*100)
+        Math.round(info.protein / total * 100),
+        Math.round(info.carbs   / total * 100),
+        Math.round(info.fats    / total * 100)
       ];
       renderPie(pct, ["Protein","Karbo","Lemak"], pieCan);
 
@@ -398,19 +382,20 @@
       clearChart(c);
       c._chart = new Chart(c.getContext("2d"), {
         type: "pie",
-        data: { labels, datasets:[{ data, backgroundColor:["#35a35c","#f5bc51","#e57373"] }] },
-        options:{ responsive:true, animation:{ animateScale:true, duration:800, easing:"easeOutQuad" }, plugins:{ legend:{ position:"bottom" }}}
+        data: { labels, datasets: [{ data, backgroundColor: ["#35a35c","#f5bc51","#e57373"] }] },
+        options: { responsive: true, animation: { animateScale: true, duration: 800, easing: "easeOutQuad" }, plugins: { legend: { position: "bottom" } } }
       });
     }
     function renderBar(data, labels, c) {
       clearChart(c);
       c._chart = new Chart(c.getContext("2d"), {
         type: "bar",
-        data:{ labels, datasets:[{ label:"Jumlah", data, backgroundColor:["#35a35c","#f5bc51","#e57373","#5c97f5"] }] },
-        options:{ indexAxis:"y", responsive:true, animation:{ duration:1000, easing:"easeOutBounce" }}
+        data: { labels, datasets: [{ label: "Jumlah", data, backgroundColor: ["#35a35c","#f5bc51","#e57373","#5c97f5"] }] },
+        options: { indexAxis: "y", responsive: true, animation: { duration: 1000, easing: "easeOutBounce" } }
       });
     }
   });
   </script>
 </body>
 </html>
+```
