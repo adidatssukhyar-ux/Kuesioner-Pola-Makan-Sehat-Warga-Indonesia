@@ -2,19 +2,15 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Pola Makan Sehat — Survey</title>
+  <title>Pola Makan Sehat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin:0; padding:0 }
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f0fff8;
       color: #333;
-      line-height: 1.5;
     }
     .container {
       max-width: 480px;
@@ -32,12 +28,16 @@
       width: 80px;
       border-radius: 8px;
     }
-    h1 {
+    h1, h2 {
       text-align: center;
       color: #2a7955;
-      font-size: 1.8em;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
+    h1 { font-size: 1.8em }
+    h2 { font-size: 1.3em }
+    section { display: none }
+    section.active { display: block }
+
     .question-text {
       font-weight: 600;
       color: #2a7955;
@@ -55,7 +55,6 @@
       margin-bottom: 16px;
     }
     .btn-next {
-      display: block;
       width: 100%;
       padding: 12px;
       background: linear-gradient(90deg, #2a7955, #5fb58c);
@@ -64,7 +63,6 @@
       border-radius: 8px;
       font-size: 1em;
       cursor: pointer;
-      text-align: center;
     }
     .btn-next:hover {
       background: linear-gradient(90deg, #236643, #4fa27f);
@@ -75,8 +73,18 @@
       color: #666;
       margin-top: 24px;
     }
+    #aiOverview {
+      min-height: 80px;
+      padding: 12px;
+      border: 1px solid #cdefe1;
+      border-radius: 8px;
+      background: #f0fff8;
+      font-size: 0.95em;
+      line-height: 1.4;
+    }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="header-logo">
@@ -84,13 +92,20 @@
            alt="Logo Sekolah Al Ikhlas">
     </div>
     <h1>Pola Makan Sehat</h1>
-    <section id="survey">
-      <div id="questionContainer">
-        <p class="question-text" id="question"></p>
-        <textarea id="answer" placeholder="Tuliskan jawaban..."></textarea>
-      </div>
+
+    <!-- STEP 1: SURVEY -->
+    <section id="survey" class="active">
+      <div class="question-text" id="question"></div>
+      <textarea id="answer" placeholder="Tuliskan jawaban..."></textarea>
       <button id="nextBtn" class="btn-next">Next</button>
       <div class="project-credit">Karya Kelompok 1 — Proyek 1</div>
+    </section>
+
+    <!-- STEP 2: AI OVERVIEW -->
+    <section id="overview">
+      <h2>Overview AI</h2>
+      <div id="aiOverview"></div>
+      <button id="overviewNext" class="btn-next">Next</button>
     </section>
   </div>
 
@@ -108,32 +123,71 @@
       "9. Apa tantanganmu untuk makan lebih sehat?",
       "10. Langkah apa yang akan kamu ambil untuk pola makan lebih baik?"
     ];
-    let idx = 0;
-    const questionEl = document.getElementById("question");
-    const answerEl   = document.getElementById("answer");
-    const nextBtn    = document.getElementById("nextBtn");
+    let idx = 0, answers = [];
+
+    const survey    = document.getElementById("survey");
+    const overview  = document.getElementById("overview");
+    const questionP = document.getElementById("question");
+    const answerTa  = document.getElementById("answer");
+    const nextBtn   = document.getElementById("nextBtn");
+    const aiDiv     = document.getElementById("aiOverview");
+    const ovNext    = document.getElementById("overviewNext");
 
     function showQuestion(i) {
-      questionEl.textContent = questions[i];
-      answerEl.value = "";
+      questionP.textContent = questions[i];
+      answerTa.value = "";
       nextBtn.textContent = i < questions.length - 1 ? "Next" : "Submit";
     }
 
-    nextBtn.addEventListener("click", () => {
-      const ans = answerEl.value.trim();
-      if (!ans) {
+    nextBtn.addEventListener("click", async () => {
+      const val = answerTa.value.trim();
+      if (!val) {
         alert("Mohon isi jawaban terlebih dahulu.");
         return;
       }
-      // Here you could store answers[i] = ans
+      answers[idx] = val;
 
       if (idx < questions.length - 1) {
         idx++;
         showQuestion(idx);
       } else {
-        alert("Terima kasih telah mengisi survey!");
-        nextBtn.disabled = true;
+        // Move to AI overview
+        survey.classList.remove("active");
+        overview.classList.add("active");
+
+        aiDiv.textContent = "Memuat overview AI…";
+        const prompt = answers
+          .map((a, i) => `${questions[i]}\nJawaban: ${a}`)
+          .join("\n\n");
+
+        try {
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [
+                  { parts: [{ text: `Ringkas pola makan:\n\n${prompt}` }] }
+                ]
+              })
+            }
+          );
+          const json = await res.json();
+          const text =
+            json.candidates?.[0]?.content?.parts?.[0]?.text ||
+            "AI gagal menghasilkan overview.";
+          aiDiv.innerHTML = text.replace(/\n/g, "<br>");
+        } catch (e) {
+          aiDiv.innerHTML =
+            "<span style='color:red'>Error memuat AI overview.</span>";
+        }
       }
+    });
+
+    // Placeholder for moving past overview
+    ovNext.addEventListener("click", () => {
+      alert("Lanjut ke langkah berikutnya...");
     });
 
     showQuestion(idx);
