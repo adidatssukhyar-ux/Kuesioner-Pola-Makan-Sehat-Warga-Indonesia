@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -5,7 +6,7 @@
   <title>Pola Makan Sehat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- ML5.js & Chart.js & Confetti -->
+  <!-- ML5.js, Chart.js & Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/ml5@0.6.0/dist/ml5.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
@@ -31,20 +32,21 @@
     /* Logo & Credit */
     .header-logo img {
       display: block;
-      margin: 0 auto 8px;
+      margin: 0 auto 4px;
       width: 80px;
+      border-radius: 8px;
     }
     .project-credit {
       text-align: center;
       color: #666;
-      margin-bottom: 16px;
+      margin: 0 0 16px;
       font-size: 0.9em;
     }
 
     h1, h2 {
       text-align: center;
       color: #35a35c;
-      margin: 0 0 12px 0;
+      margin: 0 0 12px;
     }
     h1 { font-size: 2em; letter-spacing: 1px; }
     h2 { font-size: 1.4em; }
@@ -121,7 +123,7 @@
       color: #22753e;
     }
 
-    /* Spinner overlay */
+    /* Spinner */
     .spinner-overlay {
       position: fixed; top:0; left:0; right:0; bottom:0;
       background: rgba(255,255,255,0.6);
@@ -213,7 +215,8 @@
   <div class="container" id="mainContainer">
     <!-- Logo & Credit -->
     <div class="header-logo">
-      <img src="al-ikhlas-logo.png" alt="Logo Sekolah Al Ikhlas">
+      <img src="https://yt3.ggpht.com/a/AATXAJwRp9NDxa9WX7nh8uuO9TUCUCMqCRE5yJp4CQ=s900-c-k-c0xffffffff-no-rj-mo"
+           alt="Logo Sekolah Al Ikhlas">
     </div>
     <div class="project-credit">Karya Kelompok 1 — Proyek 1</div>
 
@@ -244,8 +247,7 @@
           <input type="file" id="foodPhoto" accept="image/*" />
           <button id="photoSubmit">Analisis Foto</button>
 
-          <img id="foodPreview" class="hidden"
-               alt="Preview"
+          <img id="foodPreview" class="hidden" alt="Preview"
                style="margin-top:16px;max-width:100%;border-radius:8px;
                       box-shadow:0 2px 12px rgba(0,0,0,0.1);" />
 
@@ -275,9 +277,7 @@
   </div>
 
   <!-- Progress Bar -->
-  <div id="progressContainer">
-    <div id="progressBar"></div>
-  </div>
+  <div id="progressContainer"><div id="progressBar"></div></div>
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -303,7 +303,7 @@
     ];
     const macroDB = Object.fromEntries(macroDBList.map(o=>[o.key,o]));
 
-    let idx=0, answers=[];
+    let idx = 0, answers = [];
 
     // DOM refs
     const secs       = {
@@ -334,7 +334,7 @@
       progBar.style.width = Math.round(step/(totalSteps-1)*100) + "%";
     }
 
-    // Render survey question
+    // Render question
     function showQuestion(i) {
       secs[1].classList.add("active");
       updateProgress(i);
@@ -346,21 +346,18 @@
     }
     showQuestion(idx);
 
-    // Survey → AI overview
+    // Survey → AI
     btn1.addEventListener("click", async () => {
       const v = document.getElementById("answer").value.trim();
-      if (!v) return alert("Isi jawaban dulu.");
-      answers[idx] = v;
+      if (!v) return alert("Isi jawaban dulu.");      answers[idx] = v;
       if (idx < questions.length-1) {
         idx++; showQuestion(idx);
       } else {
-        // confetti and transition
         confetti({ particleCount:100, spread:60, origin:{ y:0.3 } });
         secs[1].classList.replace("active","hidden");
         secs[2].classList.replace("hidden","active");
         updateProgress(questions.length);
 
-        // fetch AI overview
         aiDiv.innerHTML = "<p style='font-style:italic'>Memuat overview AI…</p>";
         spinner.classList.add("active");
         const prompt = answers.map((a,i)=>`${questions[i]}\nJawaban: ${a}`).join("\n\n");
@@ -385,7 +382,7 @@
       }
     });
 
-    // AI → Photo step
+    // AI → Photo
     btn2.addEventListener("click", () => {
       secs[2].classList.replace("active","hidden");
       secs[3].classList.replace("hidden","active");
@@ -394,7 +391,7 @@
       buildFoodList();
     });
 
-    // Build searchable food list
+    // Build search/list
     function buildFoodList() {
       detailPan.classList.add("hidden");
       foodSearch.value = "";
@@ -415,7 +412,7 @@
       detailPan.classList.add("hidden");
     });
 
-    // Show detail panel
+    // Show detail
     function showFoodDetail(item) {
       detailPan.innerHTML = `
         <button class="close-btn">&times;</button>
@@ -441,31 +438,26 @@
         return alert("Masukkan URL atau pilih file gambar dulu.");
       }
 
-      // Preview and reset
       preview.src = src;
       preview.classList.remove("hidden");
       warnEl.classList.add("hidden");
       analysis.textContent = "";
       spinner.classList.add("active");
 
-      // Classify
       const classifier = await ml5.imageClassifier("MobileNet");
       const [res] = await classifier.classify(preview);
       const key = res.label.split(",")[0].toLowerCase();
       const info = macroDB[key] || { name: key, protein:0, carbs:0, fats:0, energy:0 };
 
-      // Warning if energy < 150
       if (info.energy < 150) {
         warnEl.classList.remove("hidden");
       }
 
-      // Percent macros
       const totalM = info.protein + info.carbs + info.fats;
       const pctP = totalM ? Math.round(info.protein/totalM*100) : 0;
       const pctC = totalM ? Math.round(info.carbs/totalM*100) : 0;
       const pctF = totalM ? Math.round(info.fats/totalM*100) : 0;
 
-      // Charts
       renderPie([pctP,pctC,pctF], ["Protein","Karbo","Lemak"], pieCan);
       renderBar(
         [info.protein, info.carbs, info.fats, info.energy],
@@ -473,7 +465,6 @@
         barCan
       );
 
-      // Summary text
       analysis.innerHTML = `
         <p><strong>${info.name}</strong>: ${info.energy} kcal,
         ${info.protein}g P, ${info.carbs}g C, ${info.fats}g L</p>
@@ -491,11 +482,7 @@
       canvas._chart = new Chart(canvas.getContext("2d"), {
         type: "pie",
         data: { labels, datasets: [{ data, backgroundColor:["#35a35c","#f5bc51","#e57373"] }] },
-        options: {
-          responsive: true,
-          animation: { animateScale:true, duration:800, easing:"easeOutQuad" },
-          plugins: { legend:{ position:"bottom" } }
-        }
+        options: { responsive:true, animation:{ animateScale:true, duration:800, easing:"easeOutQuad" }, plugins:{ legend:{ position:"bottom" }}}
       });
     }
     function renderBar(data, labels, canvas) {
@@ -503,17 +490,14 @@
       canvas._chart = new Chart(canvas.getContext("2d"), {
         type: "bar",
         data: { labels, datasets: [{ label:"Jumlah", data, backgroundColor:["#35a35c","#f5bc51","#e57373","#5c97f5"] }] },
-        options: {
-          indexAxis:"y",
-          responsive:true,
-          animation: { duration:1000, easing:"easeOutBounce" }
-        }
+        options: { indexAxis:"y", responsive:true, animation:{ duration:1000, easing:"easeOutBounce" }}
       });
     }
 
-    // Initialize progress
+    // init progress
     updateProgress(0);
   });
   </script>
 </body>
 </html>
+```
