@@ -1,3 +1,4 @@
+/* Base: sleek, mobile-first */
 body {
   margin: 0;
   font-family: 'Bahnschrift SemiBold', 'Segoe UI', sans-serif;
@@ -7,35 +8,35 @@ body {
   font-size: 14px;
 }
 
-/* Main container: slightly taller */
+/* Main container: compact & centered */
 .container {
-  max-width: 600px;
-  min-height: 520px; /* extended height so buttons fit neatly */
-  margin: 30px auto;
-  padding: 18px;
-  background: rgba(255, 255, 255, 0.95);
+  width: 92%;
+  max-width: 480px; /* smaller for sleek look */
+  margin: 20px auto;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.96);
   border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
   backdrop-filter: blur(4px);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  gap: 12px;
 }
 
-/* Question block: stays inside container */
+/* Question block: always inside container */
 #questionContainer {
   background: #f6fff8;
   border: 1px solid #d4edda;
   border-radius: 10px;
   padding: 12px;
-  margin-bottom: 14px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
 
-/* Inputs & textarea */
+/* Inputs & textarea: responsive */
 input[type="email"],
 textarea {
   width: 100%;
+  box-sizing: border-box;
   padding: 10px;
   margin-top: 6px;
   border: 1px solid #b2dfdb;
@@ -44,6 +45,10 @@ textarea {
   background: #ffffff;
   transition: border 0.2s ease, box-shadow 0.2s ease;
 }
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
 input:focus,
 textarea:focus {
   border-color: #56ab2f;
@@ -51,7 +56,7 @@ textarea:focus {
   outline: none;
 }
 
-/* Buttons */
+/* Buttons: stacked neatly */
 button {
   background: linear-gradient(135deg, #56ab2f, #a8e063);
   color: white;
@@ -61,7 +66,7 @@ button {
   font-size: 13px;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  margin-top: 8px;
+  width: 100%;
 }
 button:hover {
   transform: translateY(-1px);
@@ -105,4 +110,18 @@ button:disabled {
 }
 #answersContainer th {
   background: #dcedc8;
+}
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+  .container {
+    padding: 14px;
+    border-radius: 12px;
+  }
+  textarea {
+    min-height: 90px;
+  }
 }
