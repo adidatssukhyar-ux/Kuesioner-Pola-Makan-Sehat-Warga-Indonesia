@@ -14,14 +14,7 @@
     <label for="email">Email kamu:</label>
     <input type="email" name="email" id="email" required placeholder="your@email.com" />
     <div id="questionContainer" style="margin-top:12px;"></div>
-
-    <!-- Button group -->
-    <div class="button-group">
-      <button type="button" id="nextBtn">Next</button>
-      <button type="button" id="showAnswersBtn">📋 Lihat Semua Jawaban</button>
-      <button type="button" id="clearLocalBtn">🗑 Hapus Jawaban Lokal</button>
-    </div>
-
+    <button type="button" id="nextBtn" style="margin-top:12px;">Next</button>
     <button type="submit" id="submitBtn" style="display:none; margin-top:12px;">Kirim</button>
   </form>
 
@@ -30,13 +23,17 @@
     <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
   </div>
 
-  <div id="aiOverview" style="display:none; margin-top:12px;"></div>
+  <div id="aiOverview" style="display:none; margin-top:12px; padding:14px 16px; border:1px solid #ddd; border-radius:8px; background:linear-gradient(135deg,#ffffff,#f7f7f7); box-shadow:0 2px 6px rgba(0,0,0,0.05); font-size:14px; line-height:1.5em; color:#333;"></div>
 
+  <hr />
+  <button id="showAnswersBtn" type="button">📋 Lihat Semua Jawaban</button>
+  <button id="clearLocalBtn" type="button" style="margin-left:8px;">🗑 Hapus Jawaban Lokal</button>
   <div id="answersContainer" style="display:none; margin-top:10px; overflow:auto;"></div>
 </div>
 
-<!-- Script 1: Core -->
+<!-- Script 1: Always-render core (no imports) -->
 <script>
+  // Pertanyaan survei (mudah diedit)
   const questions = [
     "1. Menurut kamu makanan junk food sehat atau tidak?",
     "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -50,12 +47,14 @@
     "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
   ];
 
+  // State global yang juga dipakai Script 2
   window.__surveyState = {
     currentQuestion: 0,
     tempAnswers: [],
     allAnswers: JSON.parse(localStorage.getItem("responses") || "[]"),
   };
 
+  // DOM refs
   const emailInput = document.getElementById("email");
   const questionContainer = document.getElementById("questionContainer");
   const nextBtn = document.getElementById("nextBtn");
@@ -68,11 +67,12 @@
   const clearLocalBtn = document.getElementById("clearLocalBtn");
   const answersContainer = document.getElementById("answersContainer");
 
+  // Render satu pertanyaan
   function showQuestion(index) {
     const q = questions[index] ?? "";
     questionContainer.innerHTML = `
       <label for="answer">${q}</label>
-      <textarea id="answer" placeholder="Jawaban kamu..."></textarea>
+      <textarea id="answer" placeholder="Jawaban kamu..." style="width:100%; min-height:110px; margin-top:8px;"></textarea>
     `;
     if (index >= questions.length - 1) {
       nextBtn.style.display = "none";
@@ -83,10 +83,12 @@
     }
   }
 
+  // Initial render
   document.addEventListener("DOMContentLoaded", () => {
     showQuestion(window.__surveyState.currentQuestion);
   });
 
+  // Tombol Next
   nextBtn.addEventListener("click", () => {
     const s = window.__surveyState;
     const answerField = document.getElementById("answer");
@@ -96,11 +98,12 @@
     showQuestion(s.currentQuestion);
   });
 
+  // Pesan terima kasih: reveal
   thankYouMessage.addEventListener("click", () => {
     hiddenInfo.style.display = "inline";
   });
 
-  // Clear local answers with passcode
+  // Tombol hapus jawaban lokal (dengan passcode)
   clearLocalBtn.addEventListener("click", () => {
     const pass = prompt("Masukkan passcode untuk menghapus jawaban lokal:");
     if (pass !== "password") {
@@ -114,6 +117,7 @@
     }
   });
 
+  // Ekspor ke Script 2
   window.__surveyDOM = {
     emailInput,
     questionContainer,
@@ -129,14 +133,24 @@
     questions
   };
 </script>
-<!-- Script 2: Firebase + Gemini + Viewer -->
+
+<!-- Script 2: Enhancements (Firebase, Gemini, viewer) -->
 <script type="module">
   const S = window.__surveyState;
   const D = window.__surveyDOM;
 
+  // Firebase imports
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    query,
+    orderBy
+  } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
     authDomain: "surveylive-c0691.firebaseapp.com",
@@ -147,6 +161,7 @@
     measurementId: "G-83GZWBY7K5",
   };
 
+  // Init Firebase (best-effort)
   let db = null;
   try {
     const app = initializeApp(firebaseConfig);
@@ -155,29 +170,45 @@
     console.warn("Firebase init gagal. Lanjutkan dengan penyimpanan lokal saja.");
   }
 
+  // ===== Calorie helpers & offline fallback =====
   function guessDailyCalorie(answers) {
-    const freqJunk = (answers[1] || "").toLowerCase();
-    const vegOften = (answers[4] || "").toLowerCase();
-    const breakfast = (answers[8] || "").toLowerCase();
-    let low = 1800, high = 2200;
+    // Heuristik ringan berdasar jawaban
+    const freqJunk = (answers[1] || "").toLowerCase(); // Q2
+    const vegOften = (answers[4] || "").toLowerCase(); // Q5
+    const breakfast = (answers[8] || "").toLowerCase(); // Q9
+
+    let low = 1800, high = 2200; // rentang umum aman (edukasi)
     if (/sering|tiap|setiap|hampir/.test(freqJunk)) { low = 1700; high = 2100; }
     if (/sering|ya|tiap|setiap/.test(vegOften)) { low += 50; high += 100; }
     if (/ya|sudah/.test(breakfast)) { low += 50; high += 50; }
+
     low = Math.max(1600, Math.min(low, 2200));
     high = Math.max(low + 200, Math.min(high, 2400));
     return [low, high];
   }
 
   function splitMeals(totalLow, totalHigh) {
+    // Sarapan 25%, Siang 35%, Malam 30%, Snack 10%
     const pct = { b: 0.25, l: 0.35, d: 0.30, s: 0.10 };
     const fmt = (x) => Math.round(x);
     return {
-      low: { b: fmt(totalLow * pct.b), l: fmt(totalLow * pct.l), d: fmt(totalLow * pct.d), s: fmt(totalLow * pct.s) },
-      high: { b: fmt(totalHigh * pct.b), l: fmt(totalHigh * pct.l), d: fmt(totalHigh * pct.d), s: fmt(totalHigh * pct.s) }
+      low: {
+        b: fmt(totalLow * pct.b),
+        l: fmt(totalLow * pct.l),
+        d: fmt(totalLow * pct.d),
+        s: fmt(totalLow * pct.s)
+      },
+      high: {
+        b: fmt(totalHigh * pct.b),
+        l: fmt(totalHigh * pct.l),
+        d: fmt(totalHigh * pct.d),
+        s: fmt(totalHigh * pct.s)
+      }
     };
   }
 
   function sampleMenus() {
+    // Estimasi kasar, edukatif
     return [
       { name: "Sarapan: Oatmeal + pisang + susu rendah lemak", kcal: 350 },
       { name: "Makan siang: Nasi merah 150g + ayam panggang 120g + tumis buncis", kcal: 600 },
@@ -188,95 +219,158 @@
 
   function localFallbackCalorieBlock(answers) {
     const [low, high] = guessDailyCalorie(answers);
-    const meals = splitMeals(low, high);
+    const split = splitMeals(low, high);
     const menus = sampleMenus();
-    let html = `<h3>Perkiraan Kebutuhan Kalori Harian</h3>
-      <p>${low}–${high} kkal/hari</p>
-      <table border="1" cellpadding="4">
-        <tr><th>Makan</th><th>Low</th><th>High</th></tr>
-        <tr><td>Sarapan</td><td>${meals.low.b}</td><td>${meals.high.b}</td></tr>
-        <tr><td>Siang</td><td>${meals.low.l}</td><td>${meals.high.l}</td></tr>
-        <tr><td>Malam</td><td>${meals.low.d}</td><td>${meals.high.d}</td></tr>
-        <tr><td>Snack</td><td>${meals.low.s}</td><td>${meals.high.s}</td></tr>
-      </table>
-      <h4>Contoh Menu</h4>
-      <ul>${menus.map(m => `<li>${m.name} (${m.kcal} kkal)</li>`).join("")}</ul>`;
-    return html;
+    return `
+<strong>🔥 Rekomendasi Kalori (offline):</strong><br>
+• Target harian: sekitar ${low}–${high} kkal (asumsi dewasa; tanpa data tubuh/aktivitas).<br>
+• Pembagian makan: Sarapan ${split.low.b}–${split.high.b} kkal | Siang ${split.low.l}–${split.high.l} kkal | Malam ${split.low.d}–${split.high.d} kkal | Snack ${split.low.s}–${split.high.s} kkal<br>
+• Contoh menu:<br>
+${menus.map(m => "— " + m.name + " (~" + m.kcal + " kkal)").join("<br>")}
+<br><em>Catatan: Perkiraan edukatif, bukan saran medis.</em>
+`.trim();
   }
-  // Handle form submission
+
+  // ===== Gemini Overview with calorie recommendations =====
+  function buildShortPrompt(questions, answers) {
+    const pairs = answers.map((ans, i) => Q${i+1}: ${ans}).join("\n");
+    return Ringkas jawaban, lalu berikan rekomendasi kalori harian (rentang) + pembagian per makan (sarapan/siang/malam/snack) + 2–3 menu sehat Indonesia dengan estimasi kalori. Batas 150 kata, bahasa Indonesia, ramah, praktis.\n${pairs};
+  }
+
+  async function generateOverview(answers = []) {
+    const qa = answers.map((ans, i) => ${i+1}. ${D.questions[i]} Jawaban: ${ans}).join("\n");
+    const prompt = `
+Tujuan: Ringkasan pola makan + rekomendasi kalori untuk edukasi.
+Instruksi:
+1) Ringkas kebiasaan secara singkat.
+2) Berikan rekomendasi kalori harian dalam rentang (contoh: 1800–2200 kkal) dengan catatan asumsi.
+3) Pembagian kalori: sarapan 25%, siang 35%, malam 30%, snack 10% (kisaran).
+4) 2–3 contoh menu sehat khas Indonesia dengan estimasi kalori per menu.
+5) Nada ramah, tidak menghakimi, ≤170 kata, bahasa Indonesia.
+Data pengguna:
+${qa}
+`.trim();
+
+    // Tampilkan loading
+    D.aiOverview.style.display = "block";
+    D.aiOverview.innerHTML = "⏳ Membuat ringkasan & rekomendasi kalori...";
+
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBPcdZLEOAb7zgjtj5Tu9lzQBD1SAFayDQ";
+    const body = (text) => ({
+      contents: [{ parts: [{ text }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 380 }
+    });
+
+    // Coba 1
+    try {
+      const r1 = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body(prompt))
+      });
+      const d1 = await r1.json();
+      const t1 = d1?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (t1) return <strong>📊 Ringkasan & Saran + Kalori:</strong><br>${t1};
+    } catch (_) {}
+
+    // Coba 2 (prompt pendek)
+    try {
+      const r2 = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body(buildShortPrompt(D.questions, answers)))
+      });
+      const d2 = await r2.json();
+      const t2 = d2?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (t2) return <strong>📊 Ringkasan & Saran + Kalori:</strong><br>${t2};
+    } catch (_) {}
+
+    // Fallback offline terjamin
+    return localFallbackCalorieBlock(answers);
+  }
+
+  // ===== Submit handler (save + AI) =====
   D.form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const s = S;
-    const answers = [...s.tempAnswers];
-    const email = D.emailInput.value.trim();
-    if (!email || answers.length < questions.length) return;
+    const answerField = document.getElementById("answer");
+    if (!answerField?.value?.trim()) return;
 
-    // Save to localStorage
-    const entry = { email, answers, time: new Date().toISOString() };
-    s.allAnswers.push(entry);
+    // Simpan jawaban terakhir
+    s.tempAnswers[s.currentQuestion] = answerField.value.trim();
+
+    // Simpan lokal
+    s.allAnswers.push({
+      email: D.emailInput.value.trim(),
+      answers: [...s.tempAnswers],
+      timestamp: new Date().toISOString()
+    });
     localStorage.setItem("responses", JSON.stringify(s.allAnswers));
 
-    // Save to Firebase if available
+    // Simpan Firebase (best-effort)
     if (db) {
       try {
-        await addDoc(collection(db, "responses"), entry);
+        await addDoc(collection(db, "responses"), {
+          email: D.emailInput.value.trim(),
+          answers: [...s.tempAnswers],
+          timestamp: new Date()
+        });
       } catch (err) {
-        console.warn("Gagal simpan ke Firebase:", err);
+        console.warn("Gagal menyimpan ke Firebase. Tetap lanjut dengan data lokal.");
       }
     }
 
-    // Show thank you
-    D.form.style.display = "none";
+    // Tampilkan terima kasih + AI
     D.thankYouMessage.style.display = "block";
-
-    // Try AI overview (Gemini API) — fallback to local
-    try {
-      const prompt = `Ringkas jawaban berikut dan berikan saran pola makan sehat:\n${answers.join("\n")}`;
-      const resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_API_KEY", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-      });
-      if (!resp.ok) throw new Error("Gemini API error");
-      const data = await resp.json();
-      const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      D.aiOverview.innerHTML = `<h3>AI Overview</h3><p>${aiText}</p>`;
-    } catch (err) {
-      console.warn("AI overview gagal, gunakan fallback:", err);
-      D.aiOverview.innerHTML = localFallbackCalorieBlock(answers);
-    }
+    D.aiOverview.innerHTML = await generateOverview(s.tempAnswers);
     D.aiOverview.style.display = "block";
+
+    // Reset untuk responden berikutnya
+    D.form.reset();
+    S.currentQuestion = 0;
+    S.tempAnswers = [];
+    D.showQuestion(S.currentQuestion);
   });
 
-  // Show all answers (password protected)
+  // ===== Viewer (password: rahasia123) =====
   D.showAnswersBtn.addEventListener("click", async () => {
-    const pass = prompt("Masukkan password untuk melihat semua jawaban:");
+    const pass = prompt("Masukkan password untuk melihat jawaban:");
     if (pass !== "rahasia123") {
-      alert("Password salah.");
+      alert("Password salah!");
       return;
     }
-    let all = [...S.allAnswers];
+
+    // Gabungkan lokal + cloud (jika ada)
+    let combined = Array.isArray(S.allAnswers) ? [...S.allAnswers] : [];
+
     if (db) {
       try {
-        const qSnap = await getDocs(query(collection(db, "responses"), orderBy("time", "desc")));
-        all = qSnap.docs.map(doc => doc.data());
+        const q = query(collection(db, "responses"), orderBy("timestamp"));
+        const snapshot = await getDocs(q);
+        snapshot.forEach((doc) => combined.push(doc.data()));
       } catch (err) {
-        console.warn("Gagal ambil dari Firebase:", err);
+        console.warn("Tidak bisa memuat dari Firebase, tampilkan lokal saja.");
       }
     }
-    if (!all.length) {
-      alert("Belum ada jawaban tersimpan.");
-      return;
+
+    // Render tabel
+    if (!combined.length) {
+      D.answersContainer.innerHTML = "<p>Belum ada jawaban yang masuk.</p>";
+    } else {
+      let html = "<table border='1' cellspacing='0' cellpadding='6' style='min-width:720px;'>";
+      html += "<tr><th>Email</th><th>Jawaban</th><th>Waktu</th></tr>";
+      combined.forEach((row) => {
+        const safeEmail = (row?.email ?? "").toString();
+        const safeAns = Array.isArray(row?.answers) ? row.answers.join(" | ") : "";
+        const t = row?.timestamp ? new Date(row.timestamp).toLocaleString() : "-";
+        html += <tr><td>${safeEmail}</td><td>${safeAns}</td><td>${t}</td></tr>;
+      });
+      html += "</table>";
+      D.answersContainer.innerHTML = html;
     }
-    let html = `<table><tr><th>Email</th>${questions.map(q => `<th>${q}</th>`).join("")}</tr>`;
-    all.forEach(r => {
-      html += `<tr><td>${r.email}</td>${r.answers.map(a => `<td>${a}</td>`).join("")}</tr>`;
-    });
-    html += "</table>";
-    D.answersContainer.innerHTML = html;
     D.answersContainer.style.display = "block";
   });
-});
 </script>
 </body>
 </html>
+```
