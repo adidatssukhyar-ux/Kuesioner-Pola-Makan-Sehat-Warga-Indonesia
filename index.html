@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Pola Makan Sehat</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <!-- ML5.js, Chart.js & Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/ml5@0.6.0/dist/ml5.min.js" defer></script>
@@ -11,7 +11,7 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
 
   <style>
-    * { box-sizing:border-box; margin:0; padding:0 }
+    * { box-sizing: border-box; margin:0; padding:0 }
     body {
       font-family:'Segoe UI',sans-serif;
       background:#f5fcf7;
@@ -28,173 +28,91 @@
       transition:max-width .3s;
     }
     .container.wide { max-width:90%; }
-
     .logo { text-align:center; margin-bottom:16px }
-    .logo img {
-      width:80px; border-radius:8px;
-    }
+    .logo img { width:80px; border-radius:8px }
     h1,h2 {
-      text-align:center;
-      color:#2a7955;
-      margin-bottom:16px;
+      text-align:center; color:#2a7955; margin-bottom:16px;
     }
     h1 { font-size:1.8em }
     h2 { font-size:1.3em }
-
     section { display:none }
     section.active { display:block }
-
     .question-text {
-      margin-top:16px;
-      font-weight:600;
-      color:#2a7955;
+      margin-top:16px; font-weight:600; color:#2a7955;
       font-size:1.05em;
     }
-    textarea {
-      width:100%;
-      padding:10px;
-      margin-top:8px;
-      border:1px solid #cdefe1;
-      border-radius:8px;
-      resize:vertical;
+    textarea, input[type="url"], input[type="file"], input[type="text"] {
+      width:100%; padding:10px; margin-top:8px;
+      border:1px solid #cdefe1; border-radius:8px;
       font-size:1em;
     }
+    textarea { resize:vertical; }
     .btn {
-      display:block;
-      width:100%;
-      padding:12px;
-      margin-top:20px;
+      display:block; width:100%; padding:12px; margin-top:20px;
       background:linear-gradient(90deg,#2a7955,#5fb58c);
-      color:#fff;
-      border:none;
-      border-radius:8px;
-      font-size:1em;
-      cursor:pointer;
+      color:#fff; border:none; border-radius:8px;
+      font-size:1em; cursor:pointer;
     }
     .btn:hover {
       background:linear-gradient(90deg,#236643,#4fa27f);
     }
     .project-credit {
-      text-align:center;
-      font-size:0.85em;
-      color:#666;
-      margin-top:24px;
+      text-align:center; font-size:0.85em; color:#666; margin-top:24px;
     }
-
-    /* AI overview */
     #aiOverview {
-      min-height:80px;
-      padding:12px;
-      border:1px solid #cdefe1;
-      border-radius:8px;
-      background:#f0fff8;
-      font-size:0.95em;
+      min-height:80px; padding:12px; border:1px solid #cdefe1;
+      border-radius:8px; background:#f0fff8; font-size:0.95em;
       line-height:1.4;
     }
-
-    /* Spinner overlay */
     .spinner-overlay {
-      position:fixed;
-      top:0; left:0; right:0; bottom:0;
+      position:fixed; top:0; left:0; right:0; bottom:0;
       background:rgba(255,255,255,0.7);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      visibility:hidden;
-      z-index:1000;
+      display:flex; align-items:center; justify-content:center;
+      visibility:hidden; z-index:1000;
     }
-    .spinner-overlay.active {
-      visibility:visible;
-    }
+    .spinner-overlay.active { visibility:visible; }
     .spinner {
       width:50px; height:50px;
-      border:6px solid #cdefe1;
-      border-top-color:#2a7955;
-      border-radius:50%;
-      animation:spin 1s linear infinite;
+      border:6px solid #cdefe1; border-top-color:#2a7955;
+      border-radius:50%; animation:spin 1s linear infinite;
     }
     @keyframes spin { to{transform:rotate(360deg);} }
-
-    /* STEP 3: Photo & list */
     .analysis-flex {
-      display:flex;
-      gap:24px;
-      flex-wrap:wrap;
-      margin-top:16px;
+      display:flex; gap:24px; flex-wrap:wrap; margin-top:16px;
     }
     .analysis-photo, .analysis-list {
-      flex:1;
-      min-width:200px;
-      position:relative;
+      flex:1; min-width:200px; position:relative;
     }
-    .analysis-photo label,
-    .analysis-list h2 {
-      font-weight:600;
-      color:#2a7955;
-      margin-top:16px;
-      display:block;
+    .analysis-list h2, .analysis-photo label {
+      font-weight:600; color:#2a7955; margin-top:16px;
     }
-    .analysis-photo input[type="url"],
-    .analysis-photo input[type="file"],
-    #foodSearch {
-      width:100%;
-      padding:10px;
-      margin-top:8px;
-      border:1px solid #cdefe1;
-      border-radius:8px;
-      font-size:1em;
-    }
-
-    /* Preview shrunk */
     #foodPreview {
-      display:none;
-      margin:12px auto;
-      max-height:120px;
-      width:auto;
-      border-radius:8px;
-      box-shadow:0 2px 8px rgba(0,0,0,0.05);
+      display:none; margin:12px auto; max-height:120px; width:auto;
+      border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.05);
     }
-    /* charts spacing */
-    .analysis-photo canvas {
-      margin-top:12px;
-    }
-
+    .analysis-photo canvas { margin-top:12px; }
     .food-list {
-      margin-top:8px;
-      max-height:200px;
-      overflow-y:auto;
-      border:1px solid #cdefe1;
-      border-radius:8px;
+      margin-top:8px; max-height:200px; overflow-y:auto;
+      border:1px solid #cdefe1; border-radius:8px;
       background:#f0fff8;
     }
     .food-item {
-      padding:10px;
-      border-bottom:1px solid #e0e0e0;
-      cursor:pointer;
-      font-size:0.95em;
+      padding:10px; border-bottom:1px solid #e0e0e0;
+      cursor:pointer; font-size:0.95em;
     }
     .food-item:last-child { border-bottom:none }
-    .food-item:hover { background:rgba(42,121,85,0.1) }
-
-    /* detail panel static below list */
+    .food-item:hover { background:rgba(42,121,85,0.1); }
     #foodDetailPanel {
-      position:static;
-      display:none;
-      margin-top:8px;
-      background:#fff;
-      border:1px solid #cdefe1;
-      border-radius:8px;
-      padding:12px;
+      position:static; display:none; margin-top:8px;
+      background:#fff; border:1px solid #cdefe1;
+      border-radius:8px; padding:12px;
       box-shadow:0 2px 12px rgba(0,0,0,0.1);
     }
-    #foodDetailPanel.show {
-      display:block;
-    }
+    #foodDetailPanel.show { display:block; }
     #foodDetailPanel .close-btn {
-      position:absolute;
-      top:8px; right:8px;
-      background:none; border:none;
-      font-size:1.2em; cursor:pointer; color:#666;
+      position:absolute; top:8px; right:8px;
+      background:none; border:none; font-size:1.2em;
+      cursor:pointer; color:#666;
     }
   </style>
 </head>
@@ -206,7 +124,7 @@
     </div>
     <h1>Pola Makan Sehat</h1>
 
-    <!-- STEP 1: Survey -->
+    <!-- STEP 1: SURVEY -->
     <section id="step1" class="active">
       <div class="question-text" id="question"></div>
       <textarea id="answer" placeholder="Tuliskan jawaban..."></textarea>
@@ -214,18 +132,17 @@
       <div class="project-credit">Karya Kelompok 1 — Proyek 1</div>
     </section>
 
-    <!-- STEP 2: AI Overview -->
+    <!-- STEP 2: AI OVERVIEW -->
     <section id="step2">
       <h2>Overview AI</h2>
       <div id="aiOverview"></div>
-      <button id="step2Next" class="btn">Lanjut</button>
+      <button id="step2Next" class="btn">Lanjut ke Analisis</button>
     </section>
 
-    <!-- STEP 3: Photo Analysis & Food Search -->
+    <!-- STEP 3: PHOTO ANALYSIS & FOOD SEARCH -->
     <section id="step3">
       <h2>Analisis Makanan Anda!</h2>
       <div class="analysis-flex">
-        <!-- Photo Analysis -->
         <div class="analysis-photo">
           <label for="imageUrl">URL Foto (opsional)</label>
           <input type="url" id="imageUrl" placeholder="https://...">
@@ -237,8 +154,6 @@
           <canvas id="macroPie"></canvas>
           <canvas id="macroBar"></canvas>
         </div>
-
-        <!-- Food Search & Detail -->
         <div class="analysis-list">
           <h2>Pilih Makanan Lain</h2>
           <input type="text" id="foodSearch" placeholder="Cari makanan...">
@@ -258,7 +173,7 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // 1) Survey questions
+    // 1) Questions
     const questions = [
       "1. Menurut kamu junk food sehat atau tidak?",
       "2. Seberapa sering konsumsi junk food?",
@@ -271,28 +186,49 @@
       "9. Tantangan makan sehat?",
       "10. Rencana pola makan lebih baik?"
     ];
-    let idx = 0, answers = [];
+    let idx=0, answers=[];
 
-    // 2) Macro DB
+    // 2) Macro DB (25 items)
     const macroDBList = [
-      {key:"apple",  name:"Apel",       protein:0.3, carbs:14, fats:0.2, energy:52},
-      {key:"banana", name:"Pisang",     protein:1.3, carbs:23, fats:0.3, energy:96},
-      {key:"rice",   name:"Nasi Putih", protein:2.7, carbs:28, fats:0.3, energy:130},
-      {key:"sushi",  name:"Sushi",      protein:6,   carbs:36, fats:1.5, energy:200},
-      {key:"salad",  name:"Salad",      protein:2,   carbs:5,  fats:0.2, energy:35}
+      {key:"apple",name:"Apel",protein:0.3,carbs:14,fats:0.2,energy:52},
+      {key:"banana",name:"Pisang",protein:1.3,carbs:23,fats:0.3,energy:96},
+      {key:"rice",name:"Nasi Putih",protein:2.7,carbs:28,fats:0.3,energy:130},
+      {key:"sushi",name:"Sushi",protein:6,carbs:36,fats:1.5,energy:200},
+      {key:"salad",name:"Salad",protein:2,carbs:5,fats:0.2,energy:35},
+      {key:"nasigoreng",name:"Nasi Goreng",protein:7,carbs:50,fats:15,energy:350},
+      {key:"sotoayam",name:"Soto Ayam",protein:8,carbs:10,fats:5,energy:120},
+      {key:"gado-gado",name:"Gado Gado",protein:10,carbs:20,fats:10,energy:220},
+      {key:"rendang",name:"Rendang",protein:14,carbs:2,fats:30,energy:320},
+      {key:"sateayam",name:"Sate Ayam",protein:9,carbs:2,fats:10,energy:150},
+      {key:"bakso",name:"Bakso",protein:6,carbs:5,fats:7,energy:120},
+      {key:"miegoreng",name:"Mie Goreng",protein:8,carbs:60,fats:20,energy:400},
+      {key:"pecellele",name:"Pecel Lele",protein:20,carbs:10,fats:15,energy:260},
+      {key:"ayamgoreng",name:"Ayam Goreng",protein:25,carbs:0,fats:20,energy:300},
+      {key:"nasipadang",name:"Nasi Padang",protein:8,carbs:45,fats:15,energy:360},
+      {key:"pempek",name:"Pempek",protein:12,carbs:30,fats:5,energy:220},
+      {key:"nasiuduk",name:"Nasi Uduk",protein:6,carbs:50,fats:15,energy:350},
+      {key:"buburayam",name:"Bubur Ayam",protein:5,carbs:30,fats:3,energy:180},
+      {key:"martabakmanis",name:"Martabak Manis",protein:6,carbs:45,fats:15,energy:330},
+      {key:"martabaktelor",name:"Martabak Telor",protein:14,carbs:10,fats:20,energy:300},
+      {key:"nasicampur",name:"Nasi Campur",protein:8,carbs:50,fats:15,energy:360},
+      {key:"nasikuning",name:"Nasi Kuning",protein:7,carbs:50,fats:10,energy:340},
+      {key:"ketoprak",name:"Ketoprak",protein:8,carbs:30,fats:10,energy:260},
+      {key:"lontongsayur",name:"Lontong Sayur",protein:4,carbs:40,fats:8,energy:260},
+      {key:"sotobetawi",name:"Soto Betawi",protein:9,carbs:10,fats:20,energy:240},
+      {key:"escampur",name:"Es Campur",protein:2,carbs:30,fats:5,energy:180}
     ];
     const macroDB = Object.fromEntries(macroDBList.map(o=>[o.key,o]));
 
-    // 3) DOM refs
-    const step1    = document.getElementById("step1");
-    const step2    = document.getElementById("step2");
-    const step3    = document.getElementById("step3");
-    const qEl      = document.getElementById("question");
-    const aEl      = document.getElementById("answer");
-    const btn1     = document.getElementById("step1Next");
-    const btn2     = document.getElementById("step2Next");
-    const aiDiv    = document.getElementById("aiOverview");
-    const spinner  = document.getElementById("spinner");
+    // 3) Refs
+    const step1 = document.getElementById("step1");
+    const step2 = document.getElementById("step2");
+    const step3 = document.getElementById("step3");
+    const qEl   = document.getElementById("question");
+    const aEl   = document.getElementById("answer");
+    const b1    = document.getElementById("step1Next");
+    const b2    = document.getElementById("step2Next");
+    const aiDiv = document.getElementById("aiOverview");
+    const spinner = document.getElementById("spinner");
 
     const imgUrl   = document.getElementById("imageUrl");
     const fileInp  = document.getElementById("foodPhoto");
@@ -308,16 +244,14 @@
     const closeBtn   = detailPan.querySelector(".close-btn");
     const foodDet    = document.getElementById("foodDetails");
 
-    // Render survey question
     function showQuestion(i) {
       qEl.textContent = questions[i];
       aEl.value = "";
-      btn1.textContent = i < questions.length-1 ? "Next" : "Submit";
+      b1.textContent = i < questions.length-1 ? "Next" : "Submit";
     }
     showQuestion(idx);
 
-    // Step1 → Step2
-    btn1.addEventListener("click", () => {
+    b1.addEventListener("click", () => {
       const v = aEl.value.trim();
       if (!v) return alert("Isi jawaban dulu.");
       answers[idx] = v;
@@ -327,20 +261,15 @@
         confetti({ particleCount:100, spread:60, origin:{ y:0.4 } });
         step1.classList.replace("active","hidden");
         step2.classList.add("active");
-
-        // AI overview fetch
         spinner.classList.add("active");
         aiDiv.textContent = "Memuat overview AI…";
         const prompt = answers.map((a,i)=>`${questions[i]}\nJawaban: ${a}`).join("\n\n");
-
         fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0`,
           {
             method:"POST",
             headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({
-              contents:[{ parts:[{ text:`Ringkas pola makan:\n\n${prompt}` }] }]
-            })
+            body: JSON.stringify({ contents:[{ parts:[{ text:`Ringkas pola makan:\n\n${prompt}` }] }] })
           }
         )
         .then(r=>r.json())
@@ -357,35 +286,32 @@
       }
     });
 
-    // Step2 → Step3
-    btn2.addEventListener("click", () => {
+    b2.addEventListener("click", () => {
       step2.classList.replace("active","hidden");
       step3.classList.add("active");
       document.getElementById("mainContainer").classList.add("wide");
       buildFoodList();
     });
 
-    // Build & filter food list
     function buildFoodList() {
       detailPan.classList.remove("show");
       foodList.innerHTML = "";
       foodSearch.value = "";
-      macroDBList.forEach(item=>{
+      macroDBList.forEach(item => {
         const el = document.createElement("div");
         el.className = "food-item";
         el.textContent = item.name;
-        el.onclick = ()=>showFoodDetail(item);
+        el.onclick = () => showFoodDetail(item);
         foodList.append(el);
       });
     }
-    foodSearch.addEventListener("input", ()=>{
+    foodSearch.addEventListener("input", () => {
       const q = foodSearch.value.toLowerCase();
-      document.querySelectorAll(".food-item").forEach(el=>{
+      document.querySelectorAll(".food-item").forEach(el => {
         el.style.display = el.textContent.toLowerCase().includes(q) ? "" : "none";
       });
       detailPan.classList.remove("show");
     });
-
     function showFoodDetail(item) {
       foodDet.innerHTML = `
         <h4>${item.name}</h4>
@@ -396,23 +322,18 @@
       `;
       detailPan.classList.add("show");
     }
-    closeBtn.onclick = ()=>detailPan.classList.remove("show");
+    closeBtn.onclick = () => detailPan.classList.remove("show");
 
-    // Photo analysis
-    photoBtn.addEventListener("click", async ()=>{
+    photoBtn.addEventListener("click", async () => {
       let src = imgUrl.value.trim();
       if (!src && fileInp.files[0]) src = URL.createObjectURL(fileInp.files[0]);
       if (!src) return alert("Masukkan URL atau pilih file.");
-
       preview.src = src; preview.style.display = "block";
-      analysis.textContent = "";
-      spinner.classList.add("active");
-
+      analysis.textContent = ""; spinner.classList.add("active");
       const classifier = await ml5.imageClassifier("MobileNet");
       const [res] = await classifier.classify(preview);
       const key = res.label.split(",")[0].toLowerCase();
       const info = macroDB[key] || { name:key, protein:0, carbs:0, fats:0, energy:0 };
-
       const total = info.protein + info.carbs + info.fats || 1;
       const pieData = [
         Math.round(info.protein/total*100),
@@ -424,21 +345,10 @@
       pieCan._chart = new Chart(pieCan.getContext("2d"), {
         type:"pie",
         data:{ labels:["Protein","Karbo","Lemak"], datasets:[{ data:pieData, backgroundColor:["#2a7955","#5fb58c","#e57373"] }]},
-        options:{ responsive:true, plugins:{ legend:{ position:"bottom" }}}
+        options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:"bottom" }}}
       });
 
-      clearChart(barCan);
-      barCan._chart = new Chart(barCan.getContext("2d"), {
-        type:"bar",
-        data:{ labels:["P(g)","C(g)","L(g)","kcal"], datasets:[{ data:[info.protein,info.carbs,info.fats,info.energy], backgroundColor:["#2a7955","#5fb58c","#e57373","#5a9bf5"] }]},
-        options:{ indexAxis:"y", responsive:true }
-      });
-
-      analysis.innerHTML = `<p><strong>${info.name}</strong>: ${info.energy} kcal</p>`;
-      spinner.classList.remove("active");
-    });
-
-    function clearChart(c) {
+      clearChart
       if (c._chart) c._chart.destroy();
     }
   });
