@@ -5,6 +5,10 @@
   <title>Pola Makan Sehat Orang Indonesia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
+
+  <!-- ML5.js for in-browser image classification -->
+  <script src="https://cdn.jsdelivr.net/npm/ml5@0.6.0/dist/ml5.min.js"></script>
+  <!-- Chart.js for pie charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -34,6 +38,9 @@
       <input type="url" id="imageUrl" placeholder="Tempel URL gambar (opsional)" />
       <input type="file" id="foodPhoto" accept="image/*" />
       <button type="button" id="photoSubmit">Analisis Foto</button>
+
+      <img id="foodPreview" style="max-width:100%; margin-top:16px;" />
+
       <div id="photoAnalysis" style="margin-top:16px;"></div>
       <canvas id="macroChart" style="max-width:100%; margin-top:20px;"></canvas>
     </div>
@@ -41,12 +48,10 @@
     <div id="answersContainer" style="display:none; margin-top:20px; overflow:auto;"></div>
   </div>
 
-  <script type="module">
-    // ===== API Keys =====
-    const VISION_API_KEY = "AIzaSyBT7Sv_4m4u_lHZnMzD5BfYrZbcHilsUSE";
-    const API_KEY        = "AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0";
+  <script>
+    // === Konstanta & State ===
+    const API_KEY = "AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0";
 
-    // ===== Questions & State =====
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -59,13 +64,14 @@
       "9. Apakah kamu hari ini sudah sarapan?",
       "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
     ];
+
     const S = {
       currentQuestion: 0,
       tempAnswers:    [],
       allAnswers:     JSON.parse(localStorage.getItem("responses") || "[]"),
     };
 
-    // ===== DOM References =====
+    // === DOM Refs ===
     const D = {
       emailInput:        document.getElementById("email"),
       questionContainer: document.getElementById("questionContainer"),
@@ -78,6 +84,7 @@
       imageUrl:          document.getElementById("imageUrl"),
       foodPhoto:         document.getElementById("foodPhoto"),
       photoSubmit:       document.getElementById("photoSubmit"),
+      foodPreview:       document.getElementById("foodPreview"),
       photoAnalysis:     document.getElementById("photoAnalysis"),
       macroChart:        document.getElementById("macroChart"),
       showAnswersBtn:    document.getElementById("showAnswersBtn"),
@@ -85,7 +92,7 @@
       answersContainer:  document.getElementById("answersContainer"),
     };
 
-    // ===== Question Wizard =====
+    // === Wizard Questions ===
     function showQuestion(idx) {
       D.questionContainer.innerHTML = `
         <label for="answer">${questions[idx] || ""}</label>
@@ -108,7 +115,7 @@
       showQuestion(S.currentQuestion);
     });
 
-    // ===== Clear LocalStorage =====
+    // === Clear LocalStorage ===
     D.clearLocalBtn.addEventListener("click", () => {
       const pass = prompt("Masukkan passcode untuk menghapus jawaban lokal:");
       if (pass !== "password") return alert("Passcode salah.");
@@ -118,12 +125,12 @@
       }
     });
 
-    // ===== Submit Survey & AI Overview =====
-    D.form.addEventListener("submit", async e => {
+    // === Submit Survey & AI Overview ===
+    D.form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const field = document.getElementById("answer");
-      if (field && field.value.trim()) {
-        S.tempAnswers[S.currentQuestion] = field.value.trim();
+      const fld = document.getElementById("answer");
+      if (fld && fld.value.trim()) {
+        S.tempAnswers[S.currentQuestion] = fld.value.trim();
       }
       const answers = [...S.tempAnswers];
       const email   = D.emailInput.value.trim();
@@ -131,7 +138,7 @@
         return alert("Pastikan email & semua jawaban terisi.");
       }
 
-      // Save to localStorage
+      // simpan lokal
       S.allAnswers.push({ email, answers, time: new Date().toISOString() });
       localStorage.setItem("responses", JSON.stringify(S.allAnswers));
 
@@ -139,18 +146,18 @@
       D.form.style.display            = "none";
       D.thankYouMessage.style.display = "block";
 
-      // Loading indicator
+      // loading sign
       D.aiOverview.innerHTML = `<p style="font-style:italic; text-align:center;">
         AI sedang membuat ringkasan dan rekomendasi kalori...</p>`;
       D.aiOverview.style.display = "block";
 
-      // Call Gemini for summary + calorie recommendation
+      // panggil Gemini
       try {
         const prompt = 
           `Ringkas jawaban berikut (10 poin) dan berikan rekomendasi kalori harian untuk hidup sehat:\n\n` +
-          answers.map((a,i)=>`${i+1}. ${a}`).join("\n");
+          answers.map((a,i) => `${i+1}. ${a}`).join("\n");
         const resp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, 
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
           {
             method: "POST",
             headers:{ "Content-Type":"application/json" },
@@ -159,9 +166,7 @@
         );
         if (!resp.ok) throw new Error("Gemini API error");
         const data = await resp.json();
-        const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-        if (!aiText) throw new Error("Empty response");
-
+        const aiText = data.candidates[0].content.parts[0].text;
         D.aiOverview.innerHTML =
           `<h3>AI Overview</h3><p>${aiText.replace(/\n/g,"<br>")}</p>`;
       } catch {
@@ -169,125 +174,77 @@
           `<p style="color:#d00; text-align:center;">AI gagal membuat overview.</p>`;
       }
 
-      // Reveal photo analysis step
+      // tampilkan photoSection
       D.photoSection.style.display = "block";
     });
 
-    // ===== URL → Base64 Helper =====
-    async function urlToBase64(url) {
-      const resp = await fetch(url);
-      if (!resp.ok) throw new Error(`Gagal fetch URL (${resp.status})`);
-      const blob = await resp.blob();
-      return new Promise((res, rej) => {
-        const fr = new FileReader();
-        fr.onload  = () => res(fr.result.split(",")[1]);
-        fr.onerror = rej;
-        fr.readAsDataURL(blob);
-      });
-    }
+    // === Macro Database & Photo Analysis ===
+    const macroDB = {
+      banana:     { protein:1.3,  carbohydrates:22.8, fats:0.3,  analysis:"Pisang kaya kalium dan serat." },
+      pizza:      { protein:12,   carbohydrates:33,   fats:10,   analysis:"Pizza sering tinggi lemak jenuh." },
+      sandwich:   { protein:15,   carbohydrates:30,   fats:8,    analysis:"Sandwich mengandung karbohidrat dan protein." },
+      salad:      { protein:2,    carbohydrates:5,    fats:0.2,  analysis:"Salad rendah kalori, tinggi serat." },
+      // Tambahkan mapping lainnya jika perlu…
+    };
 
-    // ===== Photo Analysis =====
-    D.photoSubmit.addEventListener("click", () => handlePhoto());
+    D.photoSubmit.addEventListener("click", handlePhoto);
 
     async function handlePhoto() {
-      // Decide source: URL or file
-      const urlValue = D.imageUrl.value.trim();
-      let b64, mime;
+      // 1) Tentukan sumber: URL vs file
+      const urlVal = D.imageUrl.value.trim();
+      let imgSrc;
+      if (urlVal) {
+        imgSrc = urlVal;
+      } else {
+        const file = D.foodPhoto.files[0];
+        if (!file) return alert("Pilih foto makanan atau masukkan URL.");
+        imgSrc = URL.createObjectURL(file);
+      }
+      D.foodPreview.src = imgSrc;
 
+      // 2) Tampilkan loading
+      D.photoAnalysis.innerHTML = `<p style="font-style:italic; text-align:center;">
+        AI sedang menganalisis foto (offline)...</p>`;
+
+      // 3) Klasifikasi via MobileNet
       try {
-        if (urlValue) {
-          // remote URL → Base64
-          const resp = await fetch(urlValue, { mode: "cors" });
-          if (!resp.ok) throw new Error(`Fetch URL ${resp.status}`);
-          const blob = await resp.blob();
-          mime = blob.type;
-          if (!mime.startsWith("image/")) {
-            throw new Error("Format bukan gambar");
-          }
-          b64 = await new Promise((res, rej) => {
-            const fr = new FileReader();
-            fr.onload  = () => res(fr.result.split(",")[1]);
-            fr.onerror = rej;
-            fr.readAsDataURL(blob);
-          });
-        } else {
-          // local file → Base64
-          const file = D.foodPhoto.files[0];
-          if (!file) return alert("Pilih file gambar atau masukkan URL.");
-          mime = file.type;
-          if (!mime.startsWith("image/")) {
-            return alert("File bukan gambar. Pilih JPG/PNG/GIF/etc.");
-          }
-          b64 = await new Promise((res, rej) => {
-            const fr = new FileReader();
-            fr.onload  = () => res(fr.result.split(",")[1]);
-            fr.onerror = rej;
-            fr.readAsDataURL(file);
-          });
-        }
+        const classifier = await ml5.imageClassifier('MobileNet');
+        const results    = await classifier.classify(D.foodPreview);
+        const label      = results[0].label.split(',')[0].toLowerCase();
 
-        D.photoAnalysis.innerHTML = `<p style="font-style:italic; text-align:center;">
-          AI sedang menganalisis foto...</p>`;
+        // 4) Lookup makro
+        const info = macroDB[label] || {
+          protein:5, carbohydrates:20, fats:5,
+          analysis: `Tidak ada data makro untuk "${label}", menggunakan asumsi standar.`
+        };
 
-        // Vision API: label detection
-        const visionResp = await fetch(
-          `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`, 
-          {
-            method: "POST",
-            headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify({
-              requests:[{
-                image:{ content: b64 },
-                features:[{ type:"LABEL_DETECTION", maxResults:10 }]
-              }]
-            })
-          }
-        );
-        if (!visionResp.ok) throw new Error(`Vision API ${visionResp.status}`);
-        const vdata = await visionResp.json();
-        const labels = vdata.responses?.[0]?.labelAnnotations
-          ?.map(l=>l.description).join(", ");
-        if (!labels) throw new Error("Tidak ada label terdeteksi");
+        const total = info.protein + info.carbohydrates + info.fats;
+        const pct   = {
+          protein:       Math.round(info.protein       / total * 100),
+          carbohydrates: Math.round(info.carbohydrates / total * 100),
+          fats:          Math.round(info.fats          / total * 100)
+        };
 
-        // Gemini: macro JSON + analysis
-        const macroPrompt =
-          `Detected foods: ${labels}. ` +
-          `Keluarkan distribusi makronutrien (protein, karbohidrat, lemak) dalam persen total 100% ` +
-          `dan analisis singkat makanan tersebut dalam format JSON: ` +
-          `{"protein":num,"carbohydrates":num,"fats":num,"analysis":string}.`;
-        const gemResp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, 
-          {
-            method: "POST",
-            headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify({ contents:[{ parts:[{ text: macroPrompt }] }] })
-          }
-        );
-        if (!gemResp.ok) throw new Error(`Gemini API ${gemResp.status}`);
-        const gdata = await gemResp.json();
-        const raw = gdata.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!raw) throw new Error("Empty Gemini response");
+        // 5) Tampilkan hasil
+        D.photoAnalysis.innerHTML = `
+          <h3>Analisis Foto</h3>
+          <p>${info.analysis}</p>
+          <p><strong>${label}</strong> → Protein ${pct.protein}%, Karbohidrat ${pct.carbohydrates}%, Lemak ${pct.fats}%</p>
+        `;
 
-        let obj;
-        try { obj = JSON.parse(raw); }
-        catch { throw new Error("Invalid JSON dari Gemini"); }
-
-        // Display analysis text
-        D.photoAnalysis.innerHTML = `<h3>Analisis Foto</h3><p>${obj.analysis}</p>`;
-
-        // Draw pie chart
         const ctx = D.macroChart.getContext("2d");
         new Chart(ctx, {
           type: "pie",
           data: {
-            labels: ["Protein","Carbohydrates","Fats"],
-            datasets:[{
-              data: [obj.protein, obj.carbohydrates, obj.fats],
+            labels: ["Protein","Karbohidrat","Lemak"],
+            datasets: [{
+              data: [pct.protein, pct.carbohydrates, pct.fats],
               backgroundColor: ["#35a35c","#f5bc51","#e57373"]
             }]
           },
           options: { responsive:true, plugins:{ legend:{ position:"bottom" } } }
         });
+
       } catch (err) {
         console.error(err);
         D.photoAnalysis.innerHTML =
@@ -297,17 +254,17 @@
       }
     }
 
-    // ===== View All Answers =====
+    // === View All Answers ===
     D.showAnswersBtn.addEventListener("click", () => {
       const pass = prompt("Masukkan password untuk melihat semua jawaban:");
       if (pass !== "rahasia123") return alert("Password salah.");
       const rows = S.allAnswers;
       if (!rows.length) return alert("Belum ada jawaban.");
       let html = `<table><tr><th>Email</th>${
-        questions.map(q=>`<th>${q}</th>`).join("")}<th>Waktu</th></tr>`;
+        questions.map(q => `<th>${q}</th>`).join("")}<th>Waktu</th></tr>`;
       rows.forEach(r => {
         html += `<tr><td>${r.email}</td>${
-          r.answers.map(a=>`<td>${a}</td>`).join("")}<td>${r.time}</td></tr>`;
+          r.answers.map(a => `<td>${a}</td>`).join("")}<td>${r.time}</td></tr>`;
       });
       html += `</table>`;
       D.answersContainer.innerHTML = html;
