@@ -27,8 +27,7 @@
       padding:20px;
     }
     .container {
-      max-width:540px;
-      margin:auto;
+      max-width:540px; margin:auto;
       background:var(--card);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
@@ -64,64 +63,91 @@
       margin-bottom:12px;
     }
     textarea, input[type="text"] {
-      width:100%; padding:12px; border:1px solid #cdefe1;
-      border-radius:var(--radius); font-size:1rem;
+      width:100%; padding:12px;
+      border:1px solid #cdefe1;
+      border-radius:var(--radius);
+      font-size:1rem;
       transition:border-color .3s;
     }
     textarea:focus, input:focus {
       border-color:var(--primary); outline:none;
     }
     .btn {
-      display:block; width:100%; padding:14px; margin-top:24px;
+      display:block; width:100%; padding:14px;
+      margin-top:24px;
       background:var(--primary); color:#fff; border:none;
       border-radius:var(--radius); font-size:1rem;
-      cursor:pointer; transition:background .3s, transform .3s;
+      cursor:pointer;
+      transition:background .3s, transform .3s;
     }
     .btn:disabled {
       background:#ccc; cursor:not-allowed;
     }
     .btn:not(:disabled):hover {
-      background:var(--accent); transform:translateY(-2px);
+      background:var(--accent);
+      transform:translateY(-2px);
     }
     .project-credit {
-      text-align:center; color:var(--muted);
-      font-size:.85rem; margin-top:12px;
+      text-align:center;
+      color:var(--muted);
+      font-size:.85rem;
+      margin-top:12px;
     }
     .food-list {
-      display:grid; grid-template-columns:1fr 1fr;
-      gap:8px; max-height:240px; overflow-y:auto;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      max-height:240px;
+      overflow-y:auto;
       margin-bottom:12px;
     }
     .food-item {
-      padding:10px; background:#fcfcfc; border:1px solid #e0e0e0;
-      border-radius:var(--radius); text-align:center; cursor:pointer;
+      padding:10px;
+      background:#fcfcfc;
+      border:1px solid #e0e0e0;
+      border-radius:var(--radius);
+      text-align:center;
+      cursor:pointer;
       transition:background var(--transition), border-color var(--transition);
     }
     .food-item.selected {
-      background:var(--accent); color:white;
+      background:var(--accent);
+      color:white;
       border-color:var(--accent);
     }
     .food-item:hover {
       border-color:var(--primary);
     }
     .count {
-      margin-bottom:12px; color:var(--muted); font-size:.95rem;
+      margin-bottom:12px;
+      color:var(--muted);
+      font-size:.95rem;
     }
     .summary {
-      background:#fcfcfc; padding:16px;
-      border-radius:var(--radius); box-shadow:var(--shadow);
+      background:#fcfcfc;
+      padding:16px;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
       margin-bottom:16px;
     }
     #aiOverview, #aiReview {
-      min-height:100px; padding:16px;
-      border:1px solid #e0e0e0; border-radius:var(--radius);
-      background:#fff; line-height:1.6;
+      min-height:100px;
+      padding:16px;
+      border:1px solid #e0e0e0;
+      border-radius:var(--radius);
+      background:#fff;
+      line-height:1.6;
       margin-bottom:16px;
     }
     .spinner-overlay {
-      position:fixed; inset:0; background:rgba(255,255,255,0.7);
-      display:flex; align-items:center; justify-content:center;
-      visibility:hidden; z-index:1000;
+      position:fixed;
+      inset:0;
+      background:rgba(255,255,255,0.7);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      visibility:hidden;
+      z-index:1000;
     }
     .spinner-overlay.active { visibility:visible }
     .spinner {
@@ -201,29 +227,29 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // Survey questions
+    // updated survey questions
     const surveyQs = [
-      "1. Apakah Anda rutin sarapan?",
-      "2. Seberapa sering makan siang di luar?",
-      "3. Apakah Anda sering ngemil?",
-      "4. Seberapa penting nutrisi seimbang bagi Anda?",
-      "5. Buah/sayur favorit?",
-      "6. Apakah Anda minum cukup air tiap hari?",
-      "7. Seberapa sering makan fast food?",
-      "8. Apakah Anda memperhatikan porsi makan?",
-      "9. Olahraga rutin?",
-      "10. Apa tantangan terbesar pola makan Anda?"
+      "1. Menurut kamu makanan junk food sehat atau tidak?",
+      "2. Seberapa sering kamu mengonsumsi makanan junk food?",
+      "3. Berapa kali kamu makan dalam sehari?",
+      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
+      "5. Apakah kamu sering mengonsumsi sayur sayuran?",
+      "6. Sebutkan makanan yang bergizi dan tidak bergizi",
+      "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
+      "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
+      "9. Apakah kamu hari ini sudah sarapan?",
+      "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
     ];
-    let si=0, sa=[];
+    let si = 0, sa = [];
 
-    // food database
+    // food DB and selections
     const foods = [
       "Apel","Pisang","Nasi Goreng","Soto Ayam","Rendang","Bakso",
       "Mie Goreng","Pecel Lele","Ayam Goreng","Pempek","Gado Gado",
       "Ketoprak","Lontong Sayur","Soto Betawi","Martabak Telor",
       "Martabak Manis","Bubur Ayam","Nasi Padang","Nasi Uduk","Es Campur"
     ];
-    const sel={ breakfast:[], lunch:[], dinner:[] };
+    const sel = { breakfast:[], lunch:[], dinner:[] };
 
     // refs
     const stepSurvey    = document.getElementById("stepSurvey"),
@@ -238,27 +264,24 @@
           aiOverview    = document.getElementById("aiOverview"),
           overviewNext  = document.getElementById("overviewNext"),
           spinner       = document.getElementById("spinner"),
-          mainCon       = document.getElementById("mainContainer");
+          mainCon       = document.getElementById("mainContainer"),
+          btnBreakfast  = document.getElementById("next-breakfast"),
+          btnLunch      = document.getElementById("next-lunch"),
+          btnDinner     = document.getElementById("next-dinner"),
+          listBreakfast = document.getElementById("list-breakfast"),
+          listLunch     = document.getElementById("list-lunch"),
+          listDinner    = document.getElementById("list-dinner"),
+          cntBreakfast  = document.getElementById("count-breakfast"),
+          cntLunch      = document.getElementById("count-lunch"),
+          cntDinner     = document.getElementById("count-dinner"),
+          selB          = document.getElementById("sel-breakfast"),
+          selL          = document.getElementById("sel-lunch"),
+          selD          = document.getElementById("sel-dinner"),
+          btnReview     = document.getElementById("btnReview"),
+          aiReview      = document.getElementById("aiReview");
 
-    // meal step refs
-    const btnBreakfast = document.getElementById("next-breakfast"),
-          btnLunch     = document.getElementById("next-lunch"),
-          btnDinner    = document.getElementById("next-dinner"),
-          listBreakfast= document.getElementById("list-breakfast"),
-          listLunch    = document.getElementById("list-lunch"),
-          listDinner   = document.getElementById("list-dinner"),
-          cntBreakfast = document.getElementById("count-breakfast"),
-          cntLunch     = document.getElementById("count-lunch"),
-          cntDinner    = document.getElementById("count-dinner"),
-          selB         = document.getElementById("sel-breakfast"),
-          selL         = document.getElementById("sel-lunch"),
-          selD         = document.getElementById("sel-dinner"),
-          btnReview    = document.getElementById("btnReview"),
-          aiReview     = document.getElementById("aiReview"),
-          close        = null;
-
-    // Survey flow
-    function renderSurvey(i){
+    // survey flow
+    function renderSurvey(i) {
       surveyQ.textContent = surveyQs[i];
       surveyA.value = "";
       surveyNext.textContent = i < surveyQs.length-1 ? "Next" : "Submit";
@@ -276,7 +299,7 @@
         stepOverview.classList.add("active");
         spinner.classList.add("active");
         aiOverview.textContent = "Memuat overview AI…";
-        const prompt = sa.map((a,i)=>`${surveyQs[i]}: ${a}`).join("\n");
+        const prompt = sa.map((a,i)=>`${surveyQs[i]} ${a}`).join("\n");
         try {
           const res = await fetch(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
@@ -287,7 +310,7 @@
             }
           );
           const j = await res.json();
-          aiOverview.innerHTML = (j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.").replace(/\n/g,"<br>");
+          aiOverview.innerHTML = (j.candidates?.[0]?.content?.parts?.[0]?.text||"Gagal.").replace(/\n/g,"<br>");
         } catch {
           aiOverview.textContent = "Error AI.";
         } finally {
@@ -305,7 +328,6 @@
       setupMeal("dinner",    listDinner,    cntDinner,    btnDinner);
     };
 
-    // meal selection helper
     function setupMeal(type, listEl, countEl, btnEl) {
       foods.forEach(name => {
         const d = document.createElement("div");
@@ -344,7 +366,6 @@
       stepReview.classList.add("active");
     };
 
-    // AI review meals
     btnReview.onclick = async () => {
       spinner.classList.add("active");
       const prompt =
@@ -352,7 +373,7 @@
         `Sarapan: ${sel.breakfast.join(", ")}\n` +
         `Makan siang: ${sel.lunch.join(", ")}\n` +
         `Makan malam: ${sel.dinner.join(", ")}\n` +
-        `Beri saran perbaikan.`;
+        `Beri saran perbaikan jika perlu.`;
       try {
         const res = await fetch(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
@@ -363,7 +384,7 @@
           }
         );
         const j = await res.json();
-        aiReview.innerHTML = (j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.").replace(/\n/g,"<br>");
+        aiReview.innerHTML = (j.candidates?.[0]?.content?.parts?.[0]?.text||"Gagal.").replace(/\n/g,"<br>");
       } catch {
         aiReview.textContent = "Error AI.";
       } finally {
