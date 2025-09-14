@@ -9,21 +9,42 @@
     :root {
       --primary: #35a35c;
       --accent: #5c97f5;
-      --bg: #f0f6f9;
-      --card: #fff;
-      --text: #333;
-      --muted: #777;
+      --bg-start: #35a35c;
+      --bg-mid: #5c97f5;
+      --bg-end: #f5bc51;
+      --card: #ffffff;
+      --text: #333333;
       --radius: 12px;
-      --shadow: 0 4px 20px rgba(0,0,0,0.05);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
       --transition: 0.4s ease;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0 }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: "Segoe UI", sans-serif;
-      background: var(--bg);
       color: var(--text);
       padding: 20px;
+      background: linear-gradient(
+        120deg,
+        var(--bg-start),
+        var(--bg-mid),
+        var(--bg-end)
+      );
+      background-size: 600% 600%;
+      animation: gradientShift 16s ease infinite;
     }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     .container {
       max-width: 540px;
       margin: auto;
@@ -33,39 +54,48 @@
       overflow: hidden;
       transition: max-width var(--transition);
     }
-    .container.wide { max-width: 90%; }
+
+    .container.wide {
+      max-width: 90%;
+    }
+
     .logo {
       background: var(--primary);
       text-align: center;
       padding: 16px;
     }
+
     .logo img {
       width: 60px;
       border-radius: 8px;
     }
+
     h1 {
       text-align: center;
       margin: 16px 0;
       color: var(--primary);
     }
+
     section {
       display: none;
       padding: 24px;
     }
+
     section.active {
       display: block;
     }
-    .step-title {
-      font-weight: 600;
-      color: var(--primary);
-      margin-bottom: 16px;
-      font-size: 1.1rem;
-    }
+
+    .step-title,
     .question-text {
       font-weight: 600;
       color: var(--primary);
       margin-bottom: 12px;
     }
+
+    .step-title {
+      font-size: 1.1rem;
+    }
+
     textarea {
       width: 100%;
       padding: 12px;
@@ -74,27 +104,31 @@
       font-size: 1rem;
       resize: vertical;
     }
+
     .btn {
       display: block;
       width: 100%;
       padding: 14px;
       margin-top: 24px;
       background: var(--primary);
-      color: #fff;
+      color: #ffffff;
       border: none;
       border-radius: var(--radius);
       font-size: 1rem;
       cursor: pointer;
-      transition: background 0.3s, transform 0.3s;
+      transition: background var(--transition), transform var(--transition);
     }
+
     .btn:disabled {
-      background: #ccc;
+      background: #cccccc;
       cursor: not-allowed;
     }
+
     .btn:not(:disabled):hover {
       background: var(--accent);
       transform: translateY(-2px);
     }
+
     .food-list {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -103,6 +137,7 @@
       overflow-y: auto;
       margin-bottom: 12px;
     }
+
     .food-item {
       padding: 10px;
       background: #fcfcfc;
@@ -110,13 +145,16 @@
       border-radius: var(--radius);
       text-align: center;
       cursor: pointer;
-      transition: background var(--transition), border-color var(--transition);
+      transition: background var(--transition),
+                  border-color var(--transition);
     }
+
     .food-item.selected {
       background: var(--accent);
-      color: #fff;
+      color: #ffffff;
       border-color: var(--accent);
     }
+
     .summary {
       background: #fcfcfc;
       padding: 16px;
@@ -124,15 +162,18 @@
       box-shadow: var(--shadow);
       margin-bottom: 16px;
     }
-    #aiOverview, #aiReview {
+
+    #aiOverview,
+    #aiReview {
       min-height: 100px;
       padding: 16px;
       border: 1px solid #e0e0e0;
       border-radius: var(--radius);
-      background: #fff;
+      background: #ffffff;
       line-height: 1.6;
       margin-bottom: 16px;
     }
+
     .spinner-overlay {
       position: fixed;
       inset: 0;
@@ -143,9 +184,11 @@
       visibility: hidden;
       z-index: 1000;
     }
+
     .spinner-overlay.active {
       visibility: visible;
     }
+
     .spinner {
       width: 50px;
       height: 50px;
@@ -154,7 +197,10 @@
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -240,9 +286,15 @@
       "Shawarma","Falafel","Hummus & Pita","Kebab","Biryani","Roti Canai",
       "Chicken Tikka","Lamb Kofta","Tabbouleh","Samosa"
     ];
-    let si=0, sa=[], sel={breakfast:null,lunch:null,dinner:null};
+    let si = 0, sa = [], sel = {};
 
     const refs = {
+      stepSurvey: document.getElementById("stepSurvey"),
+      stepOverview: document.getElementById("stepOverview"),
+      stepBreakfast: document.getElementById("stepBreakfast"),
+      stepLunch: document.getElementById("stepLunch"),
+      stepDinner: document.getElementById("stepDinner"),
+      stepReview: document.getElementById("stepReview"),
       surveyQ: document.getElementById("surveyQ"),
       surveyA: document.getElementById("surveyA"),
       surveyNext: document.getElementById("surveyNext"),
@@ -260,19 +312,14 @@
       btnReview: document.getElementById("btnReview"),
       aiReview: document.getElementById("aiReview"),
       spinner: document.getElementById("spinner"),
-      mainCon: document.getElementById("mainContainer"),
-      stepSurvey: document.getElementById("stepSurvey"),
-      stepOverview: document.getElementById("stepOverview"),
-      stepBreakfast: document.getElementById("stepBreakfast"),
-      stepLunch: document.getElementById("stepLunch"),
-      stepDinner: document.getElementById("stepDinner"),
-      stepReview: document.getElementById("stepReview")
+      mainCon: document.getElementById("mainContainer")
     };
 
-    function renderSurvey(i){
+    function renderSurvey(i) {
       refs.surveyQ.textContent = surveyQs[i];
       refs.surveyA.value = "";
-      refs.surveyNext.textContent = i<surveyQs.length-1?"Next":"Submit";
+      refs.surveyNext.textContent =
+        i < surveyQs.length - 1 ? "Next" : "Submit";
     }
     renderSurvey(si);
 
@@ -280,27 +327,34 @@
       const v = refs.surveyA.value.trim();
       if (!v) return alert("Isi jawaban.");
       sa[si] = v;
-      if (si < surveyQs.length-1) {
-        si++; renderSurvey(si);
+      if (si < surveyQs.length - 1) {
+        si++;
+        renderSurvey(si);
       } else {
-        confetti({ particleCount:100, spread:60, origin:{ y:0.4 } });
-        refs.stepSurvey.classList.replace("active","hidden");
+        confetti({ particleCount: 100, spread: 60, origin: { y: 0.4 } });
+        refs.stepSurvey.classList.replace("active", "hidden");
         refs.stepOverview.classList.add("active");
         refs.spinner.classList.add("active");
         refs.aiOverview.textContent = "Memuat overview AI…";
-        const prompt = sa.map((a,i)=>`${surveyQs[i]} ${a}`).join("\n");
+        const prompt = sa.map((a, i) => `${surveyQs[i]} ${a}`).join("\n");
         try {
           const res = await fetch(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
             {
-              method:"POST",
-              headers:{"Content-Type":"application/json"},
-              body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+              })
             }
           );
           const j = await res.json();
-          let t = j.candidates?.[0]?.content?.parts?.[0]?.text||"Gagal.";
-          refs.aiOverview.innerHTML = t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
+          let t =
+            j.candidates?.[0]?.content?.parts?.[0]?.text ||
+            "Maaf, AI gagal membuat review.";
+          refs.aiOverview.innerHTML = t
+            .replace(/\*\*/g, "")
+            .replace(/\n/g, "<br>");
         } catch {
           refs.aiOverview.textContent = "Error AI.";
         } finally {
@@ -310,22 +364,23 @@
     };
 
     refs.overviewNext.onclick = () => {
-      refs.stepOverview.classList.replace("active","hidden");
+      refs.stepOverview.classList.replace("active", "hidden");
       refs.stepBreakfast.classList.add("active");
       refs.mainCon.classList.add("wide");
       setupMeal("breakfast", refs.listBreakfast, refs.nextBreakfast);
-      setupMeal("lunch",     refs.listLunch,     refs.nextLunch);
-      setupMeal("dinner",    refs.listDinner,    refs.nextDinner);
+      setupMeal("lunch", refs.listLunch, refs.nextLunch);
+      setupMeal("dinner", refs.listDinner, refs.nextDinner);
     };
 
-    function setupMeal(type, listEl, btnEl){
+    function setupMeal(type, listEl, btnEl) {
       foods.forEach(name => {
         const d = document.createElement("div");
         d.className = "food-item";
         d.textContent = name;
         d.onclick = () => {
-          // clear existing
-          listEl.querySelectorAll(".food-item").forEach(el => el.classList.remove("selected"));
+          listEl
+            .querySelectorAll(".food-item")
+            .forEach(el => el.classList.remove("selected"));
           sel[type] = name;
           d.classList.add("selected");
           btnEl.disabled = false;
@@ -335,15 +390,15 @@
     }
 
     refs.nextBreakfast.onclick = () => {
-      refs.stepBreakfast.classList.replace("active","hidden");
+      refs.stepBreakfast.classList.replace("active", "hidden");
       refs.stepLunch.classList.add("active");
     };
     refs.nextLunch.onclick = () => {
-      refs.stepLunch.classList.replace("active","hidden");
+      refs.stepLunch.classList.replace("active", "hidden");
       refs.stepDinner.classList.add("active");
     };
     refs.nextDinner.onclick = () => {
-      refs.stepDinner.classList.replace("active","hidden");
+      refs.stepDinner.classList.replace("active", "hidden");
       refs.selB.textContent = sel.breakfast;
       refs.selL.textContent = sel.lunch;
       refs.selD.textContent = sel.dinner;
@@ -362,22 +417,24 @@
         const res = await fetch(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
           {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
           }
         );
         const j = await res.json();
-        let t = j.candidates?.[0]?.content?.parts?.[0]?.text||"Gagal.";
-        t = t.replace(/\*\*/g,"").trim();
-        refs.aiReview.innerHTML = t.replace(/\n/g,"<br>");
+        let t =
+          j.candidates?.[0]?.content?.parts?.[0]?.text ||
+          "Maaf, AI gagal membuat review.";
+        refs.aiReview.innerHTML = t.replace(/\*\*/g, "").replace(/\n/g, "<br>");
       } catch {
         refs.aiReview.textContent = "Error AI.";
       } finally {
         refs.spinner.classList.remove("active");
       }
     };
-
   });
   </script>
 </body>
