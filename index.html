@@ -8,45 +8,208 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
   <style>
-    :root{--primary:#35a35c;--accent:#5c97f5;--bg:#f0f6f9;--card:#fff;--text:#333;--muted:#777;--radius:12px;--shadow:0 4px 20px rgba(0,0,0,0.05);--transition:0.4s}
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:"Segoe UI",sans-serif;background:var(--bg);color:var(--text);padding:20px}
-    .container{max-width:540px;margin:auto;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:max-width var(--transition)}
-    .container.wide{max-width:90%}
-    .logo{background:var(--primary);text-align:center;padding:16px}
-    .logo img{width:60px;border-radius:8px}
-    h1{text-align:center;margin:16px 0;color:var(--primary)}
-    section{display:none;padding:24px}
-    section.active{display:block}
-    .step-title{font-weight:600;color:var(--primary);margin-bottom:16px;font-size:1.1rem}
-    .question-text{font-weight:600;color:var(--primary);margin-bottom:12px}
-    textarea,input[type="text"]{width:100%;padding:12px;border:1px solid #cdefe1;border-radius:var(--radius);font-size:1rem;transition:border-color .3s}
-    textarea:focus,input:focus{border-color:var(--primary);outline:none}
-    .btn{display:block;width:100%;padding:14px;margin-top:24px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);font-size:1rem;cursor:pointer;transition:background .3s,transform .3s}
-    .btn:disabled{background:#ccc;cursor:not-allowed}
-    .btn:not(:disabled):hover{background:var(--accent);transform:translateY(-2px)}
-    .project-credit{text-align:center;color:var(--muted);font-size:.85rem;margin-top:12px}
-    .food-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:240px;overflow-y:auto;margin-bottom:12px}
-    .food-item{padding:10px;background:#fcfcfc;border:1px solid #e0e0e0;border-radius:var(--radius);text-align:center;cursor:pointer;transition:background var(--transition),border-color var(--transition)}
-    .food-item.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
-    .food-item:hover{border-color:var(--primary)}
-    .count{margin-bottom:12px;color:var(--muted);font-size:.95rem}
-    .summary{background:#fcfcfc;padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px}
-    #aiOverview,#aiReview{min-height:100px;padding:16px;border:1px solid #e0e0e0;border-radius:var(--radius);background:#fff;line-height:1.6;margin-bottom:16px}
-    .spinner-overlay{position:fixed;inset:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;visibility:hidden;z-index:1000}
-    .spinner-overlay.active{visibility:visible}
-    .spinner{width:50px;height:50px;border:6px solid #e0e0e0;border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
+    :root {
+      --primary: #35a35c;
+      --accent: #5c97f5;
+      --bg: #f0f6f9;
+      --card: #fff;
+      --text: #333;
+      --muted: #777;
+      --radius: 12px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.05);
+      --transition: 0.4s ease;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+    }
+    .container {
+      max-width: 540px;
+      margin: auto;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: max-width var(--transition);
+    }
+    .container.wide { max-width: 90%; }
+    .logo {
+      background: var(--primary);
+      text-align: center;
+      padding: 16px;
+    }
+    .logo img {
+      width: 60px;
+      border-radius: 8px;
+    }
+    h1 {
+      text-align: center;
+      margin: 16px 0;
+      color: var(--primary);
+    }
+    section {
+      display: none;
+      padding: 24px;
+    }
+    section.active {
+      display: block;
+    }
+    .step-title {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 16px;
+      font-size: 1.1rem;
+    }
+    .question-text {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cdefe1;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+    textarea:focus, input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin-top: 24px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .btn:not(:disabled):hover {
+      background: var(--accent);
+      transform: translateY(-2px);
+    }
+    .project-credit {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 12px;
+    }
+    .food-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+    .food-item {
+      padding: 10px;
+      background: #fcfcfc;
+      border: 1px solid #e0e0e0;
+      border-radius: var(--radius);
+      text-align: center;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .food-item.selected {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .food-item:hover {
+      border-color: var(--primary);
+    }
+    .count {
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .summary {
+      background: #fcfcfc;
+      padding: 16px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+    #aiOverview, #aiReview {
+      min-height: 100px;
+      padding: 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: var(--radius);
+      background: #fff;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .spinner-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      visibility: hidden;
+      z-index: 1000;
+    }
+    .spinner-overlay.active {
+      visibility: visible;
+    }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 6px solid #e0e0e0;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    /* Answers folder */
+    #answersFolder {
+      display: none;
+      position: fixed;
+      top: 10%; right: 10%;
+      width: 300px; max-height: 80%; overflow: auto;
+      background: #fff; border: 1px solid #ccc;
+      border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      padding: 16px; z-index: 10000;
+    }
+    #answersFolder h3 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      color: var(--primary);
+    }
+    #closeFolder {
+      float: right;
+      border: none;
+      background: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
   <div class="container" id="mainContainer">
     <div class="logo">
-      <img src="https://yt3.ggpht.com/a/AATXAJwRp9NDxa9WX7nh8uuO9TUCUCMqCRE5yJp4CQ=s900-c-k-c0xffffffff-no-rj-mo" alt="Logo Al Ikhlas">
+      <img src="https://yt3.ggpht.com/a/AATXAJwRp9NDxa9WX7nh8uuO9TUCUCMqCRE5yJp4CQ=s900-c-k-c0xffffffff-no-rj-mo" alt="Logo">
     </div>
     <h1>Pola Makan Sehat</h1>
 
-    <!-- Survey -->
+    <!-- STEP 1: Survey -->
     <section id="stepSurvey" class="active">
       <div class="step-title">Survey Singkat</div>
       <div class="question-text" id="surveyQ"></div>
@@ -55,38 +218,38 @@
       <div class="project-credit">Karya Kelompok 1 — Proyek 1</div>
     </section>
 
-    <!-- AI Overview -->
+    <!-- STEP 2: Overview AI -->
     <section id="stepOverview">
       <div class="step-title">Overview AI</div>
       <div id="aiOverview">Memuat overview AI…</div>
       <button id="overviewNext" class="btn">Lanjut ke Pemilihan Menu</button>
     </section>
 
-    <!-- Breakfast -->
+    <!-- STEP 3A: Breakfast -->
     <section id="stepBreakfast">
-      <div class="step-title">Sarapan: pilih 3 menu</div>
+      <div class="step-title">Sarapan (3 pilihan)</div>
       <div id="count-breakfast" class="count">Dipilih: 0/3</div>
       <div id="list-breakfast" class="food-list"></div>
       <button id="next-breakfast" class="btn" disabled>Next: Siang</button>
     </section>
 
-    <!-- Lunch -->
+    <!-- STEP 3B: Lunch -->
     <section id="stepLunch">
-      <div class="step-title">Makan Siang: pilih 3 menu</div>
+      <div class="step-title">Makan Siang (3 pilihan)</div>
       <div id="count-lunch" class="count">Dipilih: 0/3</div>
       <div id="list-lunch" class="food-list"></div>
       <button id="next-lunch" class="btn" disabled>Next: Malam</button>
     </section>
 
-    <!-- Dinner -->
+    <!-- STEP 3C: Dinner -->
     <section id="stepDinner">
-      <div class="step-title">Makan Malam: pilih 3 menu</div>
+      <div class="step-title">Makan Malam (3 pilihan)</div>
       <div id="count-dinner" class="count">Dipilih: 0/3</div>
       <div id="list-dinner" class="food-list"></div>
       <button id="next-dinner" class="btn" disabled>Lihat Ringkasan</button>
     </section>
 
-    <!-- Review -->
+    <!-- STEP 4: Review -->
     <section id="stepReview">
       <div class="step-title">Ringkasan Pilihan</div>
       <div class="summary">
@@ -95,14 +258,22 @@
         <strong>Malam:</strong> <span id="sel-dinner"></span>
       </div>
       <button id="btnReview" class="btn">Dapatkan Review AI</button>
-      <div id="aiReview">Menunggu permintaan...</div>
+      <div id="aiReview">Menunggu...</div>
     </section>
+  </div>
+
+  <!-- Answers folder -->
+  <div id="answersFolder">
+    <button id="closeFolder">×</button>
+    <h3>Jawaban Tersimpan</h3>
+    <div id="folderContent"></div>
   </div>
 
   <div id="spinner" class="spinner-overlay"><div class="spinner"></div></div>
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const STORAGE_KEY = "polaData";
     const surveyQs = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -115,149 +286,203 @@
       "9. Apakah kamu hari ini sudah sarapan?",
       "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
     ];
-    let si=0, sa=[];
-
     const foods = [
       "Apel","Pisang","Nasi Goreng","Soto Ayam","Rendang","Bakso",
       "Mie Goreng","Pecel Lele","Ayam Goreng","Pempek","Gado Gado",
       "Ketoprak","Lontong Sayur","Soto Betawi","Martabak Telor",
       "Martabak Manis","Bubur Ayam","Nasi Padang","Nasi Uduk","Es Campur"
     ];
-    const sel={breakfast:[],lunch:[],dinner:[]};
+    let si = 0, sa = [];
+    const sel = { breakfast: [], lunch: [], dinner: [] };
 
     const refs = {
-      stepSurvey:document.getElementById("stepSurvey"),
-      stepOverview:document.getElementById("stepOverview"),
-      stepBreakfast:document.getElementById("stepBreakfast"),
-      stepLunch:document.getElementById("stepLunch"),
-      stepDinner:document.getElementById("stepDinner"),
-      stepReview:document.getElementById("stepReview"),
-      surveyQ:document.getElementById("surveyQ"),
-      surveyA:document.getElementById("surveyA"),
-      surveyNext:document.getElementById("surveyNext"),
-      aiOverview:document.getElementById("aiOverview"),
-      overviewNext:document.getElementById("overviewNext"),
-      spinner:document.getElementById("spinner"),
-      mainCon:document.getElementById("mainContainer"),
-      nextBreakfast:document.getElementById("next-breakfast"),
-      nextLunch:document.getElementById("next-lunch"),
-      nextDinner:document.getElementById("next-dinner"),
-      listBreakfast:document.getElementById("list-breakfast"),
-      listLunch:document.getElementById("list-lunch"),
-      listDinner:document.getElementById("list-dinner"),
-      cntBreakfast:document.getElementById("count-breakfast"),
-      cntLunch:document.getElementById("count-lunch"),
-      cntDinner:document.getElementById("count-dinner"),
-      selB:document.getElementById("sel-breakfast"),
-      selL:document.getElementById("sel-lunch"),
-      selD:document.getElementById("sel-dinner"),
-      btnReview:document.getElementById("btnReview"),
-      aiReview:document.getElementById("aiReview")
+      stepSurvey: document.getElementById("stepSurvey"),
+      stepOverview: document.getElementById("stepOverview"),
+      stepBreakfast: document.getElementById("stepBreakfast"),
+      stepLunch: document.getElementById("stepLunch"),
+      stepDinner: document.getElementById("stepDinner"),
+      stepReview: document.getElementById("stepReview"),
+      surveyQ: document.getElementById("surveyQ"),
+      surveyA: document.getElementById("surveyA"),
+      surveyNext: document.getElementById("surveyNext"),
+      aiOverview: document.getElementById("aiOverview"),
+      overviewNext: document.getElementById("overviewNext"),
+      spinner: document.getElementById("spinner"),
+      mainCon: document.getElementById("mainContainer"),
+      nextBreakfast: document.getElementById("next-breakfast"),
+      nextLunch: document.getElementById("next-lunch"),
+      nextDinner: document.getElementById("next-dinner"),
+      listBreakfast: document.getElementById("list-breakfast"),
+      listLunch: document.getElementById("list-lunch"),
+      listDinner: document.getElementById("list-dinner"),
+      cntBreakfast: document.getElementById("count-breakfast"),
+      cntLunch: document.getElementById("count-lunch"),
+      cntDinner: document.getElementById("count-dinner"),
+      selB: document.getElementById("sel-breakfast"),
+      selL: document.getElementById("sel-lunch"),
+      selD: document.getElementById("sel-dinner"),
+      btnReview: document.getElementById("btnReview"),
+      aiReview: document.getElementById("aiReview"),
+      folder: document.getElementById("answersFolder"),
+      folderContent: document.getElementById("folderContent"),
+      closeFolder: document.getElementById("closeFolder")
     };
 
+    // Load or clear old data
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const obj = JSON.parse(raw);
+      if (!obj.ts || Date.now() - obj.ts > 30 * 24*60*60*1000) {
+        localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+      sa = obj.sa || [];
+      sel.breakfast = obj.sel.breakfast || [];
+      sel.lunch = obj.sel.lunch || [];
+      sel.dinner = obj.sel.dinner || [];
+    }
+    function saveData(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        sa, sel, ts: Date.now()
+      }));
+    }
+    loadData();
+
+    // Survey
     function renderSurvey(i){
       refs.surveyQ.textContent = surveyQs[i];
       refs.surveyA.value = "";
-      refs.surveyNext.textContent = i<surveyQs.length-1?"Next":"Submit";
+      refs.surveyNext.textContent = i < surveyQs.length-1 ? "Next" : "Submit";
     }
     renderSurvey(si);
 
     refs.surveyNext.onclick = async () => {
-      if(!refs.surveyA.value.trim()) return alert("Isi jawaban.");
-      sa[si]=refs.surveyA.value.trim();
-      if(si<surveyQs.length-1){
+      const v = refs.surveyA.value.trim();
+      if (!v) return alert("Isi jawaban.");
+      sa[si] = v;
+      saveData();
+      if (si < surveyQs.length-1) {
         si++; renderSurvey(si);
       } else {
-        confetti({particleCount:100,spread:60,origin:{y:0.4}});
+        confetti({ particleCount:100, spread:60, origin:{ y:0.4 } });
         refs.stepSurvey.classList.replace("active","hidden");
         refs.stepOverview.classList.add("active");
         refs.spinner.classList.add("active");
-        refs.aiOverview.textContent="Memuat overview AI…";
+        refs.aiOverview.textContent = "Memuat overview AI…";
         const prompt = sa.map((a,i)=>`${surveyQs[i]} ${a}`).join("\n");
         try {
           const res = await fetch(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
-            { method:"POST",
+            {
+              method:"POST",
               headers:{"Content-Type":"application/json"},
-              body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+              body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
             }
           );
-          const j=await res.json();
-          refs.aiOverview.innerHTML=(j.candidates?.[0]?.content?.parts?.[0]?.text||"Gagal.").replace(/\*\*/g,"").replace(/\n/g,"<br>");
+          const j = await res.json();
+          let t = j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
+          t = t.replace(/\*\*/g,"").trim();
+          refs.aiOverview.innerHTML = t.replace(/\n/g,"<br>");
         } catch {
-          refs.aiOverview.textContent="Error AI.";
+          refs.aiOverview.textContent = "Error AI.";
         } finally {
           refs.spinner.classList.remove("active");
         }
       }
     };
 
+    // Meal selection setup
     refs.overviewNext.onclick = () => {
       refs.stepOverview.classList.replace("active","hidden");
       refs.stepBreakfast.classList.add("active");
       refs.mainCon.classList.add("wide");
-      setupMeal("breakfast",refs.listBreakfast,refs.cntBreakfast,refs.nextBreakfast);
-      setupMeal("lunch",refs.listLunch,refs.cntLunch,refs.nextLunch);
-      setupMeal("dinner",refs.listDinner,refs.cntDinner,refs.nextDinner);
+      ["breakfast","lunch","dinner"].forEach(type => {
+        const listEl = refs["list" + type.charAt(0).toUpperCase() + type.slice(1)];
+        const cntEl  = refs["cnt"  + type.charAt(0).toUpperCase() + type.slice(1)];
+        const btnEl  = refs["next-" + type];
+        foods.forEach(name => {
+          const d = document.createElement("div");
+          d.className = "food-item";
+          d.textContent = name;
+          d.onclick = () => {
+            const A = sel[type], ix = A.indexOf(name);
+            if (ix >= 0) {
+              A.splice(ix,1);
+              d.classList.remove("selected");
+            } else if (A.length < 3) {
+              A.push(name);
+              d.classList.add("selected");
+            }
+            cntEl.textContent = `Dipilih: ${A.length}/3`;
+            btnEl.disabled = A.length !== 3;
+            saveData();
+          };
+          listEl.append(d);
+        });
+      });
     };
 
-    function setupMeal(type,listEl,countEl,btnEl){
-      foods.forEach(name=>{
-        const d=document.createElement("div");
-        d.className="food-item";d.textContent=name;
-        d.onclick=()=>{
-          const arr=sel[type],ix=arr.indexOf(name);
-          if(ix>=0){arr.splice(ix,1);d.classList.remove("selected")}
-          else if(arr.length<3){arr.push(name);d.classList.add("selected")}
-          countEl.textContent=`Dipilih: ${arr.length}/3`;
-          btnEl.disabled = arr.length!==3;
-        };
-        listEl.append(d);
-      });
-    }
-
-    refs.nextBreakfast.onclick=()=>{
+    refs.nextBreakfast.onclick = () => {
       refs.stepBreakfast.classList.replace("active","hidden");
       refs.stepLunch.classList.add("active");
     };
-    refs.nextLunch.onclick=()=>{
+    refs.nextLunch.onclick = () => {
       refs.stepLunch.classList.replace("active","hidden");
       refs.stepDinner.classList.add("active");
     };
-    refs.nextDinner.onclick=()=>{
+    refs.nextDinner.onclick = () => {
       refs.stepDinner.classList.replace("active","hidden");
-      refs.selB.textContent=sel.breakfast.join(", ");
-      refs.selL.textContent=sel.lunch.join(", ");
-      refs.selD.textContent=sel.dinner.join(", ");
+      refs.selB.textContent = sel.breakfast.join(", ");
+      refs.selL.textContent = sel.lunch.join(", ");
+      refs.selD.textContent = sel.dinner.join(", ");
       refs.stepReview.classList.add("active");
     };
 
-    refs.btnReview.onclick=async()=>{
+    // AI review with calorie tracking
+    refs.btnReview.onclick = async () => {
       refs.spinner.classList.add("active");
       const prompt =
-        `Tinjau menu saya dan hitung total kalori:\n`+
-        `Sarapan: ${sel.breakfast.join(", ")}\n`+
-        `Makan siang: ${sel.lunch.join(", ")}\n`+
-        `Makan malam: ${sel.dinner.join(", ")}\n`+
-        `Bandingkan dengan kisaran harian sehat (2000–2500 kkal) dan berikan ringkasan tanpa format bold.`;
+        `Tinjau menu saya dan hitung total kalori:\n` +
+        `Sarapan: ${sel.breakfast.join(", ")}\n` +
+        `Makan siang: ${sel.lunch.join(", ")}\n` +
+        `Makan malam: ${sel.dinner.join(", ")}\n` +
+        `Bandingkan dengan kisaran harian sehat (2000–2500 kkal) dan jawab tanpa bold.`;
       try {
-        const res=await fetch(
+        const res = await fetch(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
-          { method:"POST",
+          {
+            method:"POST",
             headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+            body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
           }
         );
-        const j=await res.json();
-        let text=j.candidates?.[0]?.content?.parts?.[0]?.text||"Gagal.";
-        text=text.replace(/\*\*/g,"").trim();
-        refs.aiReview.innerHTML=text.replace(/\n/g,"<br>");
+        const j = await res.json();
+        let t = j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
+        t = t.replace(/\*\*/g,"").trim();
+        refs.aiReview.innerHTML = t.replace(/\n/g,"<br>");
       } catch {
-        refs.aiReview.textContent="Error AI.";
+        refs.aiReview.textContent = "Error AI.";
       } finally {
         refs.spinner.classList.remove("active");
       }
     };
+
+    // Show saved answers on Ctrl+V
+    function showFolder() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const obj = JSON.parse(raw);
+      let html = "<h4>Survey Answers:</h4><ol>";
+      (obj.sa||[]).forEach(a => html += `<li>${a}</li>`);
+      html += "</ol><h4>Breakfast:</h4><p>" + (obj.sel.breakfast||[]).join(", ") +
+              "</p><h4>Siang:</h4><p>" + (obj.sel.lunch||[]).join(", ") +
+              "</p><h4>Malam:</h4><p>" + (obj.sel.dinner||[]).join(", ") + "</p>";
+      refs.folderContent.innerHTML = html;
+      refs.folder.style.display = "block";
+    }
+    document.addEventListener("paste", showFolder);
+    refs.closeFolder.onclick = () => refs.folder.style.display = "none";
   });
   </script>
 </body>
