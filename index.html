@@ -4,272 +4,257 @@
   <meta charset="UTF-8" />
   <title>Pola Makan Sehat Orang Indonesia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { font-family: sans-serif; margin: 0; padding: 0; background: #f9f9f9; }
+    .container { max-width: 800px; margin: 0 auto; padding: 16px; }
+    h1, h2, h3 { text-align: center; color: #333; }
+    .section { display: none; margin-top: 24px; }
+    .section.active { display: block; }
+    input, textarea, button { width: 100%; box-sizing: border-box; margin: 8px 0; padding: 8px; }
+    button { background: #35a35c; color: #fff; border: none; cursor: pointer; }
+    button:disabled { background: #ccc; }
+    #foodList { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; }
+    .food-item { display: flex; align-items: center; margin: 4px 0; cursor: pointer; }
+    .food-item img { width: 48px; height: 48px; object-fit: cover; margin-right: 12px; border-radius: 4px; }
+    #foodDetail { margin-top: 16px; }
+  </style>
 
-  <!-- ML5.js for in-browser image classification -->
+  <!-- In-browser image classifier -->
   <script src="https://cdn.jsdelivr.net/npm/ml5@0.6.0/dist/ml5.min.js"></script>
-  <!-- Chart.js for pie charts -->
+  <!-- Chart.js for charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>Pola Makan Sehat Orang Indonesia</h1>
 
-    <form id="wizardForm" autocomplete="off">
-      <label for="email">Email kamu:</label>
-      <input type="email" id="email" placeholder="nama@contoh.com" required />
+    <!-- 1. Survey Section -->
+    <div id="surveySection" class="section active">
+      <form id="surveyForm" autocomplete="off">
+        <label for="email">Email kamu:</label>
+        <input type="email" id="email" placeholder="nama@contoh.com" required />
 
-      <div id="questionContainer"></div>
+        <div id="questionContainer"></div>
 
-      <button type="button" id="nextBtn">Next</button>
-      <button type="button" id="showAnswersBtn">📋 Lihat Semua Jawaban</button>
-      <button type="button" id="clearLocalBtn">🗑 Hapus Jawaban Lokal</button>
-      <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
-    </form>
-
-    <div id="thankYouMessage" style="display:none; margin-top:20px; text-align:center;">
-      terimakasih telah menjawab survei ini
+        <button type="button" id="nextBtn">Next</button>
+        <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
+      </form>
     </div>
 
-    <div id="aiOverview" style="display:none; margin-top:20px;"></div>
-
-    <div id="photoSection" style="display:none; margin-top:20px;">
-      <h2>Upload atau Masukkan URL Foto Makanan</h2>
+    <!-- 2. Photo Analysis Section -->
+    <div id="photoSection" class="section">
+      <h2>Analisis Foto Makanan</h2>
       <input type="url" id="imageUrl" placeholder="Tempel URL gambar (opsional)" />
       <input type="file" id="foodPhoto" accept="image/*" />
-      <button type="button" id="photoSubmit">Analisis Foto</button>
+      <button id="photoSubmit">Analisis Foto</button>
 
       <img id="foodPreview" style="max-width:100%; margin-top:16px;" />
-
       <div id="photoAnalysis" style="margin-top:16px;"></div>
-      <canvas id="macroChart" style="max-width:100%; margin-top:20px;"></canvas>
+      <canvas id="macroPie" style="max-width:100%; margin-top:24px;"></canvas>
+      <canvas id="macroDiff" style="max-width:100%; margin-top:24px;"></canvas>
+      <div id="geminiOverview" style="margin-top:24px;"></div>
     </div>
 
-    <div id="answersContainer" style="display:none; margin-top:20px; overflow:auto;"></div>
+    <!-- 3. Food Database Section -->
+    <div id="foodDBSection" class="section">
+      <h2>Basis Data Makanan</h2>
+      <input type="text" id="foodSearch" placeholder="Cari makanan..." />
+      <div id="foodList"></div>
+      <div id="foodDetail">
+        <h3 id="detailName"></h3>
+        <img id="detailImg" style="max-width:100%; border-radius:8px;" />
+        <canvas id="foodDetailChart" style="max-width:100%; margin-top:16px;"></canvas>
+      </div>
+    </div>
   </div>
 
   <script>
-    // === Konstanta & State ===
-    const API_KEY = "AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0";
+  // ===== API Key for Gemini =====
+  const API_KEY = "AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0";
 
-    const questions = [
-      "1. Menurut kamu makanan junk food sehat atau tidak?",
-      "2. Seberapa sering kamu mengonsumsi makanan junk food?",
-      "3. Berapa kali kamu makan dalam sehari?",
-      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
-      "5. Apakah kamu sering mengonsumsi sayur sayuran?",
-      "6. Sebutkan makanan yang bergizi dan tidak bergizi",
-      "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
-      "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
-      "9. Apakah kamu hari ini sudah sarapan?",
-      "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
-    ];
+  // ===== Survey Wizard =====
+  const questions = [
+    "1. Menurut kamu makanan junk food sehat atau tidak?",
+    "2. Seberapa sering kamu mengonsumsi makanan junk food?",
+    "3. Berapa kali kamu makan dalam sehari?",
+    "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
+    "5. Apakah kamu sering mengonsumsi sayur-sayuran?",
+    "6. Sebutkan makanan yang bergizi dan tidak bergizi.",
+    "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
+    "8. Sayur-sayuran dan buah-buahan termasuk makanan bergizi?",
+    "9. Apakah kamu hari ini sudah sarapan?",
+    "10. Mengapa kebanyakan orang lebih suka junk food?"
+  ];
+  let surveyState = { idx: 0, answers: [] };
+  const D = {
+    surveySection:  document.getElementById("surveySection"),
+    questionContainer: document.getElementById("questionContainer"),
+    nextBtn:        document.getElementById("nextBtn"),
+    submitBtn:      document.getElementById("submitBtn"),
+    emailInput:     document.getElementById("email"),
+    surveyForm:     document.getElementById("surveyForm"),
+    photoSection:   document.getElementById("photoSection"),
+    imageUrl:       document.getElementById("imageUrl"),
+    foodPhoto:      document.getElementById("foodPhoto"),
+    photoSubmit:    document.getElementById("photoSubmit"),
+    foodPreview:    document.getElementById("foodPreview"),
+    photoAnalysis:  document.getElementById("photoAnalysis"),
+    macroPie:       document.getElementById("macroPie"),
+    macroDiff:      document.getElementById("macroDiff"),
+    geminiOverview: document.getElementById("geminiOverview"),
+    foodDBSection:  document.getElementById("foodDBSection"),
+    foodSearch:     document.getElementById("foodSearch"),
+    foodList:       document.getElementById("foodList"),
+    detailName:     document.getElementById("detailName"),
+    detailImg:      document.getElementById("detailImg"),
+    foodDetailChart: document.getElementById("foodDetailChart")
+  };
 
-    const S = {
-      currentQuestion: 0,
-      tempAnswers:    [],
-      allAnswers:     JSON.parse(localStorage.getItem("responses") || "[]"),
-    };
-
-    // === DOM Refs ===
-    const D = {
-      emailInput:        document.getElementById("email"),
-      questionContainer: document.getElementById("questionContainer"),
-      nextBtn:           document.getElementById("nextBtn"),
-      submitBtn:         document.getElementById("submitBtn"),
-      form:              document.getElementById("wizardForm"),
-      thankYouMessage:   document.getElementById("thankYouMessage"),
-      aiOverview:        document.getElementById("aiOverview"),
-      photoSection:      document.getElementById("photoSection"),
-      imageUrl:          document.getElementById("imageUrl"),
-      foodPhoto:         document.getElementById("foodPhoto"),
-      photoSubmit:       document.getElementById("photoSubmit"),
-      foodPreview:       document.getElementById("foodPreview"),
-      photoAnalysis:     document.getElementById("photoAnalysis"),
-      macroChart:        document.getElementById("macroChart"),
-      showAnswersBtn:    document.getElementById("showAnswersBtn"),
-      clearLocalBtn:     document.getElementById("clearLocalBtn"),
-      answersContainer:  document.getElementById("answersContainer"),
-    };
-
-    // === Wizard Questions ===
-    function showQuestion(idx) {
-      D.questionContainer.innerHTML = `
-        <label for="answer">${questions[idx] || ""}</label>
-        <textarea id="answer" placeholder="Jawaban kamu..."></textarea>
-      `;
-      if (idx >= questions.length - 1) {
-        D.nextBtn.style.display   = "none";
-        D.submitBtn.style.display = "block";
-      } else {
-        D.nextBtn.style.display   = "block";
-        D.submitBtn.style.display = "none";
-      }
+  function showQuestion(i) {
+    D.questionContainer.innerHTML = `
+      <label>${questions[i]}</label>
+      <textarea id="answer" placeholder="Jawaban kamu..."></textarea>`;
+    if (i === questions.length - 1) {
+      D.nextBtn.style.display = "none";
+      D.submitBtn.style.display = "block";
     }
-    document.addEventListener("DOMContentLoaded", () => showQuestion(S.currentQuestion));
-    D.nextBtn.addEventListener("click", () => {
-      const val = document.getElementById("answer").value.trim();
-      if (!D.emailInput.value.trim() || !val) return;
-      S.tempAnswers[S.currentQuestion] = val;
-      S.currentQuestion++;
-      showQuestion(S.currentQuestion);
-    });
+  }
+  showQuestion(0);
+  D.nextBtn.addEventListener("click", () => {
+    const ans = document.getElementById("answer").value.trim();
+    if (!ans) return;
+    surveyState.answers.push(ans);
+    surveyState.idx++;
+    showQuestion(surveyState.idx);
+  });
+  D.surveyForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const last = document.getElementById("answer").value.trim();
+    if (last) surveyState.answers.push(last);
+    if (!D.emailInput.value.trim() || surveyState.answers.length < questions.length) {
+      return alert("Isi email dan semua jawaban dulu.");
+    }
+    // Call Gemini for overview
+    D.surveySection.classList.remove("active");
+    D.photoSection.classList.add("active");
+  });
 
-    // === Clear LocalStorage ===
-    D.clearLocalBtn.addEventListener("click", () => {
-      const pass = prompt("Masukkan passcode untuk menghapus jawaban lokal:");
-      if (pass !== "password") return alert("Passcode salah.");
-      if (confirm("Hapus semua jawaban yang tersimpan?")) {
-        localStorage.removeItem("responses");
-        location.reload();
-      }
-    });
+  // ===== Macro Database (for DB section + photo fallback) =====
+  const macroDBList = [
+    { key:"banana",   name:"Pisang",      protein:1.3, carbs:22.8, fats:0.3, energy:96,
+      img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" },
+    { key:"pizza",    name:"Pizza",       protein:12,  carbs:33,   fats:10,  energy:266,
+      img:"https://upload.wikimedia.org/wikipedia/commons/d/d3/Supreme_pizza.jpg" },
+    { key:"sandwich", name:"Sandwich",    protein:15,  carbs:30,   fats:8,   energy:250,
+      img:"https://upload.wikimedia.org/wikipedia/commons/4/4f/Sandwich.jpg" },
+    { key:"salad",    name:"Salad",       protein:2,   carbs:5,    fats:0.2, energy:35,
+      img:"https://upload.wikimedia.org/wikipedia/commons/3/38/Gr%C3%BCner_Salat.jpg" }
+  ];
+  const macroDB = Object.fromEntries(
+    macroDBList.map(o => [o.key, { protein:o.protein, carbs:o.carbs, fats:o.fats, energy:o.energy, analysis:`${o.name} mengandung protein ${o.protein}g, karbohidrat ${o.carbs}g, lemak ${o.fats}g per sajian.` }])
+  );
 
-    // === Submit Survey & AI Overview ===
-    D.form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const fld = document.getElementById("answer");
-      if (fld && fld.value.trim()) {
-        S.tempAnswers[S.currentQuestion] = fld.value.trim();
-      }
-      const answers = [...S.tempAnswers];
-      const email   = D.emailInput.value.trim();
-      if (!email || answers.length < questions.length) {
-        return alert("Pastikan email & semua jawaban terisi.");
-      }
+  // ===== Photo Analysis =====
+  D.photoSubmit.addEventListener("click", handlePhoto);
+  async function handlePhoto() {
+    // load image
+    let src;
+    if (D.imageUrl.value.trim()) {
+      src = D.imageUrl.value.trim();
+    } else {
+      const f = D.foodPhoto.files[0];
+      if (!f) return alert("Pilih file atau URL gambar.");
+      src = URL.createObjectURL(f);
+    }
+    D.foodPreview.src = src;
+    D.photoAnalysis.innerHTML = `<p style="text-align:center; font-style:italic;">Menganalisis foto...</p>`;
 
-      // simpan lokal
-      S.allAnswers.push({ email, answers, time: new Date().toISOString() });
-      localStorage.setItem("responses", JSON.stringify(S.allAnswers));
+    // classify
+    const classifier = await ml5.imageClassifier("MobileNet");
+    const results    = await classifier.classify(D.foodPreview);
+    const labelKey   = results[0].label.split(",")[0].toLowerCase();
+    const info       = macroDB[labelKey] || { protein:5, carbs:20, fats:5, energy:120, analysis:`Data makro untuk "${labelKey}" tidak tersedia.` };
 
-      // UI switch
-      D.form.style.display            = "none";
-      D.thankYouMessage.style.display = "block";
+    // pie chart
+    const total = info.protein + info.carbs + info.fats;
+    const pct   = { p:info.protein/total*100, c:info.carbs/total*100, f:info.fats/total*100 };
+    renderPie([pct.p, pct.c, pct.f], ["Protein","Karbo","Lemak"], D.macroPie);
 
-      // loading sign
-      D.aiOverview.innerHTML = `<p style="font-style:italic; text-align:center;">
-        AI sedang membuat ringkasan dan rekomendasi kalori...</p>`;
-      D.aiOverview.style.display = "block";
+    // diff vs rekomendasi
+    const rec = { p:15, c:55, f:30 };
+    const diff = [pct.p-rec.p, pct.c-rec.c, pct.f-rec.f];
+    renderBar(diff, ["Protein","Karbo","Lemak"], D.macroDiff);
 
-      // panggil Gemini
-      try {
-        const prompt = 
-          `Ringkas jawaban berikut (10 poin) dan berikan rekomendasi kalori harian untuk hidup sehat:\n\n` +
-          answers.map((a,i) => `${i+1}. ${a}`).join("\n");
-        const resp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
-          {
-            method: "POST",
-            headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
-          }
-        );
-        if (!resp.ok) throw new Error("Gemini API error");
-        const data = await resp.json();
-        const aiText = data.candidates[0].content.parts[0].text;
-        D.aiOverview.innerHTML =
-          `<h3>AI Overview</h3><p>${aiText.replace(/\n/g,"<br>")}</p>`;
-      } catch {
-        D.aiOverview.innerHTML =
-          `<p style="color:#d00; text-align:center;">AI gagal membuat overview.</p>`;
-      }
+    // show analysis text
+    D.photoAnalysis.innerHTML = `<h3>Analisis:</h3><p>${info.analysis}</p>`;
 
-      // tampilkan photoSection
-      D.photoSection.style.display = "block";
-    });
-
-    // === Macro Database & Photo Analysis ===
-    const macroDB = {
-      banana:     { protein:1.3,  carbohydrates:22.8, fats:0.3,  analysis:"Pisang kaya kalium dan serat." },
-      pizza:      { protein:12,   carbohydrates:33,   fats:10,   analysis:"Pizza sering tinggi lemak jenuh." },
-      sandwich:   { protein:15,   carbohydrates:30,   fats:8,    analysis:"Sandwich mengandung karbohidrat dan protein." },
-      salad:      { protein:2,    carbohydrates:5,    fats:0.2,  analysis:"Salad rendah kalori, tinggi serat." },
-      // Tambahkan mapping lainnya jika perlu…
-    };
-
-    D.photoSubmit.addEventListener("click", handlePhoto);
-
-    async function handlePhoto() {
-      // 1) Tentukan sumber: URL vs file
-      const urlVal = D.imageUrl.value.trim();
-      let imgSrc;
-      if (urlVal) {
-        imgSrc = urlVal;
-      } else {
-        const file = D.foodPhoto.files[0];
-        if (!file) return alert("Pilih foto makanan atau masukkan URL.");
-        imgSrc = URL.createObjectURL(file);
-      }
-      D.foodPreview.src = imgSrc;
-
-      // 2) Tampilkan loading
-      D.photoAnalysis.innerHTML = `<p style="font-style:italic; text-align:center;">
-        AI sedang menganalisis foto (offline)...</p>`;
-
-      // 3) Klasifikasi via MobileNet
-      try {
-        const classifier = await ml5.imageClassifier('MobileNet');
-        const results    = await classifier.classify(D.foodPreview);
-        const label      = results[0].label.split(',')[0].toLowerCase();
-
-        // 4) Lookup makro
-        const info = macroDB[label] || {
-          protein:5, carbohydrates:20, fats:5,
-          analysis: `Tidak ada data makro untuk "${label}", menggunakan asumsi standar.`
-        };
-
-        const total = info.protein + info.carbohydrates + info.fats;
-        const pct   = {
-          protein:       Math.round(info.protein       / total * 100),
-          carbohydrates: Math.round(info.carbohydrates / total * 100),
-          fats:          Math.round(info.fats          / total * 100)
-        };
-
-        // 5) Tampilkan hasil
-        D.photoAnalysis.innerHTML = `
-          <h3>Analisis Foto</h3>
-          <p>${info.analysis}</p>
-          <p><strong>${label}</strong> → Protein ${pct.protein}%, Karbohidrat ${pct.carbohydrates}%, Lemak ${pct.fats}%</p>
-        `;
-
-        const ctx = D.macroChart.getContext("2d");
-        new Chart(ctx, {
-          type: "pie",
-          data: {
-            labels: ["Protein","Karbohidrat","Lemak"],
-            datasets: [{
-              data: [pct.protein, pct.carbohydrates, pct.fats],
-              backgroundColor: ["#35a35c","#f5bc51","#e57373"]
-            }]
-          },
-          options: { responsive:true, plugins:{ legend:{ position:"bottom" } } }
-        });
-
-      } catch (err) {
-        console.error(err);
-        D.photoAnalysis.innerHTML =
-          `<p style="color:#d00; text-align:center;">
-            Analisis foto gagal: ${err.message}
-          </p>`;
-      }
+    // call Gemini for overview
+    D.geminiOverview.innerHTML = `<p style="font-style:italic; text-align:center;">Membuat overview AI...</p>`;
+    try {
+      const prompt = `Foto makanan terdeteksi sebagai "${labelKey}". Ringkas makronutrien (protein, karbohidrat, lemak, energi) dan berikan rekomendasi makan sehat hari ini.`;
+      const resp = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+        { method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
+        }
+      );
+      const data = await resp.json();
+      const txt  = data.candidates?.[0]?.content?.parts?.[0]?.text || "AI gagal merespons.";
+      D.geminiOverview.innerHTML = `<h3>Overview AI</h3><p>${txt.replace(/\n/g,"<br>")}</p>`;
+    } catch {
+      D.geminiOverview.innerHTML = `<p style="color:#d00; text-align:center;">Overview AI gagal.</p>`;
     }
 
-    // === View All Answers ===
-    D.showAnswersBtn.addEventListener("click", () => {
-      const pass = prompt("Masukkan password untuk melihat semua jawaban:");
-      if (pass !== "rahasia123") return alert("Password salah.");
-      const rows = S.allAnswers;
-      if (!rows.length) return alert("Belum ada jawaban.");
-      let html = `<table><tr><th>Email</th>${
-        questions.map(q => `<th>${q}</th>`).join("")}<th>Waktu</th></tr>`;
-      rows.forEach(r => {
-        html += `<tr><td>${r.email}</td>${
-          r.answers.map(a => `<td>${a}</td>`).join("")}<td>${r.time}</td></tr>`;
-      });
-      html += `</table>`;
-      D.answersContainer.innerHTML = html;
-      D.answersContainer.style.display = "block";
+    // reveal food DB
+    D.photoSection.classList.remove("active");
+    D.foodDBSection.classList.add("active");
+    buildFoodList();
+  }
+
+  function renderPie(data, labels, canvas) {
+    new Chart(canvas.getContext("2d"), {
+      type:"pie",
+      data:{ labels, datasets:[{ data, backgroundColor:["#35a35c","#f5bc51","#e57373"] }]},
+      options:{ responsive:true, plugins:{ legend:{ position:"bottom" } } }
     });
+  }
+  function renderBar(data, labels, canvas) {
+    new Chart(canvas.getContext("2d"), {
+      type:"bar",
+      data:{ labels, datasets:[{ label:"% vs Rekomendasi", data, backgroundColor:data.map(v=> v>=0?"#e57373":"#35a35c") }]},
+      options:{ indexAxis:"y", responsive:true }
+    });
+  }
+
+  // ===== Food Database UI =====
+  function buildFoodList() {
+    D.foodList.innerHTML = "";
+    macroDBList.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "food-item";
+      div.innerHTML = `<img src="${item.img}" /><span>${item.name}</span>`;
+      div.addEventListener("click", () => showFoodDetail(item));
+      D.foodList.append(div);
+    });
+  }
+  D.foodSearch.addEventListener("input", () => {
+    const q = D.foodSearch.value.trim().toLowerCase();
+    D.foodList.querySelectorAll(".food-item").forEach(div => {
+      const name = div.textContent.toLowerCase();
+      div.style.display = name.includes(q) ? "flex" : "none";
+    });
+  });
+  function showFoodDetail(item) {
+    D.detailName.textContent = item.name;
+    D.detailImg.src = item.img;
+    const values = [item.protein, item.carbs, item.fats, item.energy];
+    const labels = ["Protein (g)","Karbo (g)","Lemak (g)","Energi (kcal)"];
+    new Chart(D.foodDetailChart.getContext("2d"), {
+      type:"bar",
+      data:{ labels, datasets:[{ label:item.name, data:values, backgroundColor:["#35a35c","#f5bc51","#e57373","#5c97f5"] }]},
+      options:{ responsive:true, plugins:{ legend:{ display:false } } }
+    });
+  }
   </script>
 </body>
 </html>
