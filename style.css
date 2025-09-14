@@ -1,92 +1,95 @@
+/* Background gradient */
 body {
-  background: linear-gradient(135deg, #e5ffe5 0%, #fffbe5 100%);
-  font-family: 'Segoe UI', Arial, sans-serif;
   margin: 0;
-  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #f0f4ff, #dbe9ff);
+  color: #333;
 }
 
+/* Container styling */
 .container {
-  max-width: 500px;
-  margin: 60px auto;
-  padding: 30px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 2px 20px rgba(100,180,120,0.12);
-  border: 2px solid #b5e7b7;
+  max-width: 720px;
+  margin: 40px auto;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-h1 {
-  text-align: center;
-  color: #35a35c;
-  margin-bottom: 16px;
-  font-size: 2em;
-  letter-spacing: 1px;
-}
-
-label {
-  display: block;
-  margin-top: 16px;
-  color: #22753e;
-  font-weight: 500;
-  font-size: 1.08em;
-}
-
-input[type="email"], textarea {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  border-radius: 8px;
-  border: 1.5px solid #f5bc51;
-  font-size: 1em;
-  background: #fffde9;
-  box-sizing: border-box;
-  transition: border-color 0.2s;
-}
-
-input[type="email"]:focus, textarea:focus {
-  border-color: #35a35c;
-  outline: none;
-}
-
-textarea {
-  min-height: 60px;
-  resize: vertical;
-}
-
-button[type="button"], button[type="submit"] {
-  margin-top: 20px;
-  width: 100%;
-  padding: 13px;
-  background: linear-gradient(90deg, #35a35c 40%, #f5bc51 100%);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1em;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 10px rgba(53,163,92,0.08);
-}
-
-button[type="button"]:hover, button[type="submit"]:hover {
-  background: linear-gradient(90deg, #22753e 30%, #e9b742 100%);
-  box-shadow: 0 4px 16px rgba(53,163,92,0.15);
-}
-
-#thankYouMessage {
-  margin-top: 24px;
-  color: #35a35c;
-  text-align: center;
-  font-size: 1.18em;
-  padding: 15px 0;
-  background: #eaffea;
+/* Question block */
+#questionContainer {
+  background: #f9fbff;
+  border: 1px solid #d0d8e0;
   border-radius: 10px;
-  border: 1.5px solid #b5e7b7;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
 
-.final-message {
-  display: block;
-  color: #f5bc51;
-  font-size: 1.07em;
-  margin-top: 10px;
+/* Textarea styling */
+textarea {
+  border: 1px solid #ccd5e0;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+  resize: vertical;
+  transition: border 0.2s ease;
+}
+textarea:focus {
+  border-color: #5b9df9;
+  outline: none;
+  background: #ffffff;
+}
+
+/* Buttons */
+button {
+  background: #5b9df9;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+button:hover {
+  background: #468ee8;
+}
+button:disabled {
+  background: #a0c4ff;
+  cursor: not-allowed;
+}
+
+/* Thank you message */
+#thankYouMessage {
+  background: #eaf4ff;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* AI overview block */
+#aiOverview {
+  background: #f6faff;
+  border: 1px solid #d0e0f0;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  font-size: 14px;
+  line-height: 1.6em;
+}
+
+/* Answers viewer */
+#answersContainer table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+#answersContainer th, #answersContainer td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  font-size: 13px;
+}
+#answersContainer th {
+  background: #f0f4ff;
 }
