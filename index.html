@@ -2,315 +2,321 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Survey & AI Analysis</title>
+  <title>Pola Makan Sehat & AI Analysis</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Inter font for a modern look -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
-  <!-- ML5.js & Chart.js (defer so they load after the HTML) -->
+  <!-- ML5.js for in‐browser classification -->
   <script src="https://cdn.jsdelivr.net/npm/ml5@0.6.0/dist/ml5.min.js" defer></script>
+  <!-- Chart.js for dynamic charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 
   <style>
-    :root {
-      --bg-gradient: linear-gradient(135deg, #e0f7fa, #f1f8e9);
-      --card-bg: #ffffff;
-      --primary: #4a90e2;
-      --accent: #50e3c2;
-      --text: #333;
-      --shadow: rgba(0, 0, 0, 0.1);
-    }
-    * { box-sizing: border-box; margin:0; padding:0; }
+    /* ——— User’s base stylesheet ——— */
     body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg-gradient);
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--text);
+      background: linear-gradient(135deg, #e5ffe5 0%, #fffbe5 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0; padding: 0;
     }
     .container {
-      width: 90%; max-width: 600px;
-      background: var(--card-bg);
-      border-radius: 12px;
-      box-shadow: 0 8px 24px var(--shadow);
-      overflow: hidden;
+      max-width: 500px;
+      margin: 60px auto;
+      padding: 30px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 20px rgba(100,180,120,0.12);
+      border: 2px solid #b5e7b7;
     }
-    h1, h2 {
+    h1 {
       text-align: center;
-      margin: 24px 0 12px;
-      font-weight: 600;
+      color: #35a35c;
+      margin-bottom: 16px;
+      font-size: 2em;
+      letter-spacing: 1px;
     }
-    section {
-      padding: 0 24px 32px;
-      display: none;
-      animation: fadeIn 0.3s ease;
-    }
-    section.active { display: block; }
-    .question-text {
-      font-size: 1.1rem; font-weight: 600;
+    label {
+      display: block;
       margin-top: 16px;
+      color: #22753e;
+      font-weight: 500;
+      font-size: 1.08em;
+    }
+    input[type="email"], textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1.5px solid #f5bc51;
+      font-size: 1em;
+      background: #fffde9;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    input[type="email"]:focus, textarea:focus {
+      border-color: #35a35c;
+      outline: none;
     }
     textarea {
-      width: 100%; height: 120px;
-      margin-top: 8px; padding: 12px;
-      border: 1px solid #ccc; border-radius: 8px;
-      font-size: 1rem; line-height: 1.4;
-      resize: none;
+      min-height: 60px;
+      resize: vertical;
     }
-    .button-full {
-      display: block; width: 100%;
-      margin-top: 24px;
-      padding: 16px;
-      background: var(--primary);
+    button[type="button"], button[type="submit"] {
+      margin-top: 20px;
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(90deg, #35a35c 40%, #f5bc51 100%);
       color: #fff;
-      border: none; border-radius: 8px;
-      font-size: 1.1rem; font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: 500;
       cursor: pointer;
-      box-shadow: 0 4px 12px var(--shadow);
-      transition: background 0.2s;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 10px rgba(53,163,92,0.08);
     }
-    .button-full:hover { background: darken(var(--primary), 10%); }
+    button[type="button"]:hover, button[type="submit"]:hover {
+      background: linear-gradient(90deg, #22753e 30%, #e9b742 100%);
+      box-shadow: 0 4px 16px rgba(53,163,92,0.15);
+    }
+    #thankYouMessage {
+      margin-top: 24px;
+      color: #35a35c;
+      text-align: center;
+      font-size: 1.18em;
+      padding: 15px 0;
+      background: #eaffea;
+      border-radius: 10px;
+      border: 1.5px solid #b5e7b7;
+    }
+    .final-message {
+      display: block;
+      color: #f5bc51;
+      font-size: 1.07em;
+      margin-top: 10px;
+    }
+
+    /* ——— Additional UI & spinner ——— */
+    .hidden { display: none; }
+    .question-text {
+      margin-top: 16px; font-size: 1.1em; font-weight: 600; color: #22753e;
+    }
     .spinner-overlay {
-      position: fixed; top:0; left:0; right:0; bottom:0;
-      background: rgba(255,255,255,0.7);
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.6);
       display: flex; align-items: center; justify-content: center;
-      visibility: hidden; opacity: 0;
-      transition: opacity 0.2s;
+      z-index: 1000; visibility: hidden; opacity: 0;
+      transition: visibility 0s 0.2s, opacity 0.2s;
     }
     .spinner-overlay.active {
-      visibility: visible; opacity: 1;
+      visibility: visible; opacity: 1; transition-delay: 0s;
     }
     .spinner {
-      width: 60px; height: 60px;
-      border: 8px solid #eee; border-top-color: var(--accent);
+      width: 50px; height: 50px;
+      border: 6px solid #f5bc51;
+      border-top-color: #35a35c;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-    /* photo section */
-    .photo-controls {
-      display: flex; gap: 12px; margin-top: 16px;
-    }
-    .photo-controls input,
-    .photo-controls button {
-      flex: 1; font-size: 0.9rem;
-    }
-    .photo-controls button {
-      background: var(--accent);
-      color: #fff; border:none; border-radius: 8px;
-      cursor: pointer; padding: 10px;
-    }
-    .preview {
-      max-width: 100%; margin: 16px auto; display: block;
-      border-radius: 8px; box-shadow: 0 4px 12px var(--shadow);
-    }
-    canvas { margin-top: 24px; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Chart spacing */
+    canvas { margin-top: 24px; }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>Pola Makan Sehat</h1>
 
     <!-- STEP 1: Survey Questions -->
-    <section id="step1" class="active">
+    <section id="step1">
       <div id="questionContainer"></div>
-      <button id="step1Next" class="button-full">Next</button>
+      <button id="step1Next" type="button">Next</button>
     </section>
 
     <!-- STEP 2: AI Overview -->
-    <section id="step2">
+    <section id="step2" class="hidden">
       <h2>Overview AI</h2>
-      <div id="aiOverview" style="min-height:120px;"></div>
-      <button id="step2Next" class="button-full">Analyze Photo</button>
+      <div id="aiOverview" style="min-height:80px;"></div>
+      <button id="step2Next" type="button">Lanjut ke Foto</button>
     </section>
 
     <!-- STEP 3: Photo Analysis -->
-    <section id="step3">
+    <section id="step3" class="hidden">
       <h2>Analisis Foto</h2>
-      <div class="photo-controls">
-        <input type="url" id="imageUrl" placeholder="Masukkan URL foto (opsional)" />
-        <input type="file" id="foodPhoto" accept="image/*" />
-      </div>
-      <button id="photoSubmit" class="button-full">Analisis Foto</button>
-      <img id="foodPreview" class="preview" hidden />
-      <div id="photoAnalysis" style="min-height:60px;margin-top:16px;"></div>
+      <label for="imageUrl">URL foto (opsional):</label>
+      <input type="url" id="imageUrl" placeholder="https://..." />
+
+      <label for="foodPhoto">Atau pilih file:</label>
+      <input type="file" id="foodPhoto" accept="image/*" />
+
+      <button id="photoSubmit" type="button">Analisis Foto</button>
+      <img id="foodPreview" class="hidden" alt="Preview" style="margin-top:16px;max-width:100%;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.1);" />
+      <div id="photoAnalysis" style="min-height:60px;"></div>
       <canvas id="macroPie"></canvas>
       <canvas id="macroBar"></canvas>
     </section>
+
+    <div id="thankYouMessage" class="hidden">
+      Terima kasih! Analisis selesai.      
+      <span class="final-message">Selamat mengeksplorasi pola makan sehat!</span>
+    </div>
   </div>
 
-  <!-- Global spinner overlay -->
+  <!-- Spinner Overlay -->
   <div id="spinner" class="spinner-overlay">
     <div class="spinner"></div>
   </div>
 
   <script>
-  // Gemini key
-  const API_KEY = "AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0";
+  document.addEventListener("DOMContentLoaded", () => {
+    const questions = [
+      "1. Menurut kamu makanan junk food sehat atau tidak?",
+      "2. Seberapa sering kamu mengonsumsi junk food?",
+      "3. Berapa kali kamu makan dalam sehari?",
+      "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
+      "5. Apakah kamu sering mengonsumsi sayur-sayuran?",
+      "6. Sebutkan satu makanan bergizi dan satu yang tidak bergizi.",
+      "7. Menurut kamu, seberapa penting nutrisi seimbang?",
+      "8. Buah atau sayur mana yang paling sering kamu konsumsi?",
+      "9. Apa tantanganmu untuk makan lebih sehat?",
+      "10. Langkah apa yang akan kamu ambil untuk pola makan lebih baik?"
+    ];
 
-  // 10 questions
-  const questions = [
-    "1. Menurut kamu makanan junk food sehat atau tidak?",
-    "2. Seberapa sering kamu mengonsumsi junk food?",
-    "3. Berapa kali kamu makan dalam sehari?",
-    "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
-    "5. Apakah kamu sering mengonsumsi sayur-sayuran?",
-    "6. Sebutkan satu makanan bergizi dan satu yang tidak bergizi.",
-    "7. Menurut kamu seberapa penting nutrisi seimbang?",
-    "8. Buah atau sayur mana yang paling sering kamu konsumsi?",
-    "9. Apa tantanganmu untuk makan lebih sehat?",
-    "10. Langkah apa yang akan kamu ambil untuk pola makan lebih baik?"
-  ];
+    // Macro database
+    const macroDBList = [
+      { key:"apple", name:"Apel", protein:0.3, carbs:14, fats:0.2, energy:52,
+        img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg" },
+      { key:"banana", name:"Pisang", protein:1.3, carbs:23, fats:0.3, energy:96,
+        img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" },
+      { key:"rice",   name:"Nasi Putih", protein:2.7, carbs:28, fats:0.3, energy:130,
+        img:"https://upload.wikimedia.org/wikipedia/commons/6/60/Cooked_rice.jpg" },
+      { key:"chicken",name:"Ayam Panggang",protein:27, carbs:0, fats:3.6, energy:165,
+        img:"https://upload.wikimedia.org/wikipedia/commons/3/35/Grilled_chicken.jpg" }
+    ];
+    const macroDB = Object.fromEntries(
+      macroDBList.map(o => [o.key, o])
+    );
 
-  // macroDB
-  const macroDBList = [
-    { key:'apple', name:'Apel', protein:0.3, carbs:14, fats:0.2, energy:52,
-      img:'https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg' },
-    { key:'banana', name:'Pisang', protein:1.3, carbs:23, fats:0.3, energy:96,
-      img:'https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg' },
-    { key:'rice', name:'Nasi Putih', protein:2.7, carbs:28, fats:0.3, energy:130,
-      img:'https://upload.wikimedia.org/wikipedia/commons/6/60/Cooked_rice.jpg' },
-    { key:'chicken', name:'Ayam Panggang', protein:27, carbs:0, fats:3.6, energy:165,
-      img:'https://upload.wikimedia.org/wikipedia/commons/3/35/Grilled_chicken.jpg' }
-  ];
-  const macroDB = Object.fromEntries(
-    macroDBList.map(o => [o.key, o])
-  );
-
-  document.addEventListener('DOMContentLoaded', () => {
     let idx = 0, answers = [];
 
-    const step1      = document.getElementById('step1');
-    const step2      = document.getElementById('step2');
-    const step3      = document.getElementById('step3');
-    const questionEl = document.getElementById('questionContainer');
-    const step1Next  = document.getElementById('step1Next');
-    const step2Next  = document.getElementById('step2Next');
-    const submitBtn  = document.getElementById('step1Next');
-    const aiDiv      = document.getElementById('aiOverview');
-    const spinner    = document.getElementById('spinner');
+    // DOM refs
+    const s1 = document.getElementById("step1");
+    const s2 = document.getElementById("step2");
+    const s3 = document.getElementById("step3");
+    const qC = document.getElementById("questionContainer");
+    const btn1 = document.getElementById("step1Next");
+    const btn2 = document.getElementById("step2Next");
+    const aiDiv = document.getElementById("aiOverview");
+    const spinner = document.getElementById("spinner");
 
-    const imageUrl   = document.getElementById('imageUrl');
-    const foodPhoto  = document.getElementById('foodPhoto');
-    const photoSubmit= document.getElementById('photoSubmit');
-    const preview    = document.getElementById('foodPreview');
-    const photoAnalysis = document.getElementById('photoAnalysis');
-    const pieCanvas  = document.getElementById('macroPie');
-    const barCanvas  = document.getElementById('macroBar');
+    const imageUrl = document.getElementById("imageUrl");
+    const foodPhoto= document.getElementById("foodPhoto");
+    const photoBtn = document.getElementById("photoSubmit");
+    const preview  = document.getElementById("foodPreview");
+    const analysis = document.getElementById("photoAnalysis");
+    const pieCan   = document.getElementById("macroPie");
+    const barCan   = document.getElementById("macroBar");
+    const thankYou = document.getElementById("thankYouMessage");
 
     function showQuestion(i) {
-      questionEl.innerHTML = `
+      qC.innerHTML = `
         <p class="question-text">${questions[i]}</p>
-        <textarea id="answer" placeholder="Tuliskan jawaban di sini..."></textarea>
+        <textarea id="answer" placeholder="Tuliskan jawaban..."></textarea>
       `;
-      step1Next.textContent = i < questions.length-1 ? 'Next' : 'Submit';
+      btn1.textContent = i < questions.length - 1 ? "Next" : "Submit";
     }
-    showQuestion(0);
+    showQuestion(idx);
 
-    step1Next.addEventListener('click', async () => {
-      const val = document.getElementById('answer').value.trim();
-      if (!val) return alert('Isi jawaban dulu');
-      answers.push(val);
-      if (idx < questions.length-1) {
-        idx++;
-        showQuestion(idx);
+    btn1.addEventListener("click", async () => {
+      const v = document.getElementById("answer").value.trim();
+      if (!v) return alert("Isi jawaban dulu.");
+      answers.push(v);
+      if (idx < questions.length - 1) {
+        idx++; showQuestion(idx);
       } else {
-        // Step→2: AI Overview
-        step1.classList.remove('active');
-        step2.classList.add('active');
-        // build prompt
-        const prompt = answers
-          .map((a,i) => `${questions[i]}\nJawaban: ${a}`)
-          .join('\n\n');
-        aiDiv.innerHTML = '';
-        spinner.classList.add('active');
+        // → AI Overview
+        s1.classList.add("hidden");
+        s2.classList.remove("hidden");
+        aiDiv.innerHTML = "";
+        spinner.classList.add("active");
+        const prompt = answers.map((a,i)=>`${questions[i]}\nJawaban: ${a}`).join("\n\n");
         try {
           const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0`,
             {
-              method:'POST',
-              headers:{'Content-Type':'application/json'},
-              body: JSON.stringify({
-                contents:[{ parts:[{ text:`Ringkas dan beri overview pola makan:\n\n${prompt}` }] }]
-              })
+              method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body:JSON.stringify({ contents:[{ parts:[{ text:`Ringkas pola makan berikut:\n\n${prompt}` }] }] })
             }
           );
           const j = await res.json();
-          const txt = j.candidates?.[0]?.content?.parts?.[0]?.text || 'AI gagal.';
-          aiDiv.innerHTML = `<p>${txt.replace(/\n/g,'<br>')}</p>`;
+          const txt = j.candidates?.[0]?.content?.parts?.[0]?.text || "AI gagal merespon.";
+          aiDiv.innerHTML = `<p>${txt.replace(/\n/g,"<br>")}</p>`;
         } catch(e) {
-          aiDiv.innerHTML = `<p style="color:red">Gagal memuat AI overview.</p>`;
-          console.error(e);
-        } finally {
-          spinner.classList.remove('active');
+          aiDiv.innerHTML = `<p style="color:red">Kesalahan AI overview.</p>`;
         }
+        spinner.classList.remove("active");
       }
     });
 
-    // Step2 → Step3
-    step2Next.addEventListener('click', () => {
-      step2.classList.remove('active');
-      step3.classList.add('active');
+    btn2.addEventListener("click", () => {
+      s2.classList.add("hidden");
+      s3.classList.remove("hidden");
     });
 
-    // Photo analysis
-    photoSubmit.addEventListener('click', async () => {
+    photoBtn.addEventListener("click", async () => {
       let src = imageUrl.value.trim();
-      if (!src && foodPhoto.files[0]) {
-        src = URL.createObjectURL(foodPhoto.files[0]);
-      }
-      if (!src) return alert('Masukkan URL atau pilih file.');
-      preview.src = src; preview.hidden = false;
-      photoAnalysis.textContent = '';
-      spinner.classList.add('active');
+      if (!src && foodPhoto.files[0]) src = URL.createObjectURL(foodPhoto.files[0]);
+      if (!src) return alert("Masukkan URL atau pilih file.");
+      preview.src = src; preview.classList.remove("hidden");
+      analysis.textContent = "";
+      spinner.classList.add("active");
 
-      // classify
-      const classifier = await ml5.imageClassifier('MobileNet');
+      const classifier = await ml5.imageClassifier("MobileNet");
       const [res] = await classifier.classify(preview);
-      const key = res.label.split(',')[0].toLowerCase();
-      const info = macroDB[key] || { protein:5, carbs:20, fats:5, energy:120 };
+      const key = res.label.split(",")[0].toLowerCase();
+      const info= macroDB[key] || { name:key, protein:5, carbs:20, fats:5, energy:120 };
 
-      // pie chart
+      // pie
       const total = info.protein + info.carbs + info.fats;
       const pct = [
         Math.round(info.protein/total*100),
         Math.round(info.carbs/total*100),
         Math.round(info.fats/total*100)
       ];
-      renderPie(pct, ['Protein','Karbo','Lemak'], pieCanvas);
+      renderPie(pct, ["Protein","Karbo","Lemak"], pieCan);
 
-      // bar chart
-      renderBar([info.protein, info.carbs, info.fats, info.energy],
-                ['Protein(g)','Karbo(g)','Lemak(g)','Energi(kcal)'], barCanvas);
+      // bar
+      renderBar(
+        [info.protein, info.carbs, info.fats, info.energy],
+        ["Protein(g)","Karbo(g)","Lemak(g)","Energi(kcal)"],
+        barCan
+      );
 
-      photoAnalysis.innerHTML = `<p>${info.name || key} → ${info.protein}gP, ${info.carbs}gC, ${info.fats}gF, ${info.energy}kcal</p>`;
-      spinner.classList.remove('active');
+      analysis.innerHTML = `<p>${info.name} → ${info.protein}g P, ${info.carbs}g C, ${info.fats}g L, ${info.energy} kcal</p>`;
+      spinner.classList.remove("active");
+      thankYou.classList.remove("hidden");
     });
 
     function clearChart(c) { if(c._chart) c._chart.destroy(); }
     function renderPie(data, labels, c) {
       clearChart(c);
-      c._chart = new Chart(c.getContext('2d'), {
-        type:'pie',
-        data:{labels, datasets:[{data, backgroundColor:['#4a90e2','#50e3c2','#f5a623']}]},
-        options:{responsive:true, plugins:{legend:{position:'bottom'}}}
+      c._chart = new Chart(c.getContext("2d"), {
+        type:"pie",
+        data:{ labels, datasets:[{ data, backgroundColor:["#35a35c","#f5bc51","#e57373"] }]},
+        options:{ responsive:true, animation:{ animateScale:true, duration:800, easing:"easeOutQuad" }, plugins:{ legend:{ position:"bottom" }}}
       });
     }
     function renderBar(data, labels, c) {
       clearChart(c);
-      c._chart = new Chart(c.getContext('2d'), {
-        type:'bar',
-        data:{labels, datasets:[{label:'Gram/kcal',data, backgroundColor:['#4a90e2','#50e3c2','#f5a623','#9013fe']}]},
-        options:{responsive:true, indexAxis:'y'}
+      c._chart = new Chart(c.getContext("2d"), {
+        type:"bar",
+        data:{ labels, datasets:[{ label:"Nilai", data, backgroundColor:["#35a35c","#f5bc51","#e57373","#5c97f5"] }]},
+        options:{ indexAxis:"y", responsive:true, animation:{ duration:1000, easing:"easeOutBounce" }}
       });
     }
   });
   </script>
 </body>
 </html>
+```
