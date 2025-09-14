@@ -1,25 +1,28 @@
-/* Import Bahnschrift — note: Bahnschrift is a Windows system font, so it will only show if installed */
 body {
   margin: 0;
   font-family: 'Bahnschrift SemiBold', 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #a8e6cf, #56ab2f);
   background-attachment: fixed;
   color: #333;
-  font-size: 14px; /* smaller base font */
+  font-size: 14px;
 }
 
-/* Main container: smaller, centered card */
+/* Main container: slightly taller */
 .container {
-  max-width: 600px; /* narrower */
+  max-width: 600px;
+  min-height: 520px; /* extended height so buttons fit neatly */
   margin: 30px auto;
   padding: 18px;
   background: rgba(255, 255, 255, 0.95);
   border-radius: 14px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
   backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
-/* Question block styling */
+/* Question block: stays inside container */
 #questionContainer {
   background: #f6fff8;
   border: 1px solid #d4edda;
@@ -58,6 +61,7 @@ button {
   font-size: 13px;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin-top: 8px;
 }
 button:hover {
   transform: translateY(-1px);
