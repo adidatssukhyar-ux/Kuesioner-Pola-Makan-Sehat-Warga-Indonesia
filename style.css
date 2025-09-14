@@ -1,77 +1,85 @@
-/* Background gradient */
+/* Background: calming green gradient */
 body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #f0f4ff, #dbe9ff);
+  background: linear-gradient(135deg, #a8e6cf, #56ab2f);
+  background-attachment: fixed;
   color: #333;
 }
 
-/* Container styling */
+/* Main container: white card with smooth edges */
 .container {
   max-width: 720px;
   margin: 40px auto;
   padding: 24px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
 }
 
-/* Question block */
+/* Question block styling */
 #questionContainer {
-  background: #f9fbff;
-  border: 1px solid #d0d8e0;
-  border-radius: 10px;
+  background: #f6fff8;
+  border: 1px solid #d4edda;
+  border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-/* Textarea styling */
+/* Inputs & textarea */
+input[type="email"],
 textarea {
-  border: 1px solid #ccd5e0;
-  border-radius: 8px;
+  width: 100%;
   padding: 12px;
+  margin-top: 8px;
+  border: 1px solid #b2dfdb;
+  border-radius: 10px;
   font-size: 15px;
-  resize: vertical;
-  transition: border 0.2s ease;
-}
-textarea:focus {
-  border-color: #5b9df9;
-  outline: none;
   background: #ffffff;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+input:focus,
+textarea:focus {
+  border-color: #56ab2f;
+  box-shadow: 0 0 6px rgba(86,171,47,0.4);
+  outline: none;
 }
 
 /* Buttons */
 button {
-  background: #5b9df9;
+  background: linear-gradient(135deg, #56ab2f, #a8e063);
   color: white;
   border: none;
   padding: 10px 18px;
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 button:hover {
-  background: #468ee8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 button:disabled {
-  background: #a0c4ff;
+  background: #c8e6c9;
   cursor: not-allowed;
 }
 
 /* Thank you message */
 #thankYouMessage {
-  background: #eaf4ff;
+  background: #e8f5e9;
   padding: 12px;
   border-radius: 8px;
   font-size: 14px;
-  color: #333;
+  color: #2e7d32;
 }
 
 /* AI overview block */
 #aiOverview {
-  background: #f6faff;
-  border: 1px solid #d0e0f0;
+  background: #f1f8e9;
+  border: 1px solid #c5e1a5;
   border-radius: 10px;
   padding: 16px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.04);
@@ -79,7 +87,7 @@ button:disabled {
   line-height: 1.6em;
 }
 
-/* Answers viewer */
+/* Answers viewer table */
 #answersContainer table {
   width: 100%;
   border-collapse: collapse;
@@ -91,5 +99,5 @@ button:disabled {
   font-size: 13px;
 }
 #answersContainer th {
-  background: #f0f4ff;
+  background: #dcedc8;
 }
