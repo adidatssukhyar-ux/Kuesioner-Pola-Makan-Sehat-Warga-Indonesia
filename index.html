@@ -32,14 +32,14 @@
     /* Logo & Credit */
     .header-logo img {
       display: block;
-      margin: 0 auto 4px;
+      margin: 0 auto;
       width: 80px;
       border-radius: 8px;
     }
     .project-credit {
       text-align: center;
       color: #666;
-      margin: 0 0 16px;
+      margin: 8px 0 24px;
       font-size: 0.9em;
     }
 
@@ -50,17 +50,6 @@
     }
     h1 { font-size: 2em; letter-spacing: 1px; }
     h2 { font-size: 1.4em; }
-
-    /* Progress bar */
-    #progressContainer {
-      position: sticky; top: 0; height: 6px;
-      background: rgba(0,0,0,0.1); z-index: 100;
-    }
-    #progressBar {
-      width: 0; height: 100%;
-      background: #35a35c;
-      transition: width .3s ease;
-    }
 
     /* Sections */
     section {
@@ -73,7 +62,7 @@
       to   { opacity: 1; transform: translateY(0)   }
     }
 
-    /* Form elements */
+    /* Form */
     label {
       display: block;
       margin-top: 16px;
@@ -144,7 +133,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg) } }
 
-    /* Two‐column layout */
+    /* Two-column layout */
     .analysis-flex {
       display: flex;
       gap: 24px;
@@ -155,6 +144,18 @@
       flex: 1; min-width: 200px;
       position: relative;
     }
+
+    /* Warning */
+    .warning {
+      margin-top: 16px;
+      padding: 12px;
+      background: #fff3cd;
+      color: #856404;
+      border-left: 4px solid #ffeeba;
+      border-radius: 4px;
+      display: flex; align-items: center;
+    }
+    .warning span { margin-left: 8px }
 
     /* Food list */
     .food-list {
@@ -173,7 +174,7 @@
     .food-item:last-child { border-bottom: none; }
     .food-item:hover { background: rgba(53,163,92,0.1) }
 
-    /* Inline detail panel */
+    /* Detail panel */
     #foodDetailPanel {
       margin-top: 8px;
       border: 1px solid #b5e7b7;
@@ -189,18 +190,6 @@
       font-size: 1.2em; cursor: pointer; color: #666;
     }
     .close-btn:hover { color: #333 }
-
-    /* Warning sign */
-    .warning {
-      margin-top: 16px;
-      padding: 12px;
-      background: #fff3cd;
-      color: #856404;
-      border-left: 4px solid #ffeeba;
-      border-radius: 4px;
-      display: flex; align-items: center;
-    }
-    .warning span { margin-left: 8px }
 
     /* Charts */
     .analysis-photo canvas {
@@ -276,12 +265,8 @@
     <div class="spinner"></div>
   </div>
 
-  <!-- Progress Bar -->
-  <div id="progressContainer"><div id="progressBar"></div></div>
-
   <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // Data & state
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
       "2. Seberapa sering kamu mengonsumsi junk food?",
@@ -303,7 +288,7 @@
     ];
     const macroDB = Object.fromEntries(macroDBList.map(o=>[o.key,o]));
 
-    let idx = 0, answers = [];
+    let idx=0, answers=[];
 
     // DOM refs
     const secs       = {
@@ -327,17 +312,9 @@
     const foodList   = document.getElementById("foodListRight");
     const foodSearch = document.getElementById("foodSearchRight");
     const detailPan  = document.getElementById("foodDetailPanel");
-    const progBar    = document.getElementById("progressBar");
 
-    const totalSteps = questions.length + 2;
-    function updateProgress(step) {
-      progBar.style.width = Math.round(step/(totalSteps-1)*100) + "%";
-    }
-
-    // Render question
     function showQuestion(i) {
       secs[1].classList.add("active");
-      updateProgress(i);
       qC.innerHTML = `
         <p class="question-text">${questions[i]}</p>
         <textarea id="answer" placeholder="Tuliskan jawaban...">${answers[i]||""}</textarea>
@@ -346,7 +323,6 @@
     }
     showQuestion(idx);
 
-    // Survey → AI
     btn1.addEventListener("click", async () => {
       const v = document.getElementById("answer").value.trim();
       if (!v) return alert("Isi jawaban dulu.");      answers[idx] = v;
@@ -356,7 +332,6 @@
         confetti({ particleCount:100, spread:60, origin:{ y:0.3 } });
         secs[1].classList.replace("active","hidden");
         secs[2].classList.replace("hidden","active");
-        updateProgress(questions.length);
 
         aiDiv.innerHTML = "<p style='font-style:italic'>Memuat overview AI…</p>";
         spinner.classList.add("active");
@@ -382,16 +357,13 @@
       }
     });
 
-    // AI → Photo
     btn2.addEventListener("click", () => {
       secs[2].classList.replace("active","hidden");
       secs[3].classList.replace("hidden","active");
       document.querySelector(".container").classList.add("wide");
-      updateProgress(questions.length+1);
       buildFoodList();
     });
 
-    // Build search/list
     function buildFoodList() {
       detailPan.classList.add("hidden");
       foodSearch.value = "";
@@ -404,6 +376,7 @@
         foodList.append(div);
       });
     }
+
     foodSearch.addEventListener("input", () => {
       const q = foodSearch.value.trim().toLowerCase();
       document.querySelectorAll(".food-item").forEach(el => {
@@ -412,7 +385,6 @@
       detailPan.classList.add("hidden");
     });
 
-    // Show detail
     function showFoodDetail(item) {
       detailPan.innerHTML = `
         <button class="close-btn">&times;</button>
@@ -423,20 +395,13 @@
         <p>Energi: ${item.energy} kcal</p>
       `;
       detailPan.classList.remove("hidden");
-      detailPan.querySelector(".close-btn").onclick = () => {
-        detailPan.classList.add("hidden");
-      };
+      detailPan.querySelector(".close-btn").onclick = () => detailPan.classList.add("hidden");
     }
 
-    // Photo analysis
     photoBtn.addEventListener("click", async () => {
       let src = imgUrl.value.trim();
-      if (!src && fileInput.files[0]) {
-        src = URL.createObjectURL(fileInput.files[0]);
-      }
-      if (!src) {
-        return alert("Masukkan URL atau pilih file gambar dulu.");
-      }
+      if (!src && fileInput.files[0]) src = URL.createObjectURL(fileInput.files[0]);
+      if (!src) return alert("Masukkan URL atau pilih file gambar dulu.");
 
       preview.src = src;
       preview.classList.remove("hidden");
@@ -447,11 +412,9 @@
       const classifier = await ml5.imageClassifier("MobileNet");
       const [res] = await classifier.classify(preview);
       const key = res.label.split(",")[0].toLowerCase();
-      const info = macroDB[key] || { name: key, protein:0, carbs:0, fats:0, energy:0 };
+      const info = macroDB[key] || { name:key, protein:0, carbs:0, fats:0, energy:0 };
 
-      if (info.energy < 150) {
-        warnEl.classList.remove("hidden");
-      }
+      if (info.energy < 150) warnEl.classList.remove("hidden");
 
       const totalM = info.protein + info.carbs + info.fats;
       const pctP = totalM ? Math.round(info.protein/totalM*100) : 0;
@@ -460,7 +423,7 @@
 
       renderPie([pctP,pctC,pctF], ["Protein","Karbo","Lemak"], pieCan);
       renderBar(
-        [info.protein, info.carbs, info.fats, info.energy],
+        [info.protein,info.carbs,info.fats,info.energy],
         ["Protein(g)","Karbo(g)","Lemak(g)","Energi(kcal)"],
         barCan
       );
@@ -473,7 +436,6 @@
       spinner.classList.remove("active");
     });
 
-    // Chart helpers
     function clearChart(c) {
       if (c._chart) c._chart.destroy();
     }
@@ -481,21 +443,18 @@
       clearChart(canvas);
       canvas._chart = new Chart(canvas.getContext("2d"), {
         type: "pie",
-        data: { labels, datasets: [{ data, backgroundColor:["#35a35c","#f5bc51","#e57373"] }] },
-        options: { responsive:true, animation:{ animateScale:true, duration:800, easing:"easeOutQuad" }, plugins:{ legend:{ position:"bottom" }}}
+        data: { labels, datasets:[{ data, backgroundColor:["#35a35c","#f5bc51","#e57373"] }]},
+        options:{ responsive:true, animation:{ animateScale:true, duration:800, easing:"easeOutQuad" }, plugins:{ legend:{ position:"bottom" }}}
       });
     }
     function renderBar(data, labels, canvas) {
       clearChart(canvas);
       canvas._chart = new Chart(canvas.getContext("2d"), {
         type: "bar",
-        data: { labels, datasets: [{ label:"Jumlah", data, backgroundColor:["#35a35c","#f5bc51","#e57373","#5c97f5"] }] },
-        options: { indexAxis:"y", responsive:true, animation:{ duration:1000, easing:"easeOutBounce" }}
+        data:{ labels, datasets:[{ label:"Jumlah", data, backgroundColor:["#35a35c","#f5bc51","#e57373","#5c97f5"] }]},
+        options:{ indexAxis:"y", responsive:true, animation:{ duration:1000, easing:"easeOutBounce" }}
       });
     }
-
-    // init progress
-    updateProgress(0);
   });
   </script>
 </body>
