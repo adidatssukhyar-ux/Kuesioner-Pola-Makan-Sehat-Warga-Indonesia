@@ -24,11 +24,10 @@
 
     <div id="thankYouMessage" style="display:none; cursor:pointer;">
       Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat
-      <span id="hiddenInfo" style="display:none;">(maybe 2 days)</span>
+      <span id="hiddenInfo" class="final-message" style="display:none;">(maybe 2 days)</span>
     </div>
 
     <div id="aiOverview" style="display:none; margin-top:16px;"></div>
-
     <div id="answersContainer" style="display:none; margin-top:16px; overflow:auto;"></div>
   </div>
 
@@ -67,7 +66,7 @@
       answersContainer: document.getElementById("answersContainer"),
     };
 
-    // ===== Question Wizard =====
+    // ===== Wizard Flow =====
     function showQuestion(idx) {
       D.questionContainer.innerHTML = `
         <label for="answer">${questions[idx] || ""}</label>
@@ -95,7 +94,7 @@
       D.hiddenInfo.style.display = "inline";
     });
 
-    // ===== Delete LocalStorage =====
+    // ===== LocalStorage Clear =====
     D.clearLocalBtn.addEventListener("click", () => {
       const pass = prompt("Masukkan passcode untuk menghapus jawaban lokal:");
       if (pass !== "password") return alert("Passcode salah.");
@@ -106,13 +105,13 @@
       }
     });
 
-    // ===== Firebase Init (optional) =====
+    // ===== Firebase Init =====
     let db = null;
     try {
       const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js");
       const { getFirestore, collection, addDoc, getDocs, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js");
       const cfg = {
-        apiKey: "AIzaSyAGxE7jKysNL097Ip_8_Xjr7pid3XNPCZY",
+        apiKey: "AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
         authDomain: "surveylive-c0691.firebaseapp.com",
         projectId: "surveylive-c0691",
         storageBucket: "surveylive-c0691.firebasestorage.app",
@@ -129,16 +128,16 @@
 
     // ===== AI Fallback Helpers =====
     function guessDailyCalorie(a) {
-      let low=1800, high=2200;
-      if (/sering|tiap|setiap|hampir/.test((a[1]||"").toLowerCase())) { low=1700; high=2100; }
-      if (/sering|ya/.test((a[4]||"").toLowerCase())) { low+=50; high+=100; }
-      if (/ya|sudah/.test((a[8]||"").toLowerCase())) { low+=50; high+=50; }
-      low=Math.max(1600,Math.min(low,2200));
-      high=Math.max(low+200,Math.min(high,2400));
-      return [low,high];
+      let low = 1800, high = 2200;
+      if (/sering|tiap|setiap|hampir/.test((a[1]||"").toLowerCase())) { low = 1700; high = 2100; }
+      if (/sering|ya/.test((a[4]||"").toLowerCase()))             { low += 50; high += 100; }
+      if (/ya|sudah/.test((a[8]||"").toLowerCase()))             { low += 50; high += 50; }
+      low  = Math.max(1600, Math.min(low, 2200));
+      high = Math.max(low + 200, Math.min(high, 2400));
+      return [low, high];
     }
-    function splitMeals(l,h) {
-      const p={b:0.25,l:0.35,d:0.30,s:0.10}, r=Math.round;
+    function splitMeals(l, h) {
+      const p = { b:0.25, l:0.35, d:0.30, s:0.10 }, r = Math.round;
       return {
         low:  { b:r(l*p.b), l:r(l*p.l), d:r(l*p.d), s:r(l*p.s) },
         high: { b:r(h*p.b), l:r(h*p.l), d:r(h*p.d), s:r(h*p.s) }
@@ -146,17 +145,19 @@
     }
     function sampleMenus() {
       return [
-        {name:"Sarapan: Oatmeal + pisang + susu rendah lemak",kcal:350},
-        {name:"Makan siang: Nasi merah + ayam panggang + tumis buncis",kcal:600},
-        {name:"Makan malam: Gado-gado tanpa kerupuk + telur rebus",kcal:500},
-        {name:"Snack: Yogurt tawar + buah potong / kacang panggang",kcal:150}
+        { name:"Sarapan: Oatmeal + pisang + susu rendah lemak", kcal:350 },
+        { name:"Makan siang: Nasi merah + ayam panggang + tumis buncis", kcal:600 },
+        { name:"Makan malam: Gado-gado tanpa kerupuk + telur rebus", kcal:500 },
+        { name:"Snack: Yogurt tawar + buah potong / kacang panggang", kcal:150 }
       ];
     }
     function localFallbackCalorieBlock(a) {
-      const [l,h]=guessDailyCalorie(a), m=splitMeals(l,h), ms=sampleMenus();
+      const [low, high] = guessDailyCalorie(a);
+      const m = splitMeals(low, high);
+      const menus = sampleMenus();
       return `
         <h3>AI Overview (Offline Fallback)</h3>
-        <p>Perkiraan kebutuhan: ${l}–${h} kkal/hari</p>
+        <p>Rekomendasi kalori harian untuk hidup sehat: <strong>${low}–${high} kkal/hari</strong></p>
         <table border="1" cellpadding="4">
           <tr><th>Makan</th><th>Low</th><th>High</th></tr>
           <tr><td>Sarapan</td><td>${m.low.b}</td><td>${m.high.b}</td></tr>
@@ -165,11 +166,11 @@
           <tr><td>Snack</td><td>${m.low.s}</td><td>${m.high.s}</td></tr>
         </table>
         <h4>Contoh Menu</h4>
-        <ul>${ms.map(x=>`<li>${x.name} (${x.kcal} kkal)</li>`).join("")}</ul>
+        <ul>${menus.map(x=>`<li>${x.name} (${x.kcal} kkal)</li>`).join("")}</ul>
       `;
     }
 
-    // ===== Submit Handler =====
+    // ===== Submit & AI Overview =====
     D.form.addEventListener("submit", async e => {
       e.preventDefault();
       const fld = document.getElementById("answer");
@@ -184,7 +185,6 @@
       const entry = { email, answers, time: new Date().toISOString() };
       S.allAnswers.push(entry);
       localStorage.setItem("responses", JSON.stringify(S.allAnswers));
-
       if (db && window.addDoc) {
         try { await addDoc(collection(db,"responses"), entry); }
         catch { console.warn("Gagal simpan Firebase."); }
@@ -193,9 +193,15 @@
       D.form.style.display = "none";
       D.thankYouMessage.style.display = "block";
 
-      // === Live Gemini ===
+      // show loading sign
+      D.aiOverview.innerHTML = `<p style="color:#22753e; font-style:italic;">
+        AI sedang membuat ringkasan dan rekomendasi kalori...</p>`;
+      D.aiOverview.style.display = "block";
+
+      // live Gemini call
       try {
-        const prompt = `Ringkas jawaban berikut (10 poin) dan berikan saran pola makan sehat singkat:\n\n${answers.map((a,i)=>`${i+1}. ${a}`).join("\n")}`;
+        const prompt = `Ringkas jawaban berikut (10 poin) dan berikan rekomendasi kebutuhan kalori harian untuk pola hidup sehat secara singkat:\n\n` +
+          answers.map((a,i)=>`${i+1}. ${a}`).join("\n");
         const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0";
         const resp = await fetch(url, {
           method: "POST",
@@ -206,11 +212,16 @@
         const data = await resp.json();
         const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
         if (!aiText) throw new Error("Empty response");
-        D.aiOverview.innerHTML = `<h3>AI Overview</h3><p>${aiText.replace(/\n/g,"<br>")}</p>`;
-      } catch {
-        D.aiOverview.innerHTML = localFallbackCalorieBlock(answers);
+
+        D.aiOverview.innerHTML = 
+          `<div style="font-size:0.9em; color:#22753e; margin-bottom:6px;">AI: Gemini (live)</div>` +
+          `<h3>AI Overview</h3><p>${aiText.replace(/\n/g,"<br>")}</p>`;
+      } catch (err) {
+        console.warn("AI gagal, pakai fallback:", err);
+        D.aiOverview.innerHTML =
+          `<div style="font-size:0.9em; color:#22753e; margin-bottom:6px;">AI: Offline fallback</div>` +
+          localFallbackCalorieBlock(answers);
       }
-      D.aiOverview.style.display = "block";
     });
 
     // ===== View All Answers =====
@@ -218,7 +229,6 @@
       const pass = prompt("Masukkan password untuk melihat semua jawaban:");
       if (pass !== "rahasia123") return alert("Password salah.");
       let rows = [...S.allAnswers];
-
       if (db && window.getDocs) {
         try {
           const snap = await getDocs(query(collection(db,"responses"), orderBy("time","desc")));
@@ -227,7 +237,6 @@
           console.warn("Gagal ambil Firebase; pakai lokal.");
         }
       }
-
       if (!rows.length) return alert("Belum ada jawaban.");
 
       let html = `<table><tr><th>Email</th>${questions.map(q=>`<th>${q}</th>`).join("")}<th>Waktu</th></tr>`;
@@ -235,7 +244,6 @@
         html += `<tr><td>${r.email}</td>${r.answers.map(a=>`<td>${a}</td>`).join("")}<td>${r.time}</td></tr>`;
       });
       html += `</table>`;
-
       D.answersContainer.innerHTML = html;
       D.answersContainer.style.display = "block";
     });
