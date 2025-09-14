@@ -8,44 +8,64 @@
   <!-- OG stylesheet -->
   <link rel="stylesheet" href="style.css" />
 
-  <!-- ML5.js for in-browser vision -->
+  <!-- In-browser vision & charts -->
   <script src="https://cdn.jsdelivr.net/npm/ml5@0.6.0/dist/ml5.min.js"></script>
-  <!-- Chart.js for charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Layout helpers -->
+  <!-- Minimal layout helpers -->
   <style>
     .hidden { display: none; }
     .flex { display: flex; gap: 24px; flex-wrap: wrap; }
     .col { flex: 1; min-width: 260px; display: flex; flex-direction: column; }
     .preview { max-width: 200px; margin: 16px auto; border-radius: 8px; }
-    .food-list { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 8px; background: #fafafa; }
-    .food-item { display: flex; align-items: center; padding: 6px; border-bottom: 1px solid #eee; cursor: pointer; }
+    .food-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 8px;
+      background: #fafafa;
+    }
+    .food-item {
+      display: flex;
+      align-items: center;
+      padding: 6px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
     .food-item:last-child { border-bottom: none; }
-    .food-item img { width: 40px; height: 40px; border-radius: 4px; margin-right: 12px; }
+    .food-item img {
+      width: 40px; height: 40px; object-fit: cover;
+      border-radius: 4px; margin-right: 12px;
+    }
     .food-item:hover { background: #f0f0f0; }
-    .food-detail img { max-width: 150px; margin: 12px auto; border-radius: 8px; display: block; }
+    .food-detail img {
+      max-width: 150px; margin: 12px auto; border-radius: 8px; display: block;
+    }
+    section + section { margin-top: 40px; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Pola Makan Sehat Orang Indonesia</h1>
 
-    <!-- SURVEY WIZARD -->
-    <section id="survey" class="section">
+    <!-- 1. Survey Wizard -->
+    <section id="surveySection">
       <form id="surveyForm" autocomplete="off">
-        <label>Email kamu:</label>
+        <label for="email">Email kamu:</label>
         <input type="email" id="email" placeholder="nama@contoh.com" required />
+
         <div id="questionContainer"></div>
+
         <button type="button" id="nextBtn">Next</button>
         <button type="submit" id="submitBtn" class="hidden">Kirim</button>
       </form>
     </section>
 
-    <!-- RESULTS: Photo Analysis + Food DB -->
-    <section id="results" class="section hidden">
+    <!-- 2. Photo + Food DB Results -->
+    <section id="resultsSection" class="hidden">
       <div class="flex">
-        <!-- PHOTO ANALYSIS -->
+        <!-- Photo Analysis Column -->
         <div class="col">
           <h2>Analisis Foto</h2>
           <div class="flex">
@@ -60,7 +80,7 @@
           <div id="geminiOverview"></div>
         </div>
 
-        <!-- FOOD DATABASE -->
+        <!-- Food Database Column -->
         <div class="col">
           <h2>Basis Data Makanan</h2>
           <input type="text" id="foodSearch" placeholder="Cari makanan..." />
@@ -72,7 +92,6 @@
   </div>
 
   <script>
-  document.addEventListener("DOMContentLoaded", () => {
     // ===== Config & State =====
     const API_KEY = "AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0";
     const questions = [
@@ -89,26 +108,56 @@
     ];
     let surveyState = { idx: 0, answers: [] };
 
-    // ===== DOM refs =====
+    // ===== Macro Database (sample — extend as needed) =====
+    const macroDBList = [
+      { key:"apple",   name:"Apel",         protein:0.3, carbs:14,  fats:0.2, energy:52,
+        img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg" },
+      { key:"banana",  name:"Pisang",       protein:1.3, carbs:23,  fats:0.3, energy:96,
+        img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" },
+      { key:"rice",    name:"Nasi Putih",   protein:2.7, carbs:28,  fats:0.3, energy:130,
+        img:"https://upload.wikimedia.org/wikipedia/commons/6/60/Cooked_rice.jpg" },
+      { key:"chicken", name:"Ayam Panggang",protein:27,  carbs:0,   fats:3.6, energy:165,
+        img:"https://upload.wikimedia.org/wikipedia/commons/3/35/Grilled_chicken.jpg" },
+      { key:"pizza",   name:"Pizza",        protein:12,  carbs:33,  fats:10,  energy:266,
+        img:"https://upload.wikimedia.org/wikipedia/commons/d/d3/Supreme_pizza.jpg" },
+      { key:"burger",  name:"Burger",       protein:25,  carbs:30,  fats:20,  energy:295,
+        img:"https://upload.wikimedia.org/wikipedia/commons/0/0b/RedDot_Burger.jpg" },
+      { key:"salad",   name:"Salad",        protein:2,   carbs:5,   fats:0.2, energy:35,
+        img:"https://upload.wikimedia.org/wikipedia/commons/3/38/Gr%C3%BCner_Salat.jpg" },
+      { key:"egg",     name:"Telur Rebus",  protein:6,   carbs:0.6, fats:5.3, energy:78,
+        img:"https://upload.wikimedia.org/wikipedia/commons/9/94/Hardboiled_egg.jpg" }
+      // …tambahkan lebih banyak makanan untuk “every possibility”…
+    ];
+    const macroDB = Object.fromEntries(
+      macroDBList.map(o => [o.key, {
+        protein: o.protein,
+        carbs: o.carbs,
+        fats: o.fats,
+        energy: o.energy,
+        analysis: `${o.name} mengandung ${o.protein}g protein, ${o.carbs}g karbo, ${o.fats}g lemak, ${o.energy} kcal per sajian.`
+      }]])
+    );
+
+    // ===== DOM Refs =====
     const D = {
-      survey:    document.getElementById("survey"),
-      qContainer: document.getElementById("questionContainer"),
-      nextBtn:   document.getElementById("nextBtn"),
-      submitBtn: document.getElementById("submitBtn"),
-      email:     document.getElementById("email"),
-      form:      document.getElementById("surveyForm"),
-      results:   document.getElementById("results"),
-      imageUrl:  document.getElementById("imageUrl"),
-      foodPhoto: document.getElementById("foodPhoto"),
-      photoSubmit: document.getElementById("photoSubmit"),
-      foodPreview: document.getElementById("foodPreview"),
-      photoAnalysis: document.getElementById("photoAnalysis"),
-      macroPie:     document.getElementById("macroPie"),
-      macroDiff:    document.getElementById("macroDiff"),
+      surveySection:  document.getElementById("surveySection"),
+      qContainer:     document.getElementById("questionContainer"),
+      nextBtn:        document.getElementById("nextBtn"),
+      submitBtn:      document.getElementById("submitBtn"),
+      emailInput:     document.getElementById("email"),
+      surveyForm:     document.getElementById("surveyForm"),
+      resultsSection: document.getElementById("resultsSection"),
+      imageUrl:       document.getElementById("imageUrl"),
+      foodPhoto:      document.getElementById("foodPhoto"),
+      photoSubmit:    document.getElementById("photoSubmit"),
+      foodPreview:    document.getElementById("foodPreview"),
+      photoAnalysis:  document.getElementById("photoAnalysis"),
+      macroPie:       document.getElementById("macroPie"),
+      macroDiff:      document.getElementById("macroDiff"),
       geminiOverview: document.getElementById("geminiOverview"),
-      foodSearch:  document.getElementById("foodSearch"),
-      foodList:    document.getElementById("foodList"),
-      foodDetail:  document.getElementById("foodDetail")
+      foodSearch:     document.getElementById("foodSearch"),
+      foodList:       document.getElementById("foodList"),
+      foodDetail:     document.getElementById("foodDetail")
     };
 
     // ===== Survey Wizard =====
@@ -125,46 +174,24 @@
     showQuestion(0);
 
     D.nextBtn.addEventListener("click", () => {
-      const val = document.getElementById("answer").value.trim();
-      if (!val) return;
-      surveyState.answers.push(val);
+      const ans = document.getElementById("answer").value.trim();
+      if (!ans) return;
+      surveyState.answers.push(ans);
       surveyState.idx++;
       showQuestion(surveyState.idx);
     });
 
-    D.form.addEventListener("submit", e => {
+    D.surveyForm.addEventListener("submit", e => {
       e.preventDefault();
       const last = document.getElementById("answer").value.trim();
       if (last) surveyState.answers.push(last);
-      if (!D.email.value.trim() || surveyState.answers.length < questions.length) {
+      if (!D.emailInput.value.trim() || surveyState.answers.length < questions.length) {
         return alert("Isi email dan semua jawaban.");
       }
-      D.survey.classList.add("hidden");
-      D.results.classList.remove("hidden");
+      D.surveySection.classList.add("hidden");
+      D.resultsSection.classList.remove("hidden");
       initFoodDB();
     });
-
-    // ===== Macro Database =====
-    const macroDBList = [
-      { key:"apple",   name:"Apel",       protein:0.3, carbs:14,  fats:0.2, energy:52,  img:"https://upload.wikimedia.org/wikipedia/commons/1/15/Red_Apple.jpg" },
-      { key:"banana",  name:"Pisang",     protein:1.3, carbs:23,  fats:0.3, energy:96,  img:"https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg" },
-      { key:"rice",    name:"Nasi Putih", protein:2.7, carbs:28,  fats:0.3, energy:130, img:"https://upload.wikimedia.org/wikipedia/commons/6/60/Cooked_rice.jpg" },
-      { key:"chicken", name:"Ayam Panggang", protein:27, carbs:0,  fats:3.6, energy:165, img:"https://upload.wikimedia.org/wikipedia/commons/3/35/Grilled_chicken.jpg" },
-      { key:"pizza",   name:"Pizza",      protein:12,  carbs:33,  fats:10, energy:266, img:"https://upload.wikimedia.org/wikipedia/commons/d/d3/Supreme_pizza.jpg" },
-      { key:"burger",  name:"Burger",     protein:25,  carbs:30,  fats:20, energy:295, img:"https://upload.wikimedia.org/wikipedia/commons/0/0b/RedDot_Burger.jpg" },
-      { key:"salad",   name:"Salad",      protein:2,   carbs:5,   fats:0.2, energy:35,  img:"https://upload.wikimedia.org/wikipedia/commons/3/38/Gr%C3%BCner_Salat.jpg" },
-      { key:"egg",     name:"Telur Rebus", protein:6,   carbs:0.6, fats:5.3, energy:78,  img:"https://upload.wikimedia.org/wikipedia/commons/9/94/Hardboiled_egg.jpg" }
-      // …extend as needed…
-    ];
-    const macroDB = Object.fromEntries(
-      macroDBList.map(o => [o.key, {
-        protein: o.protein,
-        carbs: o.carbs,
-        fats: o.fats,
-        energy: o.energy,
-        analysis: `${o.name} mengandung ${o.protein}g protein, ${o.carbs}g karbo, ${o.fats}g lemak, ${o.energy} kcal per sajian.`
-      }]])
-    );
 
     // ===== Photo Analysis =====
     D.photoSubmit.addEventListener("click", handlePhoto);
@@ -183,32 +210,31 @@
       D.geminiOverview.innerHTML = "";
 
       const classifier = await ml5.imageClassifier("MobileNet");
-      const results = await classifier.classify(D.foodPreview);
-      const key = results[0].label.split(",")[0].toLowerCase();
-      const info = macroDB[key] || {
+      const results    = await classifier.classify(D.foodPreview);
+      const key        = results[0].label.split(",")[0].toLowerCase();
+      const info       = macroDB[key] || {
         protein:5, carbs:20, fats:5, energy:120,
         analysis: `Data makro untuk "${key}" tidak ditemukan.`
       };
 
       const total = info.protein + info.carbs + info.fats;
-      const pct = [
-        Math.round(info.protein/total*100),
-        Math.round(info.carbs/total*100),
-        Math.round(info.fats/total*100)
+      const pct   = [
+        Math.round(info.protein / total * 100),
+        Math.round(info.carbs   / total * 100),
+        Math.round(info.fats    / total * 100)
       ];
       renderPie(pct, ["Protein","Karbo","Lemak"], D.macroPie);
 
-      const recommended = [15,55,30];
-      const diff = pct.map((v,i) => v - recommended[i]);
+      const rec = [15,55,30];
+      const diff= pct.map((v,i) => v - rec[i]);
       renderBar(diff, ["Protein","Karbo","Lemak"], D.macroDiff);
 
       D.photoAnalysis.innerHTML = `<h3>Analisis</h3><p>${info.analysis}</p>`;
 
-      // Gemini overview
       D.geminiOverview.innerHTML = `<p style="font-style:italic;">Membuat overview AI…</p>`;
       try {
         const prompt = `Foto terdeteksi sebagai "${key}". Ringkas makronutrien dan beri rekomendasi pola makan.`;
-        const res = await fetch(
+        const res    = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
           {
             method: "POST",
@@ -216,8 +242,8 @@
             body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
           }
         );
-        const j = await res.json();
-        const txt = j.candidates?.[0]?.content?.parts?.[0]?.text || "AI gagal.";
+        const json   = await res.json();
+        const txt    = json.candidates?.[0]?.content?.parts?.[0]?.text || "AI gagal.";
         D.geminiOverview.innerHTML = `<h3>Overview AI</h3><p>${txt.replace(/\n/g,"<br>")}</p>`;
       } catch {
         D.geminiOverview.innerHTML = `<p style="color:red;">Overview AI gagal.</p>`;
@@ -250,7 +276,7 @@
       macroDBList.forEach(item => {
         const div = document.createElement("div");
         div.className = "food-item";
-        div.innerHTML = `<img src="${item.img}" alt="${item.name}"/><span>${item.name}</span>`;
+        div.innerHTML = `<img src="${item.img}" alt="" /><span>${item.name}</span>`;
         div.onclick = () => showFoodDetail(item);
         D.foodList.append(div);
       });
@@ -264,7 +290,7 @@
     function showFoodDetail(item) {
       D.foodDetail.innerHTML = `
         <h3>${item.name}</h3>
-        <img src="${item.img}" alt="${item.name}" />
+        <img src="${item.img}" alt="" />
         <canvas id="detailChart"></canvas>`;
       const ctx = document.getElementById("detailChart").getContext("2d");
       new Chart(ctx, {
@@ -277,7 +303,6 @@
         options:{ responsive:true, plugins:{ legend:{ display:false }}}
       });
     }
-  });
   </script>
 </body>
 </html>
