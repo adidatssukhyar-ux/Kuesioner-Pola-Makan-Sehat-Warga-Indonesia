@@ -2,372 +2,251 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Pola Makan Sehat & Analisis Makanan</title>
+  <title>Pola Makan Sehat Orang Indonesia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- ML5.js & Chart.js & Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/ml5@0.6.0/dist/ml5.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
-
-  <style>
-    body {
-      background: linear-gradient(135deg, #e5ffe5 0%, #fffbe5 100%);
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0; padding: 0;
-    }
-    .container {
-      max-width: 500px; margin: 60px auto;
-      padding: 30px; background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 2px 20px rgba(100,180,120,0.12);
-      border: 2px solid #b5e7b7;
-      transition: max-width 0.3s;
-    }
-    .container.wide { max-width: 90%; }
-    h1 {
-      text-align: center; color: #35a35c;
-      margin-bottom: 16px; font-size: 2em;
-      letter-spacing: 1px;
-    }
-    label {
-      display: block; margin-top: 16px;
-      color: #22753e; font-weight: 500;
-      font-size: 1.08em;
-    }
-    input, textarea {
-      width: 100%; padding: 10px; margin-top: 8px;
-      border-radius: 8px; border: 1.5px solid #f5bc51;
-      background: #fffde9; box-sizing: border-box;
-      transition: border-color 0.2s; font-size: 1em;
-    }
-    input:focus, textarea:focus { border-color: #35a35c; outline: none; }
-    textarea { min-height: 80px; resize: vertical; }
-
-    button {
-      margin-top: 20px; width: 100%; padding: 13px;
-      background: linear-gradient(90deg, #35a35c 40%, #f5bc51 100%);
-      color: #fff; border: none; border-radius: 8px;
-      font-size: 1.1em; font-weight: 500; cursor: pointer;
-      box-shadow: 0 2px 10px rgba(53,163,92,0.08);
-      transition: background 0.2s, box-shadow 0.2s;
-    }
-    button:hover {
-      background: linear-gradient(90deg, #22753e 30%, #e9b742 100%);
-      box-shadow: 0 4px 16px rgba(53,163,92,0.15);
-    }
-    .hidden { display: none; }
-    .question-text {
-      margin-top: 16px; font-size: 1.1em;
-      font-weight: 600; color: #22753e;
-    }
-    .spinner-overlay {
-      position: fixed; top:0; left:0; right:0; bottom:0;
-      background: rgba(255,255,255,0.6);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000; visibility: hidden; opacity: 0;
-      transition: visibility 0s 0.2s, opacity 0.2s;
-    }
-    .spinner-overlay.active {
-      visibility: visible; opacity: 1; transition-delay: 0s;
-    }
-    .spinner {
-      width: 50px; height: 50px;
-      border: 6px solid #f5bc51; border-top-color: #35a35c;
-      border-radius: 50%; animation: spin 1s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .analysis-flex {
-      display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap;
-    }
-    .analysis-photo, .analysis-list {
-      flex: 1; min-width: 200px;
-    }
-    .analysis-list h2 {
-      font-size: 1.2em; color: #22753e; margin-bottom: 8px;
-    }
-    .food-list {
-      max-height: 300px; overflow-y: auto;
-      border: 1.5px solid #b5e7b7; border-radius: 8px;
-      background: #fffde9;
-    }
-    .food-item {
-      padding: 10px; border-bottom: 1px solid #e0e0e0;
-      cursor: pointer; display: flex; justify-content: space-between;
-      align-items: center;
-    }
-    .food-item:last-child { border-bottom: none; }
-    .food-item:hover { background: rgba(53,163,92,0.1); }
-    .food-item span { color: #22753e; font-weight: 500; }
-
-    /* Inline detail panel below search */
-    #foodDetailPanel {
-      margin-top: 8px; border: 1px solid #b5e7b7;
-      border-radius: 8px; background: #fff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 16px; z-index: 5;
-    }
-    #foodDetailPanel.hidden { display: none; }
-    #foodDetailPanel .close-btn {
-      position: absolute; top: 8px; right: 8px;
-      background: none; border: none; font-size: 1.2em;
-      cursor: pointer; color: #666;
-    }
-    #foodDetailPanel .close-btn:hover { color: #333; }
-    #foodDetailPanel h3 { margin-top: 0; color: #35a35c; }
-    #foodDetailPanel p { margin: 6px 0; color: #22753e; }
-
-    /* Constrain chart size */
-    .analysis-photo canvas {
-      max-width: 100%; height: 150px; margin-top: 24px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container" id="mainContainer">
-    <h1>Pola Makan Sehat</h1>
+  <div class="container">
+    <h1>Pola Makan Sehat Orang Indonesia</h1>
 
-    <!-- STEP 1: Survey -->
-    <section id="step1">
+    <form id="wizardForm" autocomplete="off">
+      <label for="email">Email kamu:</label>
+      <input type="email" id="email" placeholder="nama@contoh.com" required />
+
       <div id="questionContainer"></div>
-      <button id="step1Next" type="button">Next</button>
-    </section>
 
-    <!-- STEP 2: AI Overview -->
-    <section id="step2" class="hidden">
-      <h2>Overview AI</h2>
-      <div id="aiOverview" style="min-height:80px;"></div>
-      <button id="step2Next" type="button">Lanjut ke Foto</button>
-    </section>
+      <button type="button" id="nextBtn">Next</button>
+      <button type="button" id="showAnswersBtn">📋 Lihat Semua Jawaban</button>
+      <button type="button" id="clearLocalBtn">🗑 Hapus Jawaban Lokal</button>
+      <button type="submit" id="submitBtn" style="display:none;">Kirim</button>
+    </form>
 
-    <!-- STEP 3: Photo & Food List -->
-    <section id="step3" class="hidden">
-      <h2>Analisis Foto & Makanan</h2>
-      <div class="analysis-flex">
-        <!-- Left: Photo Analysis -->
-        <div class="analysis-photo">
-          <label for="imageUrl">URL foto (opsional):</label>
-          <input type="url" id="imageUrl" placeholder="https://..." />
-          <label for="foodPhoto">Atau pilih file:</label>
-          <input type="file" id="foodPhoto" accept="image/*" />
-          <button id="photoSubmit" type="button">Analisis Foto</button>
-          <img id="foodPreview" class="hidden" alt="Preview"
-               style="margin-top:16px;max-width:100%;border-radius:8px;
-               box-shadow:0 2px 12px rgba(0,0,0,0.1);" />
-          <div id="photoAnalysis" style="min-height:60px;margin-top:8px;"></div>
-          <canvas id="macroPie"></canvas>
-          <canvas id="macroBar"></canvas>
-        </div>
+    <div id="thankYouMessage" style="display:none; cursor:pointer;">
+      Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat
+      <span id="hiddenInfo" class="final-message" style="display:none;">(maybe 2 days)</span>
+    </div>
 
-        <!-- Right: Food Search & List -->
-        <div class="analysis-list">
-          <h2>Analisis makanan yang Anda makan!</h2>
-          <input type="text" id="foodSearchRight" placeholder="Cari makanan..." />
-          <div id="foodDetailPanel" class="hidden"></div>
-          <div id="foodListRight" class="food-list"></div>
-        </div>
-      </div>
-    </section>
+    <div id="aiOverview" style="display:none; margin-top:16px;"></div>
+    <div id="answersContainer" style="display:none; margin-top:16px; overflow:auto;"></div>
   </div>
 
-  <!-- Spinner Overlay -->
-  <div id="spinner" class="spinner-overlay">
-    <div class="spinner"></div>
-  </div>
-
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
+  <script type="module">
+    // ===== Data & State =====
     const questions = [
       "1. Menurut kamu makanan junk food sehat atau tidak?",
-      "2. Seberapa sering kamu mengonsumsi junk food?",
+      "2. Seberapa sering kamu mengonsumsi makanan junk food?",
       "3. Berapa kali kamu makan dalam sehari?",
       "4. Apakah kamu sering mengonsumsi soda/minuman berwarna?",
-      "5. Apakah kamu sering mengonsumsi sayur-sayuran?",
-      "6. Sebutkan satu makanan bergizi dan satu yang tidak bergizi.",
-      "7. Menurut kamu, seberapa penting nutrisi seimbang?",
-      "8. Buah atau sayur mana yang paling sering kamu konsumsi?",
-      "9. Apa tantanganmu untuk makan lebih sehat?",
-      "10. Langkah apa yang akan kamu ambil untuk pola makan lebih baik?"
+      "5. Apakah kamu sering mengonsumsi sayur sayuran?",
+      "6. Sebutkan makanan yang bergizi dan tidak bergizi",
+      "7. Menurut kamu makanan bergizi penting atau tidak bagi manusia?",
+      "8. Sayur sayuran dan buah buahan apakah termasuk makanan bergizi?",
+      "9. Apakah kamu hari ini sudah sarapan?",
+      "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
     ];
-    let idx = 0, answers = [];
+    const S = {
+      currentQuestion: 0,
+      tempAnswers: [],
+      allAnswers: JSON.parse(localStorage.getItem("responses") || "[]"),
+    };
 
-    const macroDBList = [
-      { key:"apple",      name:"Apel",       protein:0.3, carbs:14, fats:0.2, energy:52 },
-      { key:"banana",     name:"Pisang",     protein:1.3, carbs:23, fats:0.3, energy:96 },
-      { key:"orange",     name:"Jeruk",      protein:0.9, carbs:12, fats:0.1, energy:47 },
-      { key:"rice",       name:"Nasi Putih", protein:2.7, carbs:28, fats:0.3, energy:130 },
-      { key:"sushi",      name:"Sushi",      protein:6,   carbs:36, fats:1.5, energy:200 },
-      { key:"steak",      name:"Steak",      protein:27,  carbs:0,  fats:19,  energy:271 },
-      { key:"burger",     name:"Burger",     protein:25,  carbs:30, fats:20,  energy:295 },
-      { key:"rendang",    name:"Rendang",    protein:25,  carbs:5,  fats:38,  energy:300 },
-      { key:"nasi goreng",name:"Nasi Goreng",protein:7.5,carbs:49, fats:9.5,energy:333},
-      { key:"mie goreng", name:"Mie Goreng", protein:8,   carbs:45, fats:10,  energy:300 },
-      { key:"soto",       name:"Soto",       protein:8,   carbs:17, fats:4,   energy:140 },
-      { key:"gado-gado",  name:"Gado-gado",  protein:9,   carbs:20, fats:15,  energy:260 },
-      { key:"bakso",      name:"Bakso",      protein:12,  carbs:5,  fats:6,   energy:130 },
-      { key:"sate",       name:"Sate",       protein:18,  carbs:3,  fats:10,  energy:200 },
-      { key:"tempe",      name:"Tempe",      protein:19,  carbs:9,  fats:11,  energy:192 },
-      { key:"tahu",       name:"Tahu",       protein:8,   carbs:2,  fats:5,   energy:80 }
-    ];
-    const macroDB = Object.fromEntries(macroDBList.map(o=>[o.key,o]));
+    // ===== DOM Refs =====
+    const D = {
+      emailInput: document.getElementById("email"),
+      questionContainer: document.getElementById("questionContainer"),
+      nextBtn: document.getElementById("nextBtn"),
+      submitBtn: document.getElementById("submitBtn"),
+      form: document.getElementById("wizardForm"),
+      thankYouMessage: document.getElementById("thankYouMessage"),
+      hiddenInfo: document.getElementById("hiddenInfo"),
+      aiOverview: document.getElementById("aiOverview"),
+      showAnswersBtn: document.getElementById("showAnswersBtn"),
+      clearLocalBtn: document.getElementById("clearLocalBtn"),
+      answersContainer: document.getElementById("answersContainer"),
+    };
 
-    // refs
-    const mainContainer   = document.getElementById("mainContainer");
-    const s1              = document.getElementById("step1");
-    const s2              = document.getElementById("step2");
-    const s3              = document.getElementById("step3");
-    const qC              = document.getElementById("questionContainer");
-    const btn1            = document.getElementById("step1Next");
-    const btn2            = document.getElementById("step2Next");
-    const aiD             = document.getElementById("aiOverview");
-    const spinner         = document.getElementById("spinner");
-    const imageUrl        = document.getElementById("imageUrl");
-    const foodPhoto       = document.getElementById("foodPhoto");
-    const photoBtn        = document.getElementById("photoSubmit");
-    const preview         = document.getElementById("foodPreview");
-    const analysis        = document.getElementById("photoAnalysis");
-    const pieCan          = document.getElementById("macroPie");
-    const barCan          = document.getElementById("macroBar");
-    const foodListRight   = document.getElementById("foodListRight");
-    const foodSearchRight = document.getElementById("foodSearchRight");
-    const detailPanel     = document.getElementById("foodDetailPanel");
-
-    function showQuestion(i) {
-      qC.innerHTML = `
-        <p class="question-text">${questions[i]}</p>
-        <textarea id="answer" placeholder="Tuliskan jawaban..."></textarea>
+    // ===== Wizard Flow =====
+    function showQuestion(idx) {
+      D.questionContainer.innerHTML = `
+        <label for="answer">${questions[idx] || ""}</label>
+        <textarea id="answer" placeholder="Jawaban kamu..."></textarea>
       `;
-      btn1.textContent = i < questions.length - 1 ? "Next" : "Submit";
-    }
-    showQuestion(idx);
-
-    // Step1: survey → AI Overview + confetti
-    btn1.addEventListener("click", async () => {
-      const v = document.getElementById("answer").value.trim();
-      if (!v) return alert("Isi jawaban dulu.");
-      answers.push(v);
-      if (idx < questions.length - 1) {
-        idx++; showQuestion(idx);
+      if (idx >= questions.length - 1) {
+        D.nextBtn.style.display = "none";
+        D.submitBtn.style.display = "block";
       } else {
-        // celebrate completion
-        confetti({ particleCount: 120, spread: 70, origin: { y: 0.4 } });
-        s1.classList.add("hidden");
-        s2.classList.remove("hidden");
-        aiD.innerHTML = "";
-        spinner.classList.add("active");
-        const prompt = answers.map((a,i)=>${questions[i]}\nJawaban: ${a}).join("\n\n");
-        try {
-          const res = await fetch(
-            https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0,
-            {
-              method:"POST",
-              headers:{"Content-Type":"application/json"},
-              body: JSON.stringify({
-                contents:[{ parts:[{ text:Ringkas pola makan:\n\n${prompt} }] }]
-              })
-            }
-          );
-          const j   = await res.json();
-          const txt = j.candidates?.[0]?.content?.parts?.[0]?.text || "AI gagal.";
-          aiD.innerHTML = <p>${txt.replace(/\n/g,"<br>")}</p>;
-        } catch {
-          aiD.innerHTML = <p style="color:red">Error memuat AI overview.</p>;
-        }
-        spinner.classList.remove("active");
+        D.nextBtn.style.display = "block";
+        D.submitBtn.style.display = "none";
+      }
+    }
+    document.addEventListener("DOMContentLoaded", () => showQuestion(S.currentQuestion));
+
+    D.nextBtn.addEventListener("click", () => {
+      const ans = document.getElementById("answer").value.trim();
+      if (!D.emailInput.value.trim() || !ans) return;
+      S.tempAnswers[S.currentQuestion] = ans;
+      S.currentQuestion++;
+      showQuestion(S.currentQuestion);
+    });
+
+    D.thankYouMessage.addEventListener("click", () => {
+      D.hiddenInfo.style.display = "inline";
+    });
+
+    // ===== LocalStorage Clear =====
+    D.clearLocalBtn.addEventListener("click", () => {
+      const pass = prompt("Masukkan passcode untuk menghapus jawaban lokal:");
+      if (pass !== "password") return alert("Passcode salah.");
+      if (confirm("Hapus semua jawaban yang tersimpan?")) {
+        localStorage.removeItem("responses");
+        alert("Jawaban lokal dihapus.");
+        location.reload();
       }
     });
 
-    // Step2 → Photo & food list
-    btn2.addEventListener("click", () => {
-      s2.classList.add("hidden");
-      s3.classList.remove("hidden");
-      mainContainer.classList.add("wide");
-      buildFoodList();
-    });
-
-    function buildFoodList() {
-      detailPanel.classList.add("hidden");
-      foodSearchRight.value = "";
-      foodListRight.innerHTML = "";
-      macroDBList.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "food-item";
-        div.innerHTML = <span>${item.name}</span>;
-        div.onclick = () => showFoodDetails(item);
-        foodListRight.append(div);
-      });
+    // ===== Firebase Init =====
+    let db = null;
+    try {
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js");
+      const { getFirestore, collection, addDoc, getDocs, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js");
+      const cfg = {
+        apiKey: "AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
+        authDomain: "surveylive-c0691.firebaseapp.com",
+        projectId: "surveylive-c0691",
+        storageBucket: "surveylive-c0691.firebasestorage.app",
+        messagingSenderId: "894041077720",
+        appId: "1:894041077720:web:2115a27b69e8b81ab724ad",
+        measurementId: "G-83GZWBY7K5",
+      };
+      const app = initializeApp(cfg);
+      db = getFirestore(app);
+      Object.assign(window, { collection, addDoc, getDocs, query, orderBy });
+    } catch {
+      console.warn("Firebase init gagal; pakai lokal saja.");
     }
-    foodSearchRight.addEventListener("input", () => {
-      const q = foodSearchRight.value.trim().toLowerCase();
-      document.querySelectorAll(".food-item").forEach(el => {
-        el.style.display = el.textContent.toLowerCase().includes(q) ? "" : "none";
-      });
-      detailPanel.classList.add("hidden");
-    });
 
-    function showFoodDetails(item) {
-      detailPanel.innerHTML = `
-        <button class="close-btn">&times;</button>
-        <h3>${item.name}</h3>
-        <p>Protein: ${item.protein} g</p>
-        <p>Karbo: ${item.carbs} g</p>
-        <p>Lemak: ${item.fats} g</p>
-        <p>Energi: ${item.energy} kcal</p>
+    // ===== AI Fallback Helpers =====
+    function guessDailyCalorie(a) {
+      let low = 1800, high = 2200;
+      if (/sering|tiap|setiap|hampir/.test((a[1]||"").toLowerCase())) { low = 1700; high = 2100; }
+      if (/sering|ya/.test((a[4]||"").toLowerCase()))             { low += 50; high += 100; }
+      if (/ya|sudah/.test((a[8]||"").toLowerCase()))             { low += 50; high += 50; }
+      low  = Math.max(1600, Math.min(low, 2200));
+      high = Math.max(low + 200, Math.min(high, 2400));
+      return [low, high];
+    }
+    function splitMeals(l, h) {
+      const p = { b:0.25, l:0.35, d:0.30, s:0.10 }, r = Math.round;
+      return {
+        low:  { b:r(l*p.b), l:r(l*p.l), d:r(l*p.d), s:r(l*p.s) },
+        high: { b:r(h*p.b), l:r(h*p.l), d:r(h*p.d), s:r(h*p.s) }
+      };
+    }
+    function sampleMenus() {
+      return [
+        { name:"Sarapan: Oatmeal + pisang + susu rendah lemak", kcal:350 },
+        { name:"Makan siang: Nasi merah + ayam panggang + tumis buncis", kcal:600 },
+        { name:"Makan malam: Gado-gado tanpa kerupuk + telur rebus", kcal:500 },
+        { name:"Snack: Yogurt tawar + buah potong / kacang panggang", kcal:150 }
+      ];
+    }
+    function localFallbackCalorieBlock(a) {
+      const [low, high] = guessDailyCalorie(a);
+      const m = splitMeals(low, high);
+      const menus = sampleMenus();
+      return `
+        <h3>AI Overview (Offline Fallback)</h3>
+        <p>Rekomendasi kalori harian untuk hidup sehat: <strong>${low}–${high} kkal/hari</strong></p>
+        <table border="1" cellpadding="4">
+          <tr><th>Makan</th><th>Low</th><th>High</th></tr>
+          <tr><td>Sarapan</td><td>${m.low.b}</td><td>${m.high.b}</td></tr>
+          <tr><td>Siang</td><td>${m.low.l}</td><td>${m.high.l}</td></tr>
+          <tr><td>Malam</td><td>${m.low.d}</td><td>${m.high.d}</td></tr>
+          <tr><td>Snack</td><td>${m.low.s}</td><td>${m.high.s}</td></tr>
+        </table>
+        <h4>Contoh Menu</h4>
+        <ul>${menus.map(x=><li>${x.name} (${x.kcal} kkal)</li>).join("")}</ul>
       `;
-      detailPanel.classList.remove("hidden");
-      detailPanel.querySelector(".close-btn")
-        .addEventListener("click", () => detailPanel.classList.add("hidden"));
     }
 
-    // Photo analysis & charts
-    photoBtn.addEventListener("click", async () => {
-      let src = imageUrl.value.trim();
-      if (!src && foodPhoto.files[0]) src = URL.createObjectURL(foodPhoto.files[0]);
-      if (!src) return alert("Masukkan URL atau pilih file.");
-      preview.src = src; preview.classList.remove("hidden");
-      analysis.textContent = "";
-      spinner.classList.add("active");
+    // ===== Submit & AI Overview =====
+    D.form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const fld = document.getElementById("answer");
+      if (fld && fld.value.trim()) S.tempAnswers[S.currentQuestion] = fld.value.trim();
 
-      const classifier = await ml5.imageClassifier("MobileNet");
-      const [res]      = await classifier.classify(preview);
-      const key        = res.label.split(",")[0].toLowerCase();
-      const info       = macroDB[key] || { name:key, protein:5, carbs:20, fats:5, energy:120 };
+      const answers = [...S.tempAnswers];
+      const email = D.emailInput.value.trim();
+      if (!email || answers.length < questions.length || answers.some(v=>!v)) {
+        return alert("Pastikan email & semua jawaban terisi.");
+      }
 
-      // Pie
-      const total = info.protein + info.carbs + info.fats;
-      const pct   = [info.protein, info.carbs, info.fats].map(v=>Math.round(v/total*100));
-      renderPie(pct, ["Protein","Karbo","Lemak"], pieCan);
+      const entry = { email, answers, time: new Date().toISOString() };
+      S.allAnswers.push(entry);
+      localStorage.setItem("responses", JSON.stringify(S.allAnswers));
+      if (db && window.addDoc) {
+        try { await addDoc(collection(db,"responses"), entry); }
+        catch { console.warn("Gagal simpan Firebase."); }
+      }
 
-      // Bar
-      renderBar(
-        [info.protein, info.carbs, info.fats, info.energy],
-        ["Protein(g)","Karbo(g)","Lemak(g)","Energi(kcal)"],
-        barCan
-      );
+      D.form.style.display = "none";
+      D.thankYouMessage.style.display = "block";
 
-      analysis.innerHTML = <p>${info.name}: ${info.protein}g P, ${info.carbs}g C, ${info.fats}g L, ${info.energy} kcal</p>;
-      spinner.classList.remove("active");
+      // show loading sign
+      D.aiOverview.innerHTML = `<p style="color:#22753e; font-style:italic;">
+        AI sedang membuat ringkasan dan rekomendasi kalori...</p>`;
+      D.aiOverview.style.display = "block";
+
+      // live Gemini call
+      try {
+        const prompt = Ringkas jawaban berikut (10 poin) dan berikan rekomendasi kebutuhan kalori harian untuk pola hidup sehat secara singkat:\n\n +
+          answers.map((a,i)=>${i+1}. ${a}).join("\n");
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0";
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
+        });
+        if (!resp.ok) throw new Error("API error");
+        const data = await resp.json();
+        const aiText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        if (!aiText) throw new Error("Empty response");
+
+        D.aiOverview.innerHTML = 
+          <div style="font-size:0.9em; color:#22753e; margin-bottom:6px;">AI: Gemini (live)</div> +
+          <h3>AI Overview</h3><p>${aiText.replace(/\n/g,"<br>")}</p>;
+      } catch (err) {
+        console.warn("AI gagal, pakai fallback:", err);
+        D.aiOverview.innerHTML =
+          <div style="font-size:0.9em; color:#22753e; margin-bottom:6px;">AI: Offline fallback</div> +
+          localFallbackCalorieBlock(answers);
+      }
     });
 
-    function clearChart(c) { if (c._chart) c._chart.destroy(); }
-    function renderPie(data, labels, c) {
-      clearChart(c);
-      c._chart = new Chart(c.getContext("2d"), {
-        type: "pie",
-        data: { labels, datasets: [{ data, backgroundColor:["#35a35c","#f5bc51","#e57373"] }] },
-        options: { responsive:true, animation:{ animateScale:true, duration:800, easing:"easeOutQuad" }, plugins:{ legend:{ position:"bottom" } } }
+    // ===== View All Answers =====
+    D.showAnswersBtn.addEventListener("click", async () => {
+      const pass = prompt("Masukkan password untuk melihat semua jawaban:");
+      if (pass !== "rahasia123") return alert("Password salah.");
+      let rows = [...S.allAnswers];
+      if (db && window.getDocs) {
+        try {
+          const snap = await getDocs(query(collection(db,"responses"), orderBy("time","desc")));
+          rows = snap.docs.map(d=>d.data());
+        } catch {
+          console.warn("Gagal ambil Firebase; pakai lokal.");
+        }
+      }
+      if (!rows.length) return alert("Belum ada jawaban.");
+
+      let html = <table><tr><th>Email</th>${questions.map(q=><th>${q}</th>).join("")}<th>Waktu</th></tr>;
+      rows.forEach(r => {
+        html += <tr><td>${r.email}</td>${r.answers.map(a=><td>${a}</td>).join("")}<td>${r.time}</td></tr>;
       });
-    }
-    function renderBar(data, labels, c) {
-      clearChart(c);
-      c._chart = new Chart(c.getContext("2d"), {
-        type: "bar",
-        data: { labels, datasets: [{ label:"Jumlah", data, backgroundColor:["#35a35c","#f5bc51","#e57373","#5c97f5"] }] },
-        options: { indexAxis:"y", responsive:true, animation:{ duration:1000, easing:"easeOutBounce" } }
-      });
-    }
-  });
+      html += </table>;
+      D.answersContainer.innerHTML = html;
+      D.answersContainer.style.display = "block";
+    });
   </script>
 </body>
 </html>
