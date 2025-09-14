@@ -5,6 +5,59 @@
   <title>Pola Makan Sehat Orang Indonesia</title>
   <link rel="stylesheet" href="style.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #4CAF50, #2E7D32);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 6px;
+      border: none;
+      font-size: 1em;
+    }
+    textarea { min-height: 80px; }
+    button {
+      background: linear-gradient(135deg, #66BB6A, #43A047);
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #81C784, #388E3C);
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .button-group button {
+      flex: 1;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+      color: black;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: left;
+    }
+  </style>
 </head>
 <body>
 <div class="container">
@@ -26,7 +79,7 @@
 
   <div id="thankYouMessage" style="display:none; cursor:pointer; margin-top:12px;">
     <span>Terimakasih telah menjawab, hasil anda akan dikirim ke email dalam waktu yang singkat</span><br />
-    <span id="hiddenInfo" style="display:none; color:gray;">(maybe 2 days)</span>
+    <span id="hiddenInfo" style="display:none; color:lightgray;">(maybe 2 days)</span>
   </div>
 
   <div id="aiOverview" style="display:none; margin-top:12px;"></div>
@@ -35,7 +88,6 @@
 </div>
 
 <script type="module">
-/* ========== Data & State ========== */
 const questions = [
   "1. Menurut kamu makanan junk food sehat atau tidak?",
   "2. Seberapa sering kamu mengonsumsi makanan junk food?",
@@ -68,7 +120,6 @@ const D = {
   answersContainer: document.getElementById("answersContainer"),
 };
 
-/* ========== UI ========== */
 function showQuestion(index) {
   const q = questions[index] ?? "";
   D.questionContainer.innerHTML = `
@@ -97,7 +148,6 @@ D.thankYouMessage.addEventListener("click", () => {
   D.hiddenInfo.style.display = "inline";
 });
 
-/* ========== Delete Local with passcode ========== */
 D.clearLocalBtn.addEventListener("click", () => {
   const pass = prompt("Masukkan passcode untuk menghapus jawaban lokal:");
   if (pass !== "password") {
@@ -110,8 +160,7 @@ D.clearLocalBtn.addEventListener("click", () => {
     location.reload();
   }
 });
-
-/* ========== Firebase (optional) ========== */
+/* ========== Firebase Init ========== */
 let db = null;
 try {
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js");
@@ -127,7 +176,6 @@ try {
   };
   const app = initializeApp(firebaseConfig);
   db = getFirestore(app);
-  // expose firestore helpers into scope
   Object.assign(window, { collection, addDoc, getDocs, query, orderBy });
 } catch (e) {
   console.warn("Firebase init gagal. Lanjutkan dengan penyimpanan lokal saja.");
@@ -181,7 +229,7 @@ function localFallbackCalorieBlock(answers) {
   `;
 }
 
-/* ========== Submit Handler (LocalStorage + Firebase + AI) ========== */
+/* ========== Submit Handler ========== */
 D.form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const answers = [...S.tempAnswers];
@@ -189,12 +237,9 @@ D.form.addEventListener("submit", async (e) => {
   if (!email || answers.length < questions.length) return;
 
   const entry = { email, answers, time: new Date().toISOString() };
-
-  // local save
   S.allAnswers.push(entry);
   localStorage.setItem("responses", JSON.stringify(S.allAnswers));
 
-  // firestore save
   if (db && window.addDoc) {
     try {
       await window.addDoc(window.collection(db, "responses"), entry);
@@ -203,14 +248,12 @@ D.form.addEventListener("submit", async (e) => {
     }
   }
 
-  // Thank you + hidden info reveal-on-click
   D.form.style.display = "none";
   D.thankYouMessage.style.display = "block";
 
-  // AI overview
   try {
     const prompt = `Ringkas jawaban berikut (10 poin) dan berikan saran pola makan sehat singkat:\n\n${answers.map((a,i)=>`${i+1}. ${a}`).join("\n")}`;
-    const resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=YOUR_API_KEY", {
+    const resp = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=AIzaSyBPcdZLEOAb7zgjtj5Tu9lzQBD1SAFayDQ", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
@@ -227,7 +270,7 @@ D.form.addEventListener("submit", async (e) => {
   D.aiOverview.style.display = "block";
 });
 
-/* ========== Viewer: Password "rahasia123" (Firebase preferred) ========== */
+/* ========== Viewer ========== */
 D.showAnswersBtn.addEventListener("click", async () => {
   const pass = prompt("Masukkan password untuk melihat semua jawaban:");
   if (pass !== "rahasia123") {
