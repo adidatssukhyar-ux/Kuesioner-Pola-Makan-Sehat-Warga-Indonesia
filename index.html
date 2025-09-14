@@ -1,216 +1,158 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Pola Makan Sehat</title>
+  <title>Test: Food Search & Pie-Chart</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/ml5@0.6.0/dist/ml5.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font:1em/1.4 "Segoe UI",sans-serif;background:#f5fcf7;color:#333}
-    .container{max-width:500px;margin:40px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.05);transition:max-width .3s}
-    .container.wide{max-width:90%}
-    .logo{text-align:center;margin-bottom:16px}
-    .logo img{width:80px;border-radius:8px}
-    h1,h2{text-align:center;color:#2a7955;margin-bottom:16px}
-    h1{font-size:1.8em}h2{font-size:1.3em}
-    section{display:none}section.active{display:block}
-    textarea,input[type="url"],input[type="file"],input[type="text"]{width:100%;padding:10px;margin-top:8px;border:1px solid #cdefe1;border-radius:8px;font-size:1em}
-    textarea{resize:vertical}
-    .btn{display:block;width:100%;padding:12px;margin-top:20px;background:linear-gradient(90deg,#2a7955,#5fb58c);color:#fff;border:none;border-radius:8px;font-size:1em;cursor:pointer}
-    .btn:hover{background:linear-gradient(90deg,#236643,#4fa27f)}
-    .question-text,label,.analysis-list h2{display:block;margin-top:16px;font-weight:600;color:#2a7955}
-    .project-credit{text-align:center;font-size:.85em;color:#666;margin-top:24px}
-    #aiOverview{min-height:80px;padding:12px;border:1px solid #cdefe1;border-radius:8px;background:#f0fff8}
-    .spinner-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;visibility:hidden;z-index:1000}
-    .spinner-overlay.active{visibility:visible}
-    .spinner{width:50px;height:50px;border:6px solid #cdefe1;border-top-color:#2a7955;border-radius:50%;animation:spin 1s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .analysis-flex{display:flex;gap:24px;flex-wrap:wrap;margin-top:16px}
-    .analysis-photo,.analysis-list{flex:1;min-width:200px;position:relative}
-    #foodPreview{display:none;margin:12px auto;max-height:120px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
-    .analysis-photo canvas{margin-top:12px;width:100%;height:140px}
-    .food-list{margin-top:8px;max-height:200px;overflow-y:auto;border:1px solid #cdefe1;border-radius:8px;background:#f0fff8}
-    .food-item{padding:10px;border-bottom:1px solid #e0e0e0;cursor:pointer;font-size:.95em}
-    .food-item:last-child{border-bottom:none}
-    .food-item:hover{background:rgba(42,121,85,.1)}
-    #foodDetailPanel{display:none;margin-top:8px;padding:12px;background:#fff;border:1px solid #cdefe1;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.1)}
-    #foodDetailPanel.show{display:block}
-    #foodDetailPanel .close-btn{position:absolute;top:8px;right:8px;background:none;border:none;font-size:1.2em;cursor:pointer;color:#666}
+    body{font:1em/1.4 'Segoe UI',sans-serif;background:#f5fcf7;color:#333;}
+    .container{max-width:800px;margin:40px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.05);}
+    h2{text-align:center;color:#2a7955;margin-bottom:16px;}
+    .flex{display:flex;gap:24px;flex-wrap:wrap;}
+    .left,.right{flex:1;min-width:300px;position:relative;}
+    input,button{width:100%;padding:10px;margin-top:8px;border:1px solid #cdefe1;border-radius:8px;font-size:1em;}
+    button{background:linear-gradient(90deg,#2a7955,#5fb58c);color:#fff;border:none;cursor:pointer;}
+    button:hover{background:linear-gradient(90deg,#236643,#4fa27f);}
+    #preview{display:none;margin:12px auto;max-height:120px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+    canvas{width:100%!important;height:160px!important;margin-top:12px;}
+    #foodList{margin-top:8px;max-height:220px;overflow-y:auto;border:1px solid #cdefe1;border-radius:8px;background:#f0fff8;}
+    .food-item{padding:8px 10px;border-bottom:1px solid #e0e0e0;cursor:pointer;}
+    .food-item:last-child{border-bottom:none;}
+    .food-item:hover{background:rgba(42,121,85,0.1);}
+    #foodDetail{display:none;margin-top:8px;padding:12px;background:#fff;border:1px solid #cdefe1;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.1);}
+    #foodDetail button{position:absolute;top:8px;right:8px;background:none;border:none;font-size:1.2em;cursor:pointer;color:#666;}
   </style>
 </head>
 <body>
-  <div class="container" id="mainContainer">
-    <div class="logo"><img src="https://yt3.ggpht.com/a/AATXAJwRp9NDxa9WX7nh8uuO9TUCUCMqCRE5yJp4CQ=s900-c-k-c0xffffffff-no-rj-mo" alt="Logo"></div>
-    <h1>Pola Makan Sehat</h1>
+  <div class="container">
+    <h2>Analisis Makanan Anda!</h2>
+    <div class="flex">
+      <!-- PHOTO + PIE CHART -->
+      <div class="left">
+        <input id="imageUrl" placeholder="URL foto (opsional)" type="url">
+        <input id="foodPhoto" type="file" accept="image/*">
+        <button id="analyze">Analisis Foto</button>
+        <img id="preview" alt="Preview Gambar">
+        <canvas id="pieChart"></canvas>
+      </div>
 
-    <section id="step1" class="active">
-      <div class="question-text" id="question"></div>
-      <textarea id="answer" placeholder="Jawab di sini..."></textarea>
-      <button id="step1Next" class="btn">Next</button>
-      <div class="project-credit">Karya Kelompok 1 — Proyek 1</div>
-    </section>
-
-    <section id="step2">
-      <h2>Overview AI</h2>
-      <div id="aiOverview"></div>
-      <button id="step2Next" class="btn">Lanjut ke Analisis</button>
-    </section>
-
-    <section id="step3">
-      <h2>Analisis Makanan Anda!</h2>
-      <div class="analysis-flex">
-        <div class="analysis-photo">
-          <label for="imageUrl">URL Foto (opsional)</label>
-          <input type="url" id="imageUrl" placeholder="https://...">
-          <label for="foodPhoto">Atau Pilih File</label>
-          <input type="file" id="foodPhoto" accept="image/*">
-          <button id="photoSubmit" class="btn">Analisis Foto</button>
-          <img id="foodPreview" alt="Preview">
-          <div id="photoAnalysis"></div>
-          <canvas id="macroPie"></canvas>
-        </div>
-        <div class="analysis-list">
-          <h2>Pilih Makanan Lain</h2>
-          <input type="text" id="foodSearch" placeholder="Cari makanan...">
-          <div id="foodList" class="food-list"></div>
-          <div id="foodDetailPanel">
-            <button class="close-btn">&times;</button>
-            <div id="foodDetails"></div>
-          </div>
+      <!-- SEARCHABLE LIST + DETAILS -->
+      <div class="right">
+        <input id="foodSearch" placeholder="Cari makanan...">
+        <div id="foodList"></div>
+        <div id="foodDetail">
+          <button id="closeDetail">&times;</button>
+          <div id="detailContent"></div>
         </div>
       </div>
-    </section>
+    </div>
   </div>
 
-  <div id="spinner" class="spinner-overlay"><div class="spinner"></div></div>
-
   <script>
-  document.addEventListener("DOMContentLoaded",()=>{
-    const qs=[
-      "1. Menurut kamu junk food sehat atau tidak?",
-      "2. Seberapa sering konsumsi junk food?",
-      "3. Berapa kali makan sehari?",
-      "4. Sering minum soda/berwarna?",
-      "5. Sering makan sayur?",
-      "6. Sebut satu makanan bergizi & satu tidak.",
-      "7. Seberapa penting nutrisi seimbang?",
-      "8. Buah/sayur favorit?",
-      "9. Tantangan makan sehat?",
-      "10. Rencana pola makan lebih baik?"
-    ],ans=[];let i=0;
-    const e=q=>document.getElementById(q),
-      [qEl,aEl,b1,b2,aiDiv,spin]=["question","answer","step1Next","step2Next","aiOverview","spinner"].map(e);
-    ["step1","step2","step3"].forEach(id=>e(id).classList.remove("active"));
-    e("step1").classList.add("active");
-    const showQ=idx=>{
-      qEl.textContent=qs[idx];
-      aEl.value="";
-      b1.textContent=idx<qs.length-1?"Next":"Submit";
-    };
-    showQ(i);
-    b1.onclick=()=>{
-      const v=aEl.value.trim();if(!v)return alert("Isi jawaban dulu.");
-      ans[i]=v;
-      if(i<qs.length-1){i++;showQ(i);return}
-      confetti({particleCount:100,spread:60,origin:{y:0.4}});
-      e("step1").classList.replace("active","hidden");
-      e("step2").classList.add("active");
-      spin.classList.add("active");
-      aiDiv.textContent="Memuat overview AI…";
-      fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0`,{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({contents:[{parts:[{text:`Ringkas pola makan:\n\n${qs.map((q,k)=>q+"\nJawaban: "+ans[k]).join("\n\n")}` }]}]})
-      })
-      .then(r=>r.json())
-      .then(j=>aiDiv.innerHTML=(j.candidates?.[0]?.content?.parts[0].text||"AI gagal.").replace(/\n/g,"<br>"))
-      .catch(()=>aiDiv.innerHTML="<span style='color:red'>Error AI.</span>")
-      .finally(()=>spin.classList.remove("active"));
-    };
-    b2.onclick=()=>{
-      e("step2").classList.replace("active","hidden");
-      e("step3").classList.add("active");
-      e("mainContainer").classList.add("wide");
-      buildList();
-    };
-
-    const foods=[
+  document.addEventListener("DOMContentLoaded", () => {
+    // food data
+    const foods = [
       {key:"apple",name:"Apel",protein:0.3,carbs:14,fats:0.2,energy:52},
       {key:"banana",name:"Pisang",protein:1.3,carbs:23,fats:0.3,energy:96},
       {key:"nasigoreng",name:"Nasi Goreng",protein:7,carbs:50,fats:15,energy:350},
       {key:"sotoayam",name:"Soto Ayam",protein:8,carbs:10,fats:5,energy:120},
       {key:"rendang",name:"Rendang",protein:14,carbs:2,fats:30,energy:320},
-      {key:"sateayam",name:"Sate Ayam",protein:9,carbs:2,fats:10,energy:150},
       {key:"bakso",name:"Bakso",protein:6,carbs:5,fats:7,energy:120},
       {key:"miegoreng",name:"Mie Goreng",protein:8,carbs:60,fats:20,energy:400},
-      {key:"pecellele",name:"Pecel Lele",protein:20,carbs:10,fats:15,energy:260},
+      {key:"pepek",name:"Pempek",protein:12,carbs:30,fats:5,energy:220},
+      {key:"gado",name:"Gado Gado",protein:10,carbs:20,fats:10,energy:220},
+      {key:"sate",name:"Sate Ayam",protein:9,carbs:2,fats:10,energy:150},
       {key:"ayamgoreng",name:"Ayam Goreng",protein:25,carbs:0,fats:20,energy:300},
-      {key:"pempek",name:"Pempek",protein:12,carbs:30,fats:5,energy:220},
-      {key:"nasipadang",name:"Nasi Padang",protein:8,carbs:45,fats:15,energy:360},
       {key:"nasiuduk",name:"Nasi Uduk",protein:6,carbs:50,fats:15,energy:350},
       {key:"buburayam",name:"Bubur Ayam",protein:5,carbs:30,fats:3,energy:180},
-      {key:"gadogado",name:"Gado Gado",protein:10,carbs:20,fats:10,energy:220},
-      {key:"martabakmanis",name:"Martabak Manis",protein:6,carbs:45,fats:15,energy:330},
-      {key:"martabaktelor",name:"Martabak Telor",protein:14,carbs:10,fats:20,energy:300},
       {key:"ketoprak",name:"Ketoprak",protein:8,carbs:30,fats:10,energy:260},
       {key:"lontongsayur",name:"Lontong Sayur",protein:4,carbs:40,fats:8,energy:260},
+      {key:"sotobetawi",name:"Soto Betawi",protein:9,carbs:10,fats:20,energy:240},
+      {key:"pempekju",name:"Pempek Lenggang",protein:14,carbs:28,fats:6,energy:260},
+      {key:"martabak",name:"Martabak Telor",protein:14,carbs:10,fats:20,energy:300},
+      {key:"martabaks",name:"Martabak Manis",protein:6,carbs:45,fats:15,energy:330},
       {key:"sotobetawi",name:"Soto Betawi",protein:9,carbs:10,fats:20,energy:240}
-    ],db=Object.fromEntries(foods.map(f=>[f.key,f]));
+    ];
+    const db = Object.fromEntries(foods.map(f=>[f.key,f]));
 
-    const buildList=()=>{
-      const fl=foodList;fl.innerHTML="";foodSearch.value="";detailPan.classList.remove("show");
-      foods.forEach(f=>{
-        const d=document.createElement("div");
-        d.className="food-item";d.textContent=f.name;
-        d.onclick=()=>showDetail(f);
-        fl.append(d);
+    // refs
+    const foodList    = document.getElementById("foodList");
+    const foodSearch  = document.getElementById("foodSearch");
+    const detailBox   = document.getElementById("foodDetail");
+    const detailCont  = document.getElementById("detailContent");
+    document.getElementById("closeDetail").onclick = () => detailBox.style.display = "none";
+
+    // build searchable list
+    function buildList() {
+      foodList.innerHTML = "";
+      foods.forEach(f => {
+        const d = document.createElement("div");
+        d.className = "food-item";
+        d.textContent = f.name;
+        d.onclick = () => showDetail(f);
+        foodList.append(d);
       });
+    }
+    buildList();
+    foodSearch.oninput = () => {
+      const q = foodSearch.value.toLowerCase();
+      document.querySelectorAll(".food-item").forEach(el => {
+        el.style.display = el.textContent.toLowerCase().includes(q) ? "" : "none";
+      });
+      detailBox.style.display = "none";
     };
-    foodSearch.oninput=()=>{
-      const q=foodSearch.value.toLowerCase();
-      document.querySelectorAll(".food-item").forEach(el=>
-        el.style.display=el.textContent.toLowerCase().includes(q)?"":"none"
-      );
-      detailPan.classList.remove("show");
-    };
-    const showDetail=f=>{
-      foodDetails.innerHTML=`
+
+    function showDetail(f) {
+      detailCont.innerHTML = `
         <h4>${f.name}</h4>
-        <p>Protein: ${f.protein}g</p>
-        <p>Karbo: ${f.carbs}g</p>
-        <p>Lemak: ${f.fats}g</p>
+        <p>Protein: ${f.protein} g</p>
+        <p>Karbo: ${f.carbs} g</p>
+        <p>Lemak: ${f.fats} g</p>
         <p>Energi: ${f.energy} kcal</p>
       `;
-      detailPan.classList.add("show");
-    };
-    closeBtn.onclick=()=>detailPan.classList.remove("show");
+      detailBox.style.display = "block";
+    }
 
-    photoSubmit.onclick=async ()=>{
-      let src=imageUrl.value.trim();
-      if(!src && foodPhoto.files[0])src=URL.createObjectURL(foodPhoto.files[0]);
-      if(!src)return alert("Masukkan URL atau file.");
-      foodPreview.src=src;foodPreview.style.display="block";analysis.textContent="";
-      spin.classList.add("active");
-      const [res]=await ml5.imageClassifier("MobileNet").then(clf=>clf.classify(foodPreview));
-      const key=res.label.split(",")[0].toLowerCase(),info=db[key]||{name:key,protein:0,carbs:0,fats:0,energy:0};
-      const total=info.protein+info.carbs+info.fats||1;
-      const data=[info.protein,info.carbs,info.fats].map(x=>Math.round(x/total*100));
-      clearChart(macroPie);
-      macroPie._chart=new Chart(macroPie.getContext("2d"),{
+    // photo analyzer + pie chart
+    const preview   = document.getElementById("preview");
+    const analyzeBtn= document.getElementById("analyze");
+    const pieCan    = document.getElementById("pieChart");
+
+    analyzeBtn.onclick = async () => {
+      let src = document.getElementById("imageUrl").value.trim();
+      const file = document.getElementById("foodPhoto").files[0];
+      if (!src && file) src = URL.createObjectURL(file);
+      if (!src) return alert("Masukkan URL atau file.");
+
+      preview.src = src;
+      preview.style.display = "block";
+
+      // classify
+      const clf = await ml5.imageClassifier("MobileNet");
+      const [res] = await clf.classify(preview);
+      const key = res.label.split(",")[0].toLowerCase();
+      const info = db[key] || {name:key,protein:0,carbs:0,fats:0,energy:0};
+
+      // calc %
+      const total = info.protein + info.carbs + info.fats || 1;
+      const data  = [
+        Math.round(info.protein/total*100),
+        Math.round(info.carbs/total*100),
+        Math.round(info.fats/total*100)
+      ];
+
+      // draw pie
+      if (pieCan._chart) pieCan._chart.destroy();
+      pieCan._chart = new Chart(pieCan.getContext("2d"), {
         type:"pie",
-        data:{labels:["Protein","Karbo","Lemak"],datasets:[{data,backgroundColor:["#2a7955","#5fb58c","#e57373"]}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}}}
+        data:{ labels:["Protein","Karbo","Lemak"], datasets:[{ data, backgroundColor:["#2a7955","#5fb58c","#e57373"] }]},
+        options:{ responsive:true,maintainAspectRatio:false,plugins:{ legend:{ position:"bottom" }}}
       });
-      analysis.innerHTML=`<p><strong>${info.name}</strong>: ${info.energy} kcal</p>`;
-      spin.classList.remove("active");
     };
-
-    const clearChart=c=>c._chart&&c._chart.destroy();
   });
   </script>
 </body>
 </html>
-```
