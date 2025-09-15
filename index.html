@@ -12,17 +12,16 @@
       --mid:     #f5bc51;
       --card:    #ffffff;
       --text:    #333333;
+      --muted:   #777777;
       --radius:  12px;
       --shadow:  0 4px 20px rgba(0,0,0,0.05);
       --transition: 0.4s ease;
     }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-
     body {
       font-family: "Segoe UI", sans-serif;
       color: var(--text);
@@ -41,7 +40,6 @@
       50%  { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
     .container {
       max-width: 540px;
       margin: auto;
@@ -54,7 +52,6 @@
     .container.wide {
       max-width: 90%;
     }
-
     .logo {
       background: var(--primary);
       text-align: center;
@@ -69,7 +66,6 @@
       margin: 16px 0;
       color: var(--primary);
     }
-
     section {
       display: none;
       padding: 24px;
@@ -77,7 +73,6 @@
     section.active {
       display: block;
     }
-
     .step-title,
     .question-text {
       font-weight: 600;
@@ -87,7 +82,6 @@
     .step-title {
       font-size: 1.1rem;
     }
-
     textarea {
       width: 100%;
       padding: 12px;
@@ -96,7 +90,6 @@
       font-size: 1rem;
       resize: vertical;
     }
-
     .btn {
       display: block;
       width: 100%;
@@ -118,7 +111,14 @@
       background: var(--accent);
       transform: translateY(-2px);
     }
-
+    .search-input {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      border: 1px solid #cdefe1;
+      border-radius: var(--radius);
+      font-size: 1rem;
+    }
     .food-list {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -141,7 +141,12 @@
       color: #ffffff;
       border-color: var(--accent);
     }
-
+    .no-result {
+      grid-column: 1 / -1;
+      padding: 12px;
+      text-align: center;
+      color: var(--muted);
+    }
     .summary {
       background: #fcfcfc;
       padding: 16px;
@@ -149,7 +154,6 @@
       box-shadow: var(--shadow);
       margin-bottom: 16px;
     }
-
     #aiOverview,
     #aiReview {
       min-height: 100px;
@@ -160,7 +164,6 @@
       line-height: 1.6;
       margin-bottom: 16px;
     }
-
     .spinner-overlay {
       position: fixed;
       inset: 0;
@@ -194,6 +197,7 @@
     </div>
     <h1>Pola Makan Sehat</h1>
 
+    <!-- STEP 1: Survey -->
     <section id="stepSurvey" class="active">
       <div class="step-title">Survey Singkat</div>
       <div class="question-text" id="surveyQ"></div>
@@ -201,30 +205,38 @@
       <button id="surveyNext" class="btn">Next</button>
     </section>
 
+    <!-- STEP 2: AI Overview -->
     <section id="stepOverview">
       <div class="step-title">Overview AI</div>
       <div id="aiOverview">Memuat overview AI…</div>
       <button id="overviewNext" class="btn">Lanjut ke Pemilihan Menu</button>
     </section>
 
+    <!-- STEP 3A: Breakfast -->
     <section id="stepBreakfast">
       <div class="step-title">Sarapan (1 pilihan)</div>
+      <input type="text" id="search-breakfast" class="search-input" placeholder="Cari makanan…" />
       <div id="list-breakfast" class="food-list"></div>
       <button id="next-breakfast" class="btn" disabled>Next: Siang</button>
     </section>
 
+    <!-- STEP 3B: Lunch -->
     <section id="stepLunch">
       <div class="step-title">Makan Siang (1 pilihan)</div>
+      <input type="text" id="search-lunch" class="search-input" placeholder="Cari makanan…" />
       <div id="list-lunch" class="food-list"></div>
       <button id="next-lunch" class="btn" disabled>Next: Malam</button>
     </section>
 
+    <!-- STEP 3C: Dinner -->
     <section id="stepDinner">
       <div class="step-title">Makan Malam (1 pilihan)</div>
+      <input type="text" id="search-dinner" class="search-input" placeholder="Cari makanan…" />
       <div id="list-dinner" class="food-list"></div>
       <button id="next-dinner" class="btn" disabled>Lihat Ringkasan</button>
     </section>
 
+    <!-- STEP 4: Review -->
     <section id="stepReview">
       <div class="step-title">Ringkasan Pilihan</div>
       <div class="summary">
@@ -253,18 +265,29 @@
       "9. Apakah kamu hari ini sudah sarapan?",
       "10. Mengapa kebanyakan orang lebih suka mengonsumsi makanan junk food atau yang mengandung banyak minyak seperti gorengan?"
     ];
-    const foods = [
+
+    // main dishes
+    const foodsMain = [
       "Nasi Goreng","Soto Ayam","Rendang","Bakso","Mie Goreng","Pecel Lele",
       "Ayam Goreng","Pempek","Gado Gado","Ketoprak","Lontong Sayur","Soto Betawi",
       "Martabak Telor","Martabak Manis","Bubur Ayam","Nasi Padang","Nasi Uduk","Es Campur",
       "Scrambled Eggs","Pancakes","Grilled Chicken","Caesar Salad","Spaghetti Bolognese",
-      "Mashed Potatoes","Beef Steak","French Toast","Omelette","Chicken Sandwich",
-      "Shawarma","Falafel","Hummus & Pita","Kebab","Biryani","Roti Canai",
+      "Beef Steak","Chicken Sandwich","Shawarma","Falafel","Biryani","Roti Canai",
       "Chicken Tikka","Lamb Kofta","Tabbouleh","Samosa"
     ];
+    const sideDishes = ["Mashed Potatoes","Kentang Goreng"];
+    // combine
+    const foods = [];
+    foodsMain.forEach(main => {
+      sideDishes.forEach(side => {
+        foods.push(`${main} + ${side}`);
+      });
+    });
+
     let si = 0, sa = [], sel = {};
 
     const refs = {
+      mainCon: document.getElementById("mainContainer"),
       stepSurvey: document.getElementById("stepSurvey"),
       stepOverview: document.getElementById("stepOverview"),
       stepBreakfast: document.getElementById("stepBreakfast"),
@@ -276,122 +299,154 @@
       surveyNext: document.getElementById("surveyNext"),
       aiOverview: document.getElementById("aiOverview"),
       overviewNext: document.getElementById("overviewNext"),
+      searchBreakfast: document.getElementById("search-breakfast"),
       listBreakfast: document.getElementById("list-breakfast"),
-      listLunch: document.getElementById("list-lunch"),
-      listDinner: document.getElementById("list-dinner"),
       nextBreakfast: document.getElementById("next-breakfast"),
+      searchLunch: document.getElementById("search-lunch"),
+      listLunch: document.getElementById("list-lunch"),
       nextLunch: document.getElementById("next-lunch"),
+      searchDinner: document.getElementById("search-dinner"),
+      listDinner: document.getElementById("list-dinner"),
       nextDinner: document.getElementById("next-dinner"),
       selB: document.getElementById("sel-breakfast"),
       selL: document.getElementById("sel-lunch"),
       selD: document.getElementById("sel-dinner"),
       btnReview: document.getElementById("btnReview"),
       aiReview: document.getElementById("aiReview"),
-      spinner: document.getElementById("spinner"),
-      mainCon: document.getElementById("mainContainer")
+      spinner: document.getElementById("spinner")
     };
 
-    function renderSurvey(i){
+    function renderSurvey(i) {
       refs.surveyQ.textContent = surveyQs[i];
       refs.surveyA.value = "";
-      refs.surveyNext.textContent = i<surveyQs.length-1?"Next":"Submit";
+      refs.surveyNext.textContent = i < surveyQs.length - 1 ? "Next" : "Submit";
     }
     renderSurvey(si);
 
+    // survey step
     refs.surveyNext.onclick = async () => {
       const v = refs.surveyA.value.trim();
       if (!v) return alert("Isi jawaban.");
       sa[si] = v;
       if (si < surveyQs.length - 1) {
-        si++; renderSurvey(si);
+        si++;
+        renderSurvey(si);
       } else {
-        confetti({ particleCount:100, spread:60, origin:{ y:0.4 } });
-        refs.stepSurvey.classList.replace("active","hidden");
+        confetti({ particleCount: 100, spread: 60, origin: { y: 0.4 } });
+        refs.stepSurvey.classList.replace("active", "hidden");
         refs.mainCon.classList.add("wide");
         refs.stepOverview.classList.add("active");
         refs.spinner.classList.add("active");
-        refs.aiOverview.textContent="Memuat overview AI…";
-        const prompt = sa.map((a,i)=>`${surveyQs[i]} ${a}`).join("\n");
+        refs.aiOverview.textContent = "Memuat overview AI…";
+        const prompt = sa.map((a, i) => `${surveyQs[i]} ${a}`).join("\n");
         try {
           const res = await fetch(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
-            { method:"POST",
-              headers:{"Content-Type":"application/json"},
-              body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
             }
           );
           const j = await res.json();
-          let t = j.candidates?.[0]?.content?.parts?.[0]?.text||"Gagal.";
-          refs.aiOverview.innerHTML = t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
+          let t = j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
+          refs.aiOverview.innerHTML = t.replace(/\*\*/g, "").replace(/\n/g, "<br>");
         } catch {
-          refs.aiOverview.textContent="Error AI.";
+          refs.aiOverview.textContent = "Error AI.";
         } finally {
           refs.spinner.classList.remove("active");
         }
       }
     };
 
+    // move to meal selection
     refs.overviewNext.onclick = () => {
-      refs.stepOverview.classList.replace("active","hidden");
+      refs.stepOverview.classList.replace("active", "hidden");
       refs.stepBreakfast.classList.add("active");
-      setupMeal("breakfast", refs.listBreakfast, refs.nextBreakfast);
-      setupMeal("lunch",     refs.listLunch,     refs.nextLunch);
-      setupMeal("dinner",    refs.listDinner,    refs.nextDinner);
+      setupMeal("breakfast", refs.searchBreakfast, refs.listBreakfast, refs.nextBreakfast);
+      setupMeal("lunch",     refs.searchLunch,     refs.listLunch,     refs.nextLunch);
+      setupMeal("dinner",    refs.searchDinner,    refs.listDinner,    refs.nextDinner);
     };
 
-    function setupMeal(type, listEl, btnEl){
-      foods.forEach(name => {
-        const d = document.createElement("div");
-        d.className = "food-item";
-        d.textContent = name;
-        d.onclick = () => {
-          listEl.querySelectorAll(".food-item")
-            .forEach(el => el.classList.remove("selected"));
-          sel[type] = name;
-          d.classList.add("selected");
-          btnEl.disabled = false;
-        };
-        listEl.append(d);
+    // generic meal setup with search + filter + one-select
+    function setupMeal(type, searchEl, listEl, btnEl) {
+      function renderList(filter = "") {
+        listEl.innerHTML = "";
+        const filtered = foods.filter(f =>
+          f.toLowerCase().includes(filter.toLowerCase())
+        );
+        if (!filtered.length) {
+          const no = document.createElement("div");
+          no.className = "no-result";
+          no.textContent = "Makanan Tidak Ditemukan";
+          listEl.append(no);
+          return;
+        }
+        filtered.forEach(name => {
+          const d = document.createElement("div");
+          d.className = "food-item";
+          d.textContent = name;
+          d.onclick = () => {
+            listEl.querySelectorAll(".food-item")
+              .forEach(el => el.classList.remove("selected"));
+            sel[type] = name;
+            d.classList.add("selected");
+            btnEl.disabled = false;
+          };
+          listEl.append(d);
+        });
+      }
+
+      searchEl.addEventListener("input", () => {
+        btnEl.disabled = true;
+        sel[type] = null;
+        renderList(searchEl.value);
       });
+
+      // initial render
+      renderList();
     }
 
-    refs.nextBreakfast.onclick = ()=>{
-      refs.stepBreakfast.classList.replace("active","hidden");
+    // next steps
+    refs.nextBreakfast.onclick = () => {
+      refs.stepBreakfast.classList.replace("active", "hidden");
       refs.stepLunch.classList.add("active");
     };
-    refs.nextLunch.onclick = ()=>{
-      refs.stepLunch.classList.replace("active","hidden");
+    refs.nextLunch.onclick = () => {
+      refs.stepLunch.classList.replace("active", "hidden");
       refs.stepDinner.classList.add("active");
     };
-    refs.nextDinner.onclick = ()=>{
-      refs.stepDinner.classList.replace("active","hidden");
+    refs.nextDinner.onclick = () => {
+      refs.stepDinner.classList.replace("active", "hidden");
       refs.selB.textContent = sel.breakfast;
       refs.selL.textContent = sel.lunch;
       refs.selD.textContent = sel.dinner;
       refs.stepReview.classList.add("active");
     };
 
-    refs.btnReview.onclick = async ()=>{
+    // AI calorie review
+    refs.btnReview.onclick = async () => {
       refs.spinner.classList.add("active");
       const prompt =
-        `Tinjau menu saya dan hitung total kalori:\n`+
-        `Sarapan: ${sel.breakfast}\n`+
-        `Makan siang: ${sel.lunch}\n`+
-        `Makan malam: ${sel.dinner}\n`+
+        `Tinjau menu saya dan hitung total kalori:\n` +
+        `Sarapan: ${sel.breakfast}\n` +
+        `Makan siang: ${sel.lunch}\n` +
+        `Makan malam: ${sel.dinner}\n` +
         `Bandingkan dengan kisaran harian sehat (2000–2500 kkal) dan jawab tanpa bold.`;
       try {
         const res = await fetch(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
-          { method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
           }
         );
-        const j=await res.json();
-        let t=j.candidates?.[0]?.content?.parts?.[0]?.text||"Gagal.";
-        refs.aiReview.innerHTML=t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
+        const j = await res.json();
+        let t = j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
+        refs.aiReview.innerHTML = t.replace(/\*\*/g, "").replace(/\n/g, "<br>");
       } catch {
-        refs.aiReview.textContent="Error AI.";
+        refs.aiReview.textContent = "Error AI.";
       } finally {
         refs.spinner.classList.remove("active");
       }
