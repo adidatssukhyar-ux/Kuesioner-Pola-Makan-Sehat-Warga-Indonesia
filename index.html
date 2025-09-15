@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Pola Makan Sehat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
   <style>
     :root {
@@ -11,29 +11,40 @@
       --accent:  #5c97f5;
       --card:    #ffffff;
       --text:    #333333;
-      --muted:   #777777;
       --radius:  12px;
       --shadow:  0 4px 20px rgba(0,0,0,0.05);
+      --transition: 0.4s ease;
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+
+    /* full‐height + center container */
+    html, body {
+      height: 100%;
     }
     body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
       font-family: "Segoe UI", sans-serif;
       color: var(--text);
+      margin: 0;
       padding: 20px;
       background: linear-gradient(135deg, var(--primary), #ffffff);
     }
+
     .container {
+      width: 100%;
       max-width: 540px;
-      margin: auto;
       background: var(--card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow: hidden;
+      transition: max-width var(--transition);
     }
+    .container.wide {
+      max-width: 90%;
+    }
+
     .logo {
       background: var(--primary);
       text-align: center;
@@ -48,6 +59,7 @@
       margin: 16px 0;
       color: var(--primary);
     }
+
     section {
       display: none;
       padding: 24px;
@@ -55,6 +67,7 @@
     section.active {
       display: block;
     }
+
     .step-title,
     .question-text {
       font-weight: 600;
@@ -64,6 +77,7 @@
     .step-title {
       font-size: 1.1rem;
     }
+
     textarea {
       width: 100%;
       padding: 12px;
@@ -72,6 +86,7 @@
       font-size: 1rem;
       resize: vertical;
     }
+
     .btn {
       display: block;
       width: 100%;
@@ -83,7 +98,7 @@
       border-radius: var(--radius);
       font-size: 1rem;
       cursor: pointer;
-      transition: background 0.3s, transform 0.3s;
+      transition: background var(--transition), transform var(--transition);
     }
     .btn:disabled {
       background: #cccccc;
@@ -93,6 +108,7 @@
       background: var(--accent);
       transform: translateY(-2px);
     }
+
     .food-list {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -108,13 +124,14 @@
       border-radius: var(--radius);
       text-align: center;
       cursor: pointer;
-      transition: background 0.3s, border-color 0.3s;
+      transition: background var(--transition), border-color var(--transition);
     }
     .food-item.selected {
       background: var(--accent);
       color: #ffffff;
       border-color: var(--accent);
     }
+
     .summary {
       background: #fcfcfc;
       padding: 16px;
@@ -122,6 +139,7 @@
       box-shadow: var(--shadow);
       margin-bottom: 16px;
     }
+
     #aiOverview,
     #aiReview {
       min-height: 100px;
@@ -132,6 +150,7 @@
       line-height: 1.6;
       margin-bottom: 16px;
     }
+
     .spinner-overlay {
       position: fixed;
       inset: 0;
@@ -153,9 +172,7 @@
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -165,6 +182,7 @@
     </div>
     <h1>Pola Makan Sehat</h1>
 
+    <!-- STEP 1: Survey -->
     <section id="stepSurvey" class="active">
       <div class="step-title">Survey Singkat</div>
       <div class="question-text" id="surveyQ"></div>
@@ -172,30 +190,35 @@
       <button id="surveyNext" class="btn">Next</button>
     </section>
 
+    <!-- STEP 2: AI Overview -->
     <section id="stepOverview">
       <div class="step-title">Overview AI</div>
       <div id="aiOverview">Memuat overview AI…</div>
       <button id="overviewNext" class="btn">Lanjut ke Pemilihan Menu</button>
     </section>
 
+    <!-- STEP 3A: Breakfast -->
     <section id="stepBreakfast">
       <div class="step-title">Sarapan (1 pilihan)</div>
       <div id="list-breakfast" class="food-list"></div>
       <button id="next-breakfast" class="btn" disabled>Next: Siang</button>
     </section>
 
+    <!-- STEP 3B: Lunch -->
     <section id="stepLunch">
       <div class="step-title">Makan Siang (1 pilihan)</div>
       <div id="list-lunch" class="food-list"></div>
       <button id="next-lunch" class="btn" disabled>Next: Malam</button>
     </section>
 
+    <!-- STEP 3C: Dinner -->
     <section id="stepDinner">
       <div class="step-title">Makan Malam (1 pilihan)</div>
       <div id="list-dinner" class="food-list"></div>
       <button id="next-dinner" class="btn" disabled>Lihat Ringkasan</button>
     </section>
 
+    <!-- STEP 4: Review -->
     <section id="stepReview">
       <div class="step-title">Ringkasan Pilihan</div>
       <div class="summary">
@@ -208,9 +231,7 @@
     </section>
   </div>
 
-  <div id="spinner" class="spinner-overlay">
-    <div class="spinner"></div>
-  </div>
+  <div id="spinner" class="spinner-overlay"><div class="spinner"></div></div>
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -237,8 +258,8 @@
     ];
     let si = 0, sa = [], sel = {};
 
-    // refs
     const refs = {
+      mainCon: document.getElementById("mainContainer"),
       stepSurvey: document.getElementById("stepSurvey"),
       stepOverview: document.getElementById("stepOverview"),
       stepBreakfast: document.getElementById("stepBreakfast"),
@@ -261,8 +282,7 @@
       selD: document.getElementById("sel-dinner"),
       btnReview: document.getElementById("btnReview"),
       aiReview: document.getElementById("aiReview"),
-      spinner: document.getElementById("spinner"),
-      mainCon: document.getElementById("mainContainer")
+      spinner: document.getElementById("spinner")
     };
 
     function renderSurvey(i) {
@@ -282,6 +302,7 @@
       } else {
         confetti({ particleCount: 100, spread: 60, origin: { y: 0.4 } });
         refs.stepSurvey.classList.replace("active", "hidden");
+        refs.mainCon.classList.add("wide");         // widen container here
         refs.stepOverview.classList.add("active");
         refs.spinner.classList.add("active");
         refs.aiOverview.textContent = "Memuat overview AI…";
@@ -309,7 +330,6 @@
     refs.overviewNext.onclick = () => {
       refs.stepOverview.classList.replace("active", "hidden");
       refs.stepBreakfast.classList.add("active");
-      refs.mainCon.classList.add("wide");
       setupMeal("breakfast", refs.listBreakfast, refs.nextBreakfast);
       setupMeal("lunch",     refs.listLunch,     refs.nextLunch);
       setupMeal("dinner",    refs.listDinner,    refs.nextDinner);
@@ -331,15 +351,15 @@
     }
 
     refs.nextBreakfast.onclick = () => {
-      refs.stepBreakfast.classList.replace("active", "hidden");
+      refs.stepBreakfast.classList.replace("active","hidden");
       refs.stepLunch.classList.add("active");
     };
     refs.nextLunch.onclick = () => {
-      refs.stepLunch.classList.replace("active", "hidden");
+      refs.stepLunch.classList.replace("active","hidden");
       refs.stepDinner.classList.add("active");
     };
     refs.nextDinner.onclick = () => {
-      refs.stepDinner.classList.replace("active", "hidden");
+      refs.stepDinner.classList.replace("active","hidden");
       refs.selB.textContent = sel.breakfast;
       refs.selL.textContent = sel.lunch;
       refs.selD.textContent = sel.dinner;
