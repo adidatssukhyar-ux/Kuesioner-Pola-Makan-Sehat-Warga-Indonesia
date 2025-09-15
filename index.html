@@ -1,31 +1,50 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Pola Makan Sehat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
   <style>
     :root {
       --primary: #35a35c;
-      --accent:  #5c97f5;
-      --card:    #ffffff;
-      --text:    #333333;
-      --muted:   #777777;
-      --radius:  12px;
-      --shadow:  0 4px 20px rgba(0,0,0,0.05);
+      --accent: #5c97f5;
+      --bg-start: #35a35c;
+      --bg-mid: #5c97f5;
+      --bg-end: #f5bc51;
+      --card: #ffffff;
+      --text: #333333;
+      --radius: 12px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      --transition: 0.4s ease;
     }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
+
     body {
       font-family: "Segoe UI", sans-serif;
       color: var(--text);
       padding: 20px;
-      background: linear-gradient(135deg, var(--primary), #ffffff);
+      background: linear-gradient(
+        120deg,
+        var(--bg-start),
+        var(--bg-mid),
+        var(--bg-end)
+      );
+      background-size: 600% 600%;
+      animation: gradientShift 16s ease infinite;
     }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
     .container {
       max-width: 540px;
       margin: auto;
@@ -33,37 +52,50 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow: hidden;
+      transition: max-width var(--transition);
     }
+
+    .container.wide {
+      max-width: 90%;
+    }
+
     .logo {
       background: var(--primary);
       text-align: center;
       padding: 16px;
     }
+
     .logo img {
       width: 60px;
       border-radius: 8px;
     }
+
     h1 {
       text-align: center;
       margin: 16px 0;
       color: var(--primary);
     }
+
     section {
       display: none;
       padding: 24px;
     }
+
     section.active {
       display: block;
     }
+
     .step-title,
     .question-text {
       font-weight: 600;
       color: var(--primary);
       margin-bottom: 12px;
     }
+
     .step-title {
       font-size: 1.1rem;
     }
+
     textarea {
       width: 100%;
       padding: 12px;
@@ -72,6 +104,7 @@
       font-size: 1rem;
       resize: vertical;
     }
+
     .btn {
       display: block;
       width: 100%;
@@ -83,16 +116,19 @@
       border-radius: var(--radius);
       font-size: 1rem;
       cursor: pointer;
-      transition: background 0.3s, transform 0.3s;
+      transition: background var(--transition), transform var(--transition);
     }
+
     .btn:disabled {
       background: #cccccc;
       cursor: not-allowed;
     }
+
     .btn:not(:disabled):hover {
       background: var(--accent);
       transform: translateY(-2px);
     }
+
     .food-list {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -101,6 +137,7 @@
       overflow-y: auto;
       margin-bottom: 12px;
     }
+
     .food-item {
       padding: 10px;
       background: #fcfcfc;
@@ -108,13 +145,16 @@
       border-radius: var(--radius);
       text-align: center;
       cursor: pointer;
-      transition: background 0.3s, border-color 0.3s;
+      transition: background var(--transition),
+                  border-color var(--transition);
     }
+
     .food-item.selected {
       background: var(--accent);
       color: #ffffff;
       border-color: var(--accent);
     }
+
     .summary {
       background: #fcfcfc;
       padding: 16px;
@@ -122,6 +162,7 @@
       box-shadow: var(--shadow);
       margin-bottom: 16px;
     }
+
     #aiOverview,
     #aiReview {
       min-height: 100px;
@@ -132,6 +173,7 @@
       line-height: 1.6;
       margin-bottom: 16px;
     }
+
     .spinner-overlay {
       position: fixed;
       inset: 0;
@@ -142,9 +184,11 @@
       visibility: hidden;
       z-index: 1000;
     }
+
     .spinner-overlay.active {
       visibility: visible;
     }
+
     .spinner {
       width: 50px;
       height: 50px;
@@ -153,6 +197,7 @@
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
+
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -165,6 +210,7 @@
     </div>
     <h1>Pola Makan Sehat</h1>
 
+    <!-- Survey -->
     <section id="stepSurvey" class="active">
       <div class="step-title">Survey Singkat</div>
       <div class="question-text" id="surveyQ"></div>
@@ -172,30 +218,35 @@
       <button id="surveyNext" class="btn">Next</button>
     </section>
 
+    <!-- AI Overview -->
     <section id="stepOverview">
       <div class="step-title">Overview AI</div>
       <div id="aiOverview">Memuat overview AI…</div>
       <button id="overviewNext" class="btn">Lanjut ke Pemilihan Menu</button>
     </section>
 
+    <!-- Breakfast -->
     <section id="stepBreakfast">
       <div class="step-title">Sarapan (1 pilihan)</div>
       <div id="list-breakfast" class="food-list"></div>
       <button id="next-breakfast" class="btn" disabled>Next: Siang</button>
     </section>
 
+    <!-- Lunch -->
     <section id="stepLunch">
       <div class="step-title">Makan Siang (1 pilihan)</div>
       <div id="list-lunch" class="food-list"></div>
       <button id="next-lunch" class="btn" disabled>Next: Malam</button>
     </section>
 
+    <!-- Dinner -->
     <section id="stepDinner">
       <div class="step-title">Makan Malam (1 pilihan)</div>
       <div id="list-dinner" class="food-list"></div>
       <button id="next-dinner" class="btn" disabled>Lihat Ringkasan</button>
     </section>
 
+    <!-- Review -->
     <section id="stepReview">
       <div class="step-title">Ringkasan Pilihan</div>
       <div class="summary">
@@ -237,7 +288,6 @@
     ];
     let si = 0, sa = [], sel = {};
 
-    // refs
     const refs = {
       stepSurvey: document.getElementById("stepSurvey"),
       stepOverview: document.getElementById("stepOverview"),
@@ -278,26 +328,33 @@
       if (!v) return alert("Isi jawaban.");
       sa[si] = v;
       if (si < surveyQs.length - 1) {
-        si++; renderSurvey(si);
+        si++;
+        renderSurvey(si);
       } else {
         confetti({ particleCount: 100, spread: 60, origin: { y: 0.4 } });
         refs.stepSurvey.classList.replace("active", "hidden");
         refs.stepOverview.classList.add("active");
         refs.spinner.classList.add("active");
         refs.aiOverview.textContent = "Memuat overview AI…";
-        const prompt = sa.map((a,i)=>${surveyQs[i]} ${a}).join("\n");
+        const prompt = sa.map((a, i) => `${surveyQs[i]} ${a}`).join("\n");
         try {
           const res = await fetch(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+              })
             }
           );
           const j = await res.json();
-          let t = j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
-          refs.aiOverview.innerHTML = t.replace(/\\/g,"").replace(/\n/g,"<br>");
+          let t =
+            j.candidates?.[0]?.content?.parts?.[0]?.text ||
+            "Maaf, AI gagal membuat review.";
+          refs.aiOverview.innerHTML = t
+            .replace(/\*\*/g, "")
+            .replace(/\n/g, "<br>");
         } catch {
           refs.aiOverview.textContent = "Error AI.";
         } finally {
@@ -311,8 +368,8 @@
       refs.stepBreakfast.classList.add("active");
       refs.mainCon.classList.add("wide");
       setupMeal("breakfast", refs.listBreakfast, refs.nextBreakfast);
-      setupMeal("lunch",     refs.listLunch,     refs.nextLunch);
-      setupMeal("dinner",    refs.listDinner,    refs.nextDinner);
+      setupMeal("lunch", refs.listLunch, refs.nextLunch);
+      setupMeal("dinner", refs.listDinner, refs.nextDinner);
     };
 
     function setupMeal(type, listEl, btnEl) {
@@ -321,7 +378,9 @@
         d.className = "food-item";
         d.textContent = name;
         d.onclick = () => {
-          listEl.querySelectorAll(".food-item").forEach(el => el.classList.remove("selected"));
+          listEl
+            .querySelectorAll(".food-item")
+            .forEach(el => el.classList.remove("selected"));
           sel[type] = name;
           d.classList.add("selected");
           btnEl.disabled = false;
@@ -349,23 +408,27 @@
     refs.btnReview.onclick = async () => {
       refs.spinner.classList.add("active");
       const prompt =
-        Tinjau menu saya dan hitung total kalori:\n +
-        Sarapan: ${sel.breakfast}\n +
-        Makan siang: ${sel.lunch}\n +
-        Makan malam: ${sel.dinner}\n +
-        Bandingkan dengan kisaran harian sehat (2000–2500 kkal) dan jawab tanpa bold.;
+        `Tinjau menu saya dan hitung total kalori:\n` +
+        `Sarapan: ${sel.breakfast}\n` +
+        `Makan siang: ${sel.lunch}\n` +
+        `Makan malam: ${sel.dinner}\n` +
+        `Bandingkan dengan kisaran harian sehat (2000–2500 kkal) dan jawab tanpa bold.`;
       try {
         const res = await fetch(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }]
+            })
           }
         );
         const j = await res.json();
-        let t = j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
-        refs.aiReview.innerHTML = t.replace(/\\/g,"").replace(/\n/g,"<br>");
+        let t =
+          j.candidates?.[0]?.content?.parts?.[0]?.text ||
+          "Maaf, AI gagal membuat review.";
+        refs.aiReview.innerHTML = t.replace(/\*\*/g, "").replace(/\n/g, "<br>");
       } catch {
         refs.aiReview.textContent = "Error AI.";
       } finally {
