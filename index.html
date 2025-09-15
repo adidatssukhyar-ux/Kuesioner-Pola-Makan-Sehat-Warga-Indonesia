@@ -26,12 +26,7 @@
       font-family: "Segoe UI", sans-serif;
       color: var(--text);
       padding: 20px;
-      background: linear-gradient(
-        120deg,
-        var(--primary),
-        var(--accent),
-        var(--mid)
-      );
+      background: linear-gradient(120deg, var(--primary), var(--accent), var(--mid));
       background-size: 600% 600%;
       animation: gradientShift 16s ease infinite;
     }
@@ -82,19 +77,21 @@
     .step-title {
       font-size: 1.1rem;
     }
-    textarea {
+    textarea,
+    .search-input {
       width: 100%;
       padding: 12px;
       border: 1px solid #cdefe1;
       border-radius: var(--radius);
       font-size: 1rem;
       resize: vertical;
+      margin-bottom: 12px;
     }
     .btn {
       display: block;
       width: 100%;
       padding: 14px;
-      margin-top: 24px;
+      margin-top: 12px;
       background: var(--primary);
       color: #ffffff;
       border: none;
@@ -110,14 +107,6 @@
     .btn:not(:disabled):hover {
       background: var(--accent);
       transform: translateY(-2px);
-    }
-    .search-input {
-      width: 100%;
-      padding: 10px 12px;
-      margin-bottom: 12px;
-      border: 1px solid #cdefe1;
-      border-radius: var(--radius);
-      font-size: 1rem;
     }
     .food-list {
       display: grid;
@@ -192,12 +181,13 @@
 </head>
 <body>
   <div class="container" id="mainContainer">
+
     <div class="logo">
       <img src="https://yt3.ggpht.com/a/AATXAJwRp9NDxa9WX7nh8uuO9TUCUCMqCRE5yJp4CQ=s900-c-k-c0xffffffff-no-rj-mo" alt="Logo">
     </div>
     <h1>Pola Makan Sehat</h1>
 
-    <!-- Survey -->
+    <!-- STEP 1: Survey -->
     <section id="stepSurvey" class="active">
       <div class="step-title">Survey Singkat</div>
       <div class="question-text" id="surveyQ"></div>
@@ -205,14 +195,14 @@
       <button id="surveyNext" class="btn">Next</button>
     </section>
 
-    <!-- AI Overview -->
+    <!-- STEP 2: AI Overview -->
     <section id="stepOverview">
       <div class="step-title">Overview AI</div>
       <div id="aiOverview">Memuat overview AI…</div>
       <button id="overviewNext" class="btn">Lanjut ke Pemilihan Menu</button>
     </section>
 
-    <!-- Breakfast -->
+    <!-- STEP 3A: Breakfast -->
     <section id="stepBreakfast">
       <div class="step-title">Sarapan: Pilih 1 Main & 1 Side</div>
       <input id="search-breakfast-main" class="search-input" placeholder="Cari main dish…" />
@@ -222,7 +212,7 @@
       <button id="next-breakfast" class="btn" disabled>Next: Siang</button>
     </section>
 
-    <!-- Lunch -->
+    <!-- STEP 3B: Lunch -->
     <section id="stepLunch">
       <div class="step-title">Makan Siang: Pilih 1 Main & 1 Side</div>
       <input id="search-lunch-main" class="search-input" placeholder="Cari main dish…" />
@@ -232,30 +222,42 @@
       <button id="next-lunch" class="btn" disabled>Next: Malam</button>
     </section>
 
-    <!-- Dinner -->
+    <!-- STEP 3C: Dinner -->
     <section id="stepDinner">
       <div class="step-title">Makan Malam: Pilih 1 Main & 1 Side</div>
       <input id="search-dinner-main" class="search-input" placeholder="Cari main dish…" />
       <div id="list-dinner-main" class="food-list"></div>
       <input id="search-dinner-side" class="search-input" placeholder="Cari side dish…" />
       <div id="list-dinner-side" class="food-list"></div>
-      <button id="next-dinner" class="btn" disabled>Lihat Ringkasan</button>
+      <button id="next-dinner" class="btn" disabled>Lanjut: Lainnya</button>
     </section>
 
-    <!-- Review -->
+    <!-- STEP 4: Lainnya -->
+    <section id="stepOther">
+      <div class="step-title">Lainnya</div>
+      <div class="question-text">Tulis makanan lain yang tidak ada di daftar</div>
+      <textarea id="input-other" rows="2" placeholder="Masukkan nama makanan lain…"></textarea>
+      <button id="next-other" class="btn">Next: Ringkasan</button>
+    </section>
+
+    <!-- STEP 5: Review -->
     <section id="stepReview">
       <div class="step-title">Ringkasan Pilihan</div>
       <div class="summary">
         <strong>Sarapan:</strong> <span id="sel-breakfast"></span><br>
         <strong>Siang:</strong> <span id="sel-lunch"></span><br>
-        <strong>Malam:</strong> <span id="sel-dinner"></span>
+        <strong>Malam:</strong> <span id="sel-dinner"></span><br>
+        <strong>Lainnya:</strong> <span id="sel-other"></span>
       </div>
       <button id="btnReview" class="btn">Dapatkan Review AI</button>
       <div id="aiReview">Menunggu...</div>
     </section>
+
   </div>
 
-  <div id="spinner" class="spinner-overlay"><div class="spinner"></div></div>
+  <div id="spinner" class="spinner-overlay">
+    <div class="spinner"></div>
+  </div>
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -280,7 +282,6 @@
       "Beef Steak","Chicken Sandwich","Shawarma","Falafel","Biryani","Roti Canai",
       "Chicken Tikka","Lamb Kofta","Tabbouleh","Samosa"
     ];
-
     const sides = [
       "Nasi Putih","Kentang Goreng","Mashed Potatoes","Sayur Bening","Sambal",
       "Kerupuk","Tempe Goreng","Tahu Goreng","Salad Buah","Urap Sayur",
@@ -288,60 +289,74 @@
       "Quinoa","Kuskus","Jagung Rebus","Tumis Brokoli","Kentang Hasselback"
     ];
 
-    let si = 0, sa = [], selMain = {}, selSide = {};
+    let si = 0,
+        sa = [],
+        selMain = {},
+        selSide = {},
+        selOther = "";
 
-    const refs = id => document.getElementById(id);
-
-    const R = {
-      stepSurvey: refs("stepSurvey"),
-      stepOverview: refs("stepOverview"),
-      stepBreakfast: refs("stepBreakfast"),
-      stepLunch: refs("stepLunch"),
-      stepDinner: refs("stepDinner"),
-      stepReview: refs("stepReview"),
-      surveyQ: refs("surveyQ"),
-      surveyA: refs("surveyA"),
-      surveyNext: refs("surveyNext"),
-      aiOverview: refs("aiOverview"),
-      overviewNext: refs("overviewNext"),
-      spinner: refs("spinner"),
-      mainCon: refs("mainContainer"),
+    const R = id => document.getElementById(id);
+    const refs = {
+      stepSurvey: R("stepSurvey"),
+      stepOverview: R("stepOverview"),
+      stepBreakfast: R("stepBreakfast"),
+      stepLunch: R("stepLunch"),
+      stepDinner: R("stepDinner"),
+      stepOther: R("stepOther"),
+      stepReview: R("stepReview"),
+      surveyQ: R("surveyQ"),
+      surveyA: R("surveyA"),
+      surveyNext: R("surveyNext"),
+      aiOverview: R("aiOverview"),
+      overviewNext: R("overviewNext"),
+      spinner: R("spinner"),
+      mainCon: R("mainContainer"),
       // breakfast
-      searchBreakfastMain: refs("search-breakfast-main"),
-      listBreakfastMain: refs("list-breakfast-main"),
-      searchBreakfastSide: refs("search-breakfast-side"),
-      listBreakfastSide: refs("list-breakfast-side"),
-      nextBreakfast: refs("next-breakfast"),
+      searchBreakfastMain: R("search-breakfast-main"),
+      listBreakfastMain: R("list-breakfast-main"),
+      searchBreakfastSide: R("search-breakfast-side"),
+      listBreakfastSide: R("list-breakfast-side"),
+      nextBreakfast: R("next-breakfast"),
       // lunch
-      searchLunchMain: refs("search-lunch-main"),
-      listLunchMain: refs("list-lunch-main"),
-      searchLunchSide: refs("search-lunch-side"),
-      listLunchSide: refs("list-lunch-side"),
-      nextLunch: refs("next-lunch"),
+      searchLunchMain: R("search-lunch-main"),
+      listLunchMain: R("list-lunch-main"),
+      searchLunchSide: R("search-lunch-side"),
+      listLunchSide: R("list-lunch-side"),
+      nextLunch: R("next-lunch"),
       // dinner
-      searchDinnerMain: refs("search-dinner-main"),
-      listDinnerMain: refs("list-dinner-main"),
-      searchDinnerSide: refs("search-dinner-side"),
-      listDinnerSide: refs("list-dinner-side"),
-      nextDinner: refs("next-dinner"),
+      searchDinnerMain: R("search-dinner-main"),
+      listDinnerMain: R("list-dinner-main"),
+      searchDinnerSide: R("search-dinner-side"),
+      listDinnerSide: R("list-dinner-side"),
+      nextDinner: R("next-dinner"),
+      // other
+      inputOther: R("input-other"),
+      nextOther: R("next-other"),
       // review
-      selB: refs("sel-breakfast"),
-      selL: refs("sel-lunch"),
-      selD: refs("sel-dinner"),
-      btnReview: refs("btnReview"),
-      aiReview: refs("aiReview")
+      selB: R("sel-breakfast"),
+      selL: R("sel-lunch"),
+      selD: R("sel-dinner"),
+      selO: R("sel-other"),
+      btnReview: R("btnReview"),
+      aiReview: R("aiReview")
     };
 
-    // Survey render
+    function showSection(sec) {
+      [refs.stepSurvey, refs.stepOverview, refs.stepBreakfast,
+       refs.stepLunch, refs.stepDinner, refs.stepOther, refs.stepReview]
+        .forEach(s => s.classList.remove("active"));
+      sec.classList.add("active");
+    }
+
     function renderSurvey(i) {
-      R.surveyQ.textContent = surveyQs[i];
-      R.surveyA.value = "";
-      R.surveyNext.textContent = i < surveyQs.length - 1 ? "Next" : "Submit";
+      refs.surveyQ.textContent = surveyQs[i];
+      refs.surveyA.value = "";
+      refs.surveyNext.textContent = i < surveyQs.length - 1 ? "Next" : "Submit";
     }
     renderSurvey(si);
 
-    R.surveyNext.onclick = async () => {
-      const v = R.surveyA.value.trim();
+    refs.surveyNext.onclick = async () => {
+      const v = refs.surveyA.value.trim();
       if (!v) return alert("Isi jawaban.");
       sa[si] = v;
       if (si < surveyQs.length - 1) {
@@ -349,11 +364,10 @@
         renderSurvey(si);
       } else {
         confetti({ particleCount:100, spread:60, origin:{ y:0.4 } });
-        R.stepSurvey.classList.replace("active","hidden");
-        R.mainCon.classList.add("wide");
-        R.stepOverview.classList.add("active");
-        R.spinner.classList.add("active");
-        R.aiOverview.textContent = "Memuat overview AI…";
+        showSection(refs.stepOverview);
+        refs.mainCon.classList.add("wide");
+        refs.spinner.classList.add("active");
+        refs.aiOverview.textContent = "Memuat overview AI…";
         const prompt = sa.map((a,i)=>`${surveyQs[i]} ${a}`).join("\n");
         try {
           const res = await fetch(
@@ -364,38 +378,36 @@
             }
           );
           const j = await res.json();
-          let t = j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
-          R.aiOverview.innerHTML = t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
+          let t = j.candidates?.[0]?.content?.parts[0]?.text || "Gagal.";
+          refs.aiOverview.innerHTML = t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
         } catch {
-          R.aiOverview.textContent = "Error AI.";
+          refs.aiOverview.textContent = "Error AI.";
         } finally {
-          R.spinner.classList.remove("active");
+          refs.spinner.classList.remove("active");
         }
       }
     };
 
-    R.overviewNext.onclick = () => {
-      R.stepOverview.classList.replace("active","hidden");
-      R.stepBreakfast.classList.add("active");
+    refs.overviewNext.onclick = () => {
+      showSection(refs.stepBreakfast);
       setupMeal("breakfast",
-        R.searchBreakfastMain, R.listBreakfastMain,
-        R.searchBreakfastSide, R.listBreakfastSide,
-        R.nextBreakfast);
+        refs.searchBreakfastMain, refs.listBreakfastMain,
+        refs.searchBreakfastSide, refs.listBreakfastSide,
+        refs.nextBreakfast);
       setupMeal("lunch",
-        R.searchLunchMain, R.listLunchMain,
-        R.searchLunchSide, R.listLunchSide,
-        R.nextLunch);
+        refs.searchLunchMain, refs.listLunchMain,
+        refs.searchLunchSide, refs.listLunchSide,
+        refs.nextLunch);
       setupMeal("dinner",
-        R.searchDinnerMain, R.listDinnerMain,
-        R.searchDinnerSide, R.listDinnerSide,
-        R.nextDinner);
+        refs.searchDinnerMain, refs.listDinnerMain,
+        refs.searchDinnerSide, refs.listDinnerSide,
+        refs.nextDinner);
     };
 
     function setupMeal(type, searchM, listM, searchS, listS, btn) {
       selMain[type] = null;
       selSide[type] = null;
-
-      function renderList(source, filter, container) {
+      function renderList(source, filter, container, isMain) {
         container.innerHTML = "";
         const matches = source.filter(item =>
           item.toLowerCase().includes(filter.toLowerCase())
@@ -412,76 +424,68 @@
           d.className = "food-item";
           d.textContent = name;
           d.onclick = () => {
-            // clear selection
-            Array.from(container.children).forEach(el =>
-              el.classList.remove("selected")
-            );
+            container.querySelectorAll(".food-item").forEach(el =>
+              el.classList.remove("selected"));
             d.classList.add("selected");
-            if (container === listM) selMain[type] = name;
+            if (isMain) selMain[type] = name;
             else selSide[type] = name;
             btn.disabled = !(selMain[type] && selSide[type]);
           };
           container.append(d);
         });
       }
-
       searchM.addEventListener("input", () => {
         selMain[type] = null;
         btn.disabled = true;
-        renderList(mains, searchM.value, listM);
+        renderList(mains, searchM.value, listM, true);
       });
       searchS.addEventListener("input", () => {
         selSide[type] = null;
         btn.disabled = true;
-        renderList(sides, searchS.value, listS);
+        renderList(sides, searchS.value, listS, false);
       });
-
-      // initial
-      renderList(mains, "", listM);
-      renderList(sides, "", listS);
+      renderList(mains, "", listM, true);
+      renderList(sides, "", listS, false);
       btn.disabled = true;
     }
 
-    R.nextBreakfast.onclick = () => {
-      R.stepBreakfast.classList.replace("active","hidden");
-      R.stepLunch.classList.add("active");
-    };
-    R.nextLunch.onclick = () => {
-      R.stepLunch.classList.replace("active","hidden");
-      R.stepDinner.classList.add("active");
-    };
-    R.nextDinner.onclick = () => {
-      R.stepDinner.classList.replace("active","hidden");
-      R.selB.textContent = `${selMain.breakfast} + ${selSide.breakfast}`;
-      R.selL.textContent = `${selMain.lunch} + ${selSide.lunch}`;
-      R.selD.textContent = `${selMain.dinner} + ${selSide.dinner}`;
-      R.stepReview.classList.add("active");
+    refs.nextBreakfast.onclick = () => showSection(refs.stepLunch);
+    refs.nextLunch.onclick = () => showSection(refs.stepDinner);
+    refs.nextDinner.onclick = () => showSection(refs.stepOther);
+
+    refs.nextOther.onclick = () => {
+      selOther = refs.inputOther.value.trim() || "—";
+      refs.selO.textContent = selOther;
+      showSection(refs.stepReview);
+      refs.selB.textContent = `${selMain.breakfast} + ${selSide.breakfast}`;
+      refs.selL.textContent = `${selMain.lunch} + ${selSide.lunch}`;
+      refs.selD.textContent = `${selMain.dinner} + ${selSide.dinner}`;
     };
 
-    R.btnReview.onclick = async () => {
-      R.spinner.classList.add("active");
+    refs.btnReview.onclick = async () => {
+      refs.spinner.classList.add("active");
       const prompt =
         `Tinjau menu saya dan hitung total kalori:\n` +
         `Sarapan: ${selMain.breakfast} + ${selSide.breakfast}\n` +
         `Makan siang: ${selMain.lunch} + ${selSide.lunch}\n` +
         `Makan malam: ${selMain.dinner} + ${selSide.dinner}\n` +
+        `Lainnya: ${selOther}\n` +
         `Bandingkan dengan kisaran harian sehat (2000–2500 kkal) dan jawab tanpa bold.`;
       try {
         const res = await fetch(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
-          {
-            method: "POST",
-            headers: {"Content-Type":"application/json"},
+          { method:"POST",
+            headers:{"Content-Type":"application/json"},
             body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
           }
         );
         const j = await res.json();
-        let t = j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
-        R.aiReview.innerHTML = t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
+        let t = j.candidates?.[0]?.content?.parts[0]?.text || "Gagal.";
+        refs.aiReview.innerHTML = t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
       } catch {
-        R.aiReview.textContent = "Error AI.";
+        refs.aiReview.textContent = "Error AI.";
       } finally {
-        R.spinner.classList.remove("active");
+        refs.spinner.classList.remove("active");
       }
     };
   });
