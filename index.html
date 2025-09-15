@@ -8,14 +8,12 @@
   <style>
     :root {
       --primary: #35a35c;
-      --accent: #5c97f5;
-      --bg-start: #35a35c;
-      --bg-mid: #5c97f5;
-      --bg-end: #f5bc51;
-      --card: #ffffff;
-      --text: #333333;
-      --radius: 12px;
-      --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+      --accent:  #5c97f5;
+      --mid:     #f5bc51;
+      --card:    #ffffff;
+      --text:    #333333;
+      --radius:  12px;
+      --shadow:  0 4px 20px rgba(0,0,0,0.05);
       --transition: 0.4s ease;
     }
 
@@ -31,14 +29,13 @@
       padding: 20px;
       background: linear-gradient(
         120deg,
-        var(--bg-start),
-        var(--bg-mid),
-        var(--bg-end)
+        var(--primary),
+        var(--accent),
+        var(--mid)
       );
       background-size: 600% 600%;
       animation: gradientShift 16s ease infinite;
     }
-
     @keyframes gradientShift {
       0%   { background-position: 0% 50%; }
       50%  { background-position: 100% 50%; }
@@ -54,7 +51,6 @@
       overflow: hidden;
       transition: max-width var(--transition);
     }
-
     .container.wide {
       max-width: 90%;
     }
@@ -64,12 +60,10 @@
       text-align: center;
       padding: 16px;
     }
-
     .logo img {
       width: 60px;
       border-radius: 8px;
     }
-
     h1 {
       text-align: center;
       margin: 16px 0;
@@ -80,7 +74,6 @@
       display: none;
       padding: 24px;
     }
-
     section.active {
       display: block;
     }
@@ -91,7 +84,6 @@
       color: var(--primary);
       margin-bottom: 12px;
     }
-
     .step-title {
       font-size: 1.1rem;
     }
@@ -118,12 +110,10 @@
       cursor: pointer;
       transition: background var(--transition), transform var(--transition);
     }
-
     .btn:disabled {
       background: #cccccc;
       cursor: not-allowed;
     }
-
     .btn:not(:disabled):hover {
       background: var(--accent);
       transform: translateY(-2px);
@@ -137,7 +127,6 @@
       overflow-y: auto;
       margin-bottom: 12px;
     }
-
     .food-item {
       padding: 10px;
       background: #fcfcfc;
@@ -145,10 +134,8 @@
       border-radius: var(--radius);
       text-align: center;
       cursor: pointer;
-      transition: background var(--transition),
-                  border-color var(--transition);
+      transition: background var(--transition), border-color var(--transition);
     }
-
     .food-item.selected {
       background: var(--accent);
       color: #ffffff;
@@ -184,11 +171,9 @@
       visibility: hidden;
       z-index: 1000;
     }
-
     .spinner-overlay.active {
       visibility: visible;
     }
-
     .spinner {
       width: 50px;
       height: 50px;
@@ -197,7 +182,6 @@
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -210,7 +194,6 @@
     </div>
     <h1>Pola Makan Sehat</h1>
 
-    <!-- Survey -->
     <section id="stepSurvey" class="active">
       <div class="step-title">Survey Singkat</div>
       <div class="question-text" id="surveyQ"></div>
@@ -218,35 +201,30 @@
       <button id="surveyNext" class="btn">Next</button>
     </section>
 
-    <!-- AI Overview -->
     <section id="stepOverview">
       <div class="step-title">Overview AI</div>
       <div id="aiOverview">Memuat overview AI…</div>
       <button id="overviewNext" class="btn">Lanjut ke Pemilihan Menu</button>
     </section>
 
-    <!-- Breakfast -->
     <section id="stepBreakfast">
       <div class="step-title">Sarapan (1 pilihan)</div>
       <div id="list-breakfast" class="food-list"></div>
       <button id="next-breakfast" class="btn" disabled>Next: Siang</button>
     </section>
 
-    <!-- Lunch -->
     <section id="stepLunch">
       <div class="step-title">Makan Siang (1 pilihan)</div>
       <div id="list-lunch" class="food-list"></div>
       <button id="next-lunch" class="btn" disabled>Next: Malam</button>
     </section>
 
-    <!-- Dinner -->
     <section id="stepDinner">
       <div class="step-title">Makan Malam (1 pilihan)</div>
       <div id="list-dinner" class="food-list"></div>
       <button id="next-dinner" class="btn" disabled>Lihat Ringkasan</button>
     </section>
 
-    <!-- Review -->
     <section id="stepReview">
       <div class="step-title">Ringkasan Pilihan</div>
       <div class="summary">
@@ -259,9 +237,7 @@
     </section>
   </div>
 
-  <div id="spinner" class="spinner-overlay">
-    <div class="spinner"></div>
-  </div>
+  <div id="spinner" class="spinner-overlay"><div class="spinner"></div></div>
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -315,11 +291,10 @@
       mainCon: document.getElementById("mainContainer")
     };
 
-    function renderSurvey(i) {
+    function renderSurvey(i){
       refs.surveyQ.textContent = surveyQs[i];
       refs.surveyA.value = "";
-      refs.surveyNext.textContent =
-        i < surveyQs.length - 1 ? "Next" : "Submit";
+      refs.surveyNext.textContent = i<surveyQs.length-1?"Next":"Submit";
     }
     renderSurvey(si);
 
@@ -328,35 +303,28 @@
       if (!v) return alert("Isi jawaban.");
       sa[si] = v;
       if (si < surveyQs.length - 1) {
-        si++;
-        renderSurvey(si);
+        si++; renderSurvey(si);
       } else {
-        confetti({ particleCount: 100, spread: 60, origin: { y: 0.4 } });
-        refs.stepSurvey.classList.replace("active", "hidden");
+        confetti({ particleCount:100, spread:60, origin:{ y:0.4 } });
+        refs.stepSurvey.classList.replace("active","hidden");
+        refs.mainCon.classList.add("wide");
         refs.stepOverview.classList.add("active");
         refs.spinner.classList.add("active");
-        refs.aiOverview.textContent = "Memuat overview AI…";
-        const prompt = sa.map((a, i) => `${surveyQs[i]} ${a}`).join("\n");
+        refs.aiOverview.textContent="Memuat overview AI…";
+        const prompt = sa.map((a,i)=>`${surveyQs[i]} ${a}`).join("\n");
         try {
           const res = await fetch(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-              })
+            { method:"POST",
+              headers:{"Content-Type":"application/json"},
+              body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
             }
           );
           const j = await res.json();
-          let t =
-            j.candidates?.[0]?.content?.parts?.[0]?.text ||
-            "Maaf, AI gagal membuat review.";
-          refs.aiOverview.innerHTML = t
-            .replace(/\*\*/g, "")
-            .replace(/\n/g, "<br>");
+          let t = j.candidates?.[0]?.content?.parts?.[0]?.text||"Gagal.";
+          refs.aiOverview.innerHTML = t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
         } catch {
-          refs.aiOverview.textContent = "Error AI.";
+          refs.aiOverview.textContent="Error AI.";
         } finally {
           refs.spinner.classList.remove("active");
         }
@@ -364,22 +332,20 @@
     };
 
     refs.overviewNext.onclick = () => {
-      refs.stepOverview.classList.replace("active", "hidden");
+      refs.stepOverview.classList.replace("active","hidden");
       refs.stepBreakfast.classList.add("active");
-      refs.mainCon.classList.add("wide");
       setupMeal("breakfast", refs.listBreakfast, refs.nextBreakfast);
-      setupMeal("lunch", refs.listLunch, refs.nextLunch);
-      setupMeal("dinner", refs.listDinner, refs.nextDinner);
+      setupMeal("lunch",     refs.listLunch,     refs.nextLunch);
+      setupMeal("dinner",    refs.listDinner,    refs.nextDinner);
     };
 
-    function setupMeal(type, listEl, btnEl) {
+    function setupMeal(type, listEl, btnEl){
       foods.forEach(name => {
         const d = document.createElement("div");
         d.className = "food-item";
         d.textContent = name;
         d.onclick = () => {
-          listEl
-            .querySelectorAll(".food-item")
+          listEl.querySelectorAll(".food-item")
             .forEach(el => el.classList.remove("selected"));
           sel[type] = name;
           d.classList.add("selected");
@@ -389,48 +355,43 @@
       });
     }
 
-    refs.nextBreakfast.onclick = () => {
-      refs.stepBreakfast.classList.replace("active", "hidden");
+    refs.nextBreakfast.onclick = ()=>{
+      refs.stepBreakfast.classList.replace("active","hidden");
       refs.stepLunch.classList.add("active");
     };
-    refs.nextLunch.onclick = () => {
-      refs.stepLunch.classList.replace("active", "hidden");
+    refs.nextLunch.onclick = ()=>{
+      refs.stepLunch.classList.replace("active","hidden");
       refs.stepDinner.classList.add("active");
     };
-    refs.nextDinner.onclick = () => {
-      refs.stepDinner.classList.replace("active", "hidden");
+    refs.nextDinner.onclick = ()=>{
+      refs.stepDinner.classList.replace("active","hidden");
       refs.selB.textContent = sel.breakfast;
       refs.selL.textContent = sel.lunch;
       refs.selD.textContent = sel.dinner;
       refs.stepReview.classList.add("active");
     };
 
-    refs.btnReview.onclick = async () => {
+    refs.btnReview.onclick = async ()=>{
       refs.spinner.classList.add("active");
       const prompt =
-        `Tinjau menu saya dan hitung total kalori:\n` +
-        `Sarapan: ${sel.breakfast}\n` +
-        `Makan siang: ${sel.lunch}\n` +
-        `Makan malam: ${sel.dinner}\n` +
+        `Tinjau menu saya dan hitung total kalori:\n`+
+        `Sarapan: ${sel.breakfast}\n`+
+        `Makan siang: ${sel.lunch}\n`+
+        `Makan malam: ${sel.dinner}\n`+
         `Bandingkan dengan kisaran harian sehat (2000–2500 kkal) dan jawab tanpa bold.`;
       try {
         const res = await fetch(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: prompt }] }]
-            })
+          { method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
           }
         );
-        const j = await res.json();
-        let t =
-          j.candidates?.[0]?.content?.parts?.[0]?.text ||
-          "Maaf, AI gagal membuat review.";
-        refs.aiReview.innerHTML = t.replace(/\*\*/g, "").replace(/\n/g, "<br>");
+        const j=await res.json();
+        let t=j.candidates?.[0]?.content?.parts?.[0]?.text||"Gagal.";
+        refs.aiReview.innerHTML=t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
       } catch {
-        refs.aiReview.textContent = "Error AI.";
+        refs.aiReview.textContent="Error AI.";
       } finally {
         refs.spinner.classList.remove("active");
       }
