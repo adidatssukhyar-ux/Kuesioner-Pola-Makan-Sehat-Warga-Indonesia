@@ -1,118 +1,287 @@
-<!-- FULL index.html for Nutrilix -->
-<!-- ✅ All features complete, styled, and ready to go -->
-<!-- ✅ Includes Shrikhand font, tagline, and team credit -->
-<!-- ✅ Gemini-powered AI review of survey and meals -->
-<!-- ✅ Custom input for food with fallback logic -->
-<!-- ✅ Responsive layout and clean UI -->
-
-<!-- [START OF FILE] -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Nutrilix</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Nutrilix – Hidup sehat itu penting!</title>
+  <!-- Google Fonts: Shrikhand -->
   <link href="https://fonts.googleapis.com/css2?family=Shrikhand&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
+  <!-- Bootstrap 5 CSS (untuk responsif/kec. tombol) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    /* Styles omitted for brevity — you already have them from previous turns */
+    body { font-family: 'Segoe UI', sans-serif; background: #f7fafc;}
+    .shrikhand-tagline {
+      font-family: 'Shrikhand', cursive;
+      font-size: 2.2rem;
+      color: #1e8c2f;
+      margin-top: 1.2rem;
+      text-align: center;
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 2px #e6ffee;
+    }
+    .nutrilix-box {
+      max-width: 540px;
+      margin: 30px auto 20px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 16px 0 rgba(110,190,113,0.05);
+      padding: 2.2rem 2rem 1.1rem 2rem;
+      position: relative;
+    }
+    .step-btn {
+      min-width: 160px;
+      font-size: 1.07rem;
+      margin-top: 16px;
+    }
+    .nutrilix-watermark {
+      display: block;
+      font-size: .96rem;
+      color: #558a44;
+      text-align: center;
+      font-style: italic;
+      margin-top: 6px;
+      margin-bottom: 7px;
+      user-select: none;
+    }
+    .d-none {display: none!important;}
+    .progress {
+      height: 7px;
+      background: #d9d9d9;
+      margin: 25px 0 18px 0;
+    }
+    .nutrilix-step-indicator {
+      text-align: center;
+      margin-bottom: 1.3rem;
+      font-weight: 500;
+    }
+    .nutrilix-label {
+      font-weight: 400;
+      margin-bottom: 3px;
+      display: inline-block;
+    }
+    .nutrilix-select {margin-bottom: 12px;}
+    .nutrilix-step { margin-top: 2px;}
+    .ai-review-section {
+      min-height: 70px;
+      padding: 13px 10px;
+      background: #f6fff8;
+      border: 1.4px dashed #baeacf;
+      border-radius: 8px;
+      margin-top: .9rem;
+      font-size: 1.07rem;
+    }
+    @media (max-width: 610px) {
+      .nutrilix-box { padding: 1.2rem 8px 1.2rem 8px;}
+    }
+    @media (max-width: 399px) {
+      .note-btn, .step-btn {width: 100%;font-size: 1em;}
+      .nutrilix-box {padding: 0.5rem 1px;}
+    }
   </style>
 </head>
 <body>
-  <div class="container" id="main">
-    <div class="logo">
-      <img src="https://yt3.ggpht.com/a/AATXAJwRp9NDxa9WX7nh8uuO9TUCUCMqCRE5yJp4CQ=s900-c-k-c0xffffffff-no-rj-mo" alt="Logo">
+  <header>
+    <div class="shrikhand-tagline">Hidup sehat itu penting!</div>
+  </header>
+
+  <main>
+    <div class="nutrilix-box" id="nutrilixWizard">
+      <section id="step-1" class="nutrilix-step">
+        <div class="nutrilix-step-indicator">Langkah 1 dari 3</div>
+        <div class="progress"><div class="progress-bar bg-success" style="width:34%"></div></div>
+        <form autocomplete="off" onsubmit="return false;">
+          <div class="mb-3">
+            <label class="nutrilix-label" for="namaPengguna">Nama Lengkap</label>
+            <input type="text" class="form-control" id="namaPengguna" maxlength="32" required>
+          </div>
+          <div class="mb-3">
+            <label class="nutrilix-label" for="usiaPengguna">Usia (tahun)</label>
+            <input type="number" min="9" max="120" class="form-control" id="usiaPengguna" required>
+          </div>
+          <div class="mb-3">
+            <label class="nutrilix-label" for="emailPengguna">Email</label>
+            <input type="email" class="form-control" id="emailPengguna" maxlength="48" required>
+          </div>
+        </form>
+        <button class="btn btn-success step-btn" id="nextBtn-1">Next</button>
+        <span class="nutrilix-watermark">Karya Kelompok 1 Proyek 1</span>
+      </section>
+      
+      <section id="step-2" class="nutrilix-step d-none">
+        <div class="nutrilix-step-indicator">Langkah 2 dari 3</div>
+        <div class="progress"><div class="progress-bar bg-success" style="width:67%"></div></div>
+        <form autocomplete="off" onsubmit="return false;">
+          <div class="mb-3">
+            <label class="nutrilix-label">Apa tujuan utama pola makan sehat Anda?</label>
+            <select class="form-select nutrilix-select" id="tujuanPolaMakan" required>
+              <option value="">Pilih tujuan Anda</option>
+              <option value="menurunkan berat badan">Menurunkan berat badan</option>
+              <option value="meningkatkan energi">Meningkatkan energi</option>
+              <option value="memperbaiki metabolisme">Memperbaiki metabolisme</option>
+              <option value="menjaga kesehatan">Menjaga kesehatan</option>
+              <option value="lainnya">Lainnya</option>
+            </select>
+            <input class="form-control mt-2 d-none" id="tujuanLainnya" type="text" maxlength="30" placeholder="Sebutkan tujuan lain...">
+          </div>
+          <div class="mb-3">
+            <label class="nutrilix-label">Apakah Anda punya alergi makanan?</label><br>
+            <input type="checkbox" id="alergiSusu"> <label for="alergiSusu">Susu</label>
+            <input type="checkbox" id="alergiTelur"> <label for="alergiTelur">Telur</label>
+            <input type="checkbox" id="alergiKacang"> <label for="alergiKacang">Kacang</label>
+            <input type="checkbox" id="alergiSeafood"> <label for="alergiSeafood">Seafood</label>
+            <input type="checkbox" id="alergiLain"> <label for="alergiLain">Lainnya</label><br>
+            <input class="form-control mt-2 d-none" id="alergiLainnya" type="text" maxlength="30" placeholder="Alergi lainnya...">
+          </div>
+        </form>
+        <button class="btn btn-secondary step-btn" id="backBtn-2">Back</button>
+        <button class="btn btn-success step-btn ms-2" id="nextBtn-2">Next</button>
+        <span class="nutrilix-watermark">Karya Kelompok 1 Proyek 1</span>
+      </section>
+
+      <section id="step-3" class="nutrilix-step d-none">
+        <div class="nutrilix-step-indicator">Langkah 3 dari 3</div>
+        <div class="progress"><div class="progress-bar bg-success" style="width:100%"></div></div>
+        <form autocomplete="off" onsubmit="return false;">
+          <div class="mb-3">
+            <label class="nutrilix-label">Pilih menu makanan favorit Anda:</label>
+            <select class="form-select nutrilix-select" id="menuFavorit" required>
+              <option value="">Pilih satu menu</option>
+              <option value="Nasi Merah & Ayam Panggang">Nasi Merah & Ayam Panggang</option>
+              <option value="Salad Sayur Segar">Salad Sayur Segar</option>
+              <option value="Tumis Brokoli Tempe">Tumis Brokoli Tempe</option>
+              <option value="Oatmeal Buah">Oatmeal Buah</option>
+              <option value="Sop Ikan">Sop Ikan</option>
+              <option value="Smoothie Bowl">Smoothie Bowl</option>
+              <option value="lainnya">Lainnya</option>
+            </select>
+            <input class="form-control mt-2 d-none" id="menuFavoritLain" type="text" placeholder="Menu lainnya...">
+          </div>
+          <div class="mb-3">
+            <label class="nutrilix-label">Saran/menu lainnya? (opsional)</label>
+            <textarea class="form-control" rows="2" id="menuSaran" maxlength="100"></textarea>
+          </div>
+        </form>
+        <button class="btn btn-secondary step-btn" id="backBtn-3">Back</button>
+        <button class="btn btn-success step-btn ms-2" id="selesaiBtn">Selesai</button>
+        <span class="nutrilix-watermark">Karya Kelompok 1 Proyek 1</span>
+      </section>
+
+      <section id="step-review" class="nutrilix-step d-none text-center">
+        <h4>Terima kasih telah mengisi survei Nutrilix!</h4>
+        <p class="mt-3">Berdasarkan pilihan menu Anda, dapatkan review AI dari Nutrilix:</p>
+        <button class="btn btn-primary step-btn" id="reviewAIbtn">Dapatkan Review Menu</button>
+        <span class="nutrilix-watermark">Karya Kelompok 1 Proyek 1</span>
+        <div class="ai-review-section d-none mt-3" id="aiReview"></div>
+        <button class="btn btn-outline-secondary step-btn mt-4" onclick="window.location.reload()">Ulangi Survey</button>
+      </section>
     </div>
-    <h1>Nutrilix</h1>
-    <p class="tagline">Hidup sehat itu penting!</p>
+  </main>
 
-    <!-- STEP 1: Survey -->
-    <section id="step1" class="active">
-      <div class="step-title">Survey Singkat</div>
-      <div class="question-text" id="q1"></div>
-      <textarea id="a1" rows="3" placeholder="Tuliskan jawaban…"></textarea>
-      <button id="next1" class="btn">Next</button>
-      <p class="project2">Karya Kelompok 1 Proyek 1</p>
-    </section>
+  <footer class="text-center mt-4 mb-3 text-muted" style="font-size: 1rem;">
+    &copy; 2025 Nutrilix – Hidup sehat, Bahagia!
+  </footer>
 
-    <!-- STEP 2: Review Jawaban -->
-    <section id="step2">
-      <div class="step-title">Review Jawaban</div>
-      <div id="aiOverview">Memuat…</div>
-      <button id="next2" class="btn">Lanjut Pilih Menu</button>
-      <p class="project2">Karya Kelompok 1 Proyek 1</p>
-    </section>
+<!-- JavaScript Logika Multi-Step, Validasi, "Lainnya", Review AI -->
+<script>
+  // State wizard
+  let currentStep = 1;
+  // Show current step
+  function showStep(step) {
+    ['step-1','step-2','step-3','step-review'].forEach(function(id) {
+      document.getElementById(id).classList.add('d-none');
+    });
+    document.getElementById('step-'+step).classList.remove('d-none');
+    currentStep = +step;
+  }
+  // Next/Back handler
+  document.getElementById('nextBtn-1').onclick = function() {
+    // Validasi form 1
+    let nama = document.getElementById('namaPengguna').value.trim(),
+        usia = document.getElementById('usiaPengguna').value.trim(),
+        email = document.getElementById('emailPengguna').value.trim();
+    if (!nama || !usia || !email) {
+      alert('Harap isi semua data profil Anda!');
+      return;
+    }
+    showStep(2);
+  };
+  document.getElementById('nextBtn-2').onclick = function() {
+    // Validasi tujuan dan alergi
+    let tujuan = document.getElementById('tujuanPolaMakan').value,
+        tujuanLain = document.getElementById('tujuanLainnya');
+    if (!tujuan || (tujuan==='lainnya' && !tujuanLain.value.trim())) {
+      alert('Pilih/isi tujuan pola makan!');
+      return;
+    }
+    let alergiLainChecked = document.getElementById('alergiLain').checked ? document.getElementById('alergiLainnya').value.trim() : true;
+    if (document.getElementById('alergiLain').checked && !alergiLainChecked) {
+      alert('Sebutkan alergi lainnya atau hilangkan centang!');
+      return;
+    }
+    showStep(3);
+  };
+  document.getElementById('backBtn-2').onclick = function() {showStep(1);};
+  document.getElementById('nextBtn-3').onclick = function() {
+    // Validasi menu
+    let menu = document.getElementById('menuFavorit').value;
+    if (!menu) { alert('Pilih menu makanan favorit Anda!'); return; }
+    if (menu === 'lainnya' && !document.getElementById('menuFavoritLain').value.trim()) {
+      alert('Isi menu favorit lainnya!'); return;
+    }
+    showStep('review');
+  };
+  document.getElementById('backBtn-3').onclick = function() {showStep(2);};
+  document.getElementById('selesaiBtn').onclick = function() {
+    showStep('review');
+  };
 
-    <!-- STEP 3A: Breakfast -->
-    <section id="step-b">
-      <div class="step-title">Sarapan: Pilih Main & Side</div>
-      <input id="search-b-main" class="search-input" placeholder="Cari main…">
-      <div id="list-b-main" class="food-list"></div>
-      <button id="other-b-main" class="btn">Lainnya</button>
-      <div id="custom-b-main" style="display:none">
-        <textarea id="input-b-main" rows="2" placeholder="Tulis makanan lain…"></textarea>
-        <button id="done-b-main" class="btn">Selesai</button>
-      </div>
-      <input id="search-b-side" class="search-input" placeholder="Cari side…">
-      <div id="list-b-side" class="food-list"></div>
-      <button id="next-b" class="btn" disabled>Next: Siang</button>
-      <p class="project2">Karya Kelompok 1 Proyek 1</p>
-    </section>
+  // "Lainnya" toggle (Tujuan)
+  document.getElementById('tujuanPolaMakan').onchange = function(){
+    let v = this.value;
+    document.getElementById('tujuanLainnya').classList.toggle('d-none', v !== 'lainnya');
+  };
+  // "Lainnya" toggle (Alergi)
+  document.getElementById('alergiLain').onchange = function(){
+    document.getElementById('alergiLainnya').classList.toggle('d-none', !this.checked);
+  };
+  // "Lainnya" toggle (Menu Favorit)
+  document.getElementById('menuFavorit').onchange = function(){
+    let v = this.value;
+    document.getElementById('menuFavoritLain').classList.toggle('d-none', v!=='lainnya');
+  };
 
-    <!-- STEP 3B: Lunch -->
-    <section id="step-l">
-      <div class="step-title">Makan Siang: Pilih Main & Side</div>
-      <input id="search-l-main" class="search-input" placeholder="Cari main…">
-      <div id="list-l-main" class="food-list"></div>
-      <button id="other-l-main" class="btn">Lainnya</button>
-      <div id="custom-l-main" style="display:none">
-        <textarea id="input-l-main" rows="2" placeholder="Tulis makanan lain…"></textarea>
-        <button id="done-l-main" class="btn">Selesai</button>
-      </div>
-      <input id="search-l-side" class="search-input" placeholder="Cari side…">
-      <div id="list-l-side" class="food-list"></div>
-      <button id="next-l" class="btn" disabled>Next: Malam</button>
-      <p class="project2">Karya Kelompok 1 Proyek 1</p>
-    </section>
+  // AI Review Demo Logic
+  document.getElementById('reviewAIbtn').onclick = function() {
+    let nama = document.getElementById('namaPengguna').value.trim() || 'Pengguna';
+    let menu = document.getElementById('menuFavorit').value;
+    let menuTxt = menu === 'lainnya'
+      ? document.getElementById('menuFavoritLain').value
+      : menu;
+    // Saran AI (dummy, real diintegrasikan API)
+    let reviewText;
+    if(!menuTxt) { reviewText = "Pilih dulu menu, ya!"; }
+    else if(/goreng/i.test(menuTxt)) {
+      reviewText = `Halo ${nama}, menu "${menuTxt}" memang lezat! Namun, sesekali bisa diganti dengan olahan kukus/panggang agar lebih sehat.`;
+    } else if(/salad|sayur|brokoli|oatmeal|smoothie|buah|ikan/i.test(menuTxt)) {
+      reviewText = `Pilihan mantap, ${nama}! Menu "${menuTxt}" kaya serat, vitamin, dan rendah kalori. Cocok untuk pola makan sehat.`;
+    } else {
+      reviewText = `Menu "${menuTxt}" boleh dinikmati, tetap imbangi dengan sayur & air putih ya, ${nama}. Konsistensi itu kunci!`;
+    }
+    let aiReviewDiv = document.getElementById('aiReview');
+    aiReviewDiv.innerHTML = '<b>Review Nutrilix AI:</b> '+reviewText;
+    aiReviewDiv.classList.remove('d-none');
+  };
 
-    <!-- STEP 3C: Dinner -->
-    <section id="step-d">
-      <div class="step-title">Makan Malam: Pilih Main & Side</div>
-      <input id="search-d-main" class="search-input" placeholder="Cari main…">
-      <div id="list-d-main" class="food-list"></div>
-      <button id="other-d-main" class="btn">Lainnya</button>
-      <div id="custom-d-main" style="display:none">
-        <textarea id="input-d-main" rows="2" placeholder="Tulis makanan lain…"></textarea>
-        <button id="done-d-main" class="btn">Selesai</button>
-      </div>
-      <input id="search-d-side" class="search-input" placeholder="Cari side…">
-      <div id="list-d-side" class="food-list"></div>
-      <button id="next-d" class="btn" disabled>Lanjut: Ringkasan</button>
-      <p class="project2">Karya Kelompok 1 Proyek 1</p>
-    </section>
+  // Inisialisasi Step 1
+  showStep(1);
 
-    <!-- STEP 4: Ringkasan & Review Akhir -->
-    <section id="step4">
-      <div class="step-title">Ringkasan Menu</div>
-      <div class="summary">
-        <strong>Sarapan:</strong> <span id="sel-b"></span><br>
-        <strong>Siang:</strong> <span id="sel-l"></span><br>
-        <strong>Malam:</strong> <span id="sel-d"></span>
-      </div>
-      <button id="final" class="btn">Dapatkan Review Menu</button>
-      <p class="project2">Karya Kelompok 1 Proyek 1</p>
-      <div id="aiReview">Menunggu…</div>
-    </section>
-  </div>
+  // Prevent Enter to submit/refresh
+  window.addEventListener('keydown', function(e) {
+    if(e.key==='Enter' && document.activeElement.tagName==='INPUT') e.preventDefault();
+  });
 
-  <div class="spinner" id="spinner">
-    <div class="spinner-circle"></div>
-  </div>
-
-  <script>
-    // ✅ Full script logic already provided in previous turns
-    // You can paste the full JavaScript from earlier responses here
-    // Or ask me to repackage it as a separate file (e.g. script.js)
-  </script>
+</script>
+<!-- Bootstrap JS (opsional: untuk komponen) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
