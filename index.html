@@ -99,6 +99,8 @@
 
   <script>
   document.addEventListener("DOMContentLoaded", () => {
+    const API_KEY = "AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0";
+    const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
     const qs = [
       "1. Menurut kamu junk food sehat atau tidak?",
       "2. Seberapa sering kamu makan junk food?",
@@ -111,16 +113,30 @@
       "9. Apakah hari ini sudah sarapan?",
       "10. Mengapa suka gorengan?"
     ];
-    const mains = ["Nasi Goreng","Soto Ayam","Rendang","Bakso","Mie Goreng","Pecel Lele","Ayam Goreng","Pempek","Gado Gado","Ketoprak","Lontong Sayur","Soto Betawi","Martabak Telor","Martabak Manis","Bubur Ayam","Nasi Padang","Nasi Uduk","Es Campur","Scrambled Eggs","Pancakes","Grilled Chicken","Caesar Salad","Spaghetti Bolognese","Beef Steak","Chicken Sandwich","Shawarma","Falafel","Biryani","Roti Canai","Chicken Tikka","Lamb Kofta","Tabbouleh","Samosa"];
+    const mains = ["Nasi Goreng","Soto Ayam","Rendang","Bakso","Mie Goreng","Pecel Lele","Ayam Goreng","Pempek","Gado Gado","Ketoprak","Lontong Sayur","Soto Betawi","Martabak Telor","Martabak Manis","Bubur Ayam","Nasi Padang","Nasi Uduk","Scrambled Eggs","Pancakes","Grilled Chicken","Caesar Salad","Spaghetti Bolognese","Beef Steak","Chicken Sandwich","Shawarma","Falafel","Biryani","Roti Canai","Chicken Tikka","Lamb Kofta","Tabbouleh","Samosa"];
     const sides = ["Nasi Putih","Kentang Goreng","Mashed Potatoes","Sayur Bening","Sambal","Kerupuk","Tempe Goreng","Tahu Goreng","Salad Buah","Urap Sayur","Kentang Rebus","Kentang Panggang","Oatmeal","Roti Tawar","Polenta","Quinoa","Kuskus","Jagung Rebus","Tumis Brokoli","Hasselback Potato"];
 
     const $ = id => document.getElementById(id);
-    const show = id => { document.querySelectorAll("section,.meal").forEach(el=>el.classList.remove("active")); $(id).classList.add("active"); };
-
-    // Mock AI (keeps app fully offline)
+    const show = id => {
+      document.querySelectorAll("section,.meal").forEach(el => el.classList.remove("active"));
+      $(id).classList.add("active");
+    };
     const aiFetch = async (prompt, out) => {
       $("spinner").classList.add("active");
-      setTimeout(()=>{ out.innerHTML = prompt.replace(/\n/g,"<br>"); $("spinner").classList.remove("active"); }, 500);
+      try {
+        const res = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
+        });
+        const json = await res.json();
+        const text = json.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal memuat AI.";
+        out.innerHTML = text.replace(/\n/g, "<br>");
+      } catch (e) {
+        out.innerHTML = "Error: " + e.message;
+      } finally {
+        $("spinner").classList.remove("active");
+      }
     };
 
     // Survey
@@ -131,49 +147,72 @@
       if (!v) return alert("Isi jawaban…");
       answers[idx] = v;
       if (idx < qs.length - 1) {
-        idx++; $("q1").textContent = qs[idx]; $("a1").value = "";
+        idx++;
+        $("q1").textContent = qs[idx];
+        $("a1").value = "";
         $("next1").textContent = idx < qs.length - 1 ? "Next" : "Submit";
       } else {
         show("step2");
-        aiFetch("Tinjau survey:\n"+qs.map((q,i)=>q+" "+(answers[i]||"")).join("\n"), $("aiOverview"));
+        aiFetch(
+          "Tinjau survey:\n" + qs.map((q,i) => q + " " + answers[i]).join("\n"),
+          $("aiOverview")
+        );
       }
     };
 
-    // Meals
+    // Meal steps
     $("next2").onclick = () => {
       $("main").classList.add("wide");
-      const keys = ["b","l","d"], labels = ["Sarapan","Makan Siang","Makan Malam"], nextTxt = ["Next: Siang","Next: Malam","Lanjut: Ringkasan"];
-      const selections = {};
-      keys.forEach((k,i)=>{
+      const keys = ["b","l","d"], labels = ["Sarapan","Siang","Malam"], nextTxt = ["Next: Siang","Next: Malam","Lanjut: Ringkasan"];
+      const sel = {};
+      keys.forEach((k,i) => {
         const frag = document.getElementById("tpl").content.cloneNode(true);
-        const sec = frag.querySelector("section"); sec.id = "step"+k;
+        const sec = frag.querySelector("section"); sec.id = "step" + k;
         sec.querySelector(".step-title").textContent = labels[i];
-        const sm=sec.querySelector(".search-main"), lm=sec.querySelector(".list-main");
-        const om=sec.querySelector(".other-main"), cm=sec.querySelector(".custom-main");
-        const im=sec.querySelector(".input-main"), dm=sec.querySelector(".done-main");
-        const ss=sec.querySelector(".search-side"), ls=sec.querySelector(".list-side");
-        const nb=sec.querySelector(".next-meal"); nb.textContent = nextTxt[i];
-        let selM="",selS="";
+        const sm = sec.querySelector(".search-main"), lm = sec.querySelector(".list-main");
+        const om = sec.querySelector(".other-main"), cm = sec.querySelector(".custom-main");
+        const im = sec.querySelector(".input-main"), dm = sec.querySelector(".done-main");
+        const ss = sec.querySelector(".search-side"), ls = sec.querySelector(".list-side");
+        const nb = sec.querySelector(".next-meal"); nb.textContent = nextTxt[i];
+        let m="", s="";
 
-        const render=(arr,filter,container,isMain)=>{
-          container.innerHTML="";
-          const list=arr.filter(x=>x.toLowerCase().includes(filter.toLowerCase()));
-          if(!list.length){container.innerHTML='<div class="no-result">Tidak ditemukan</div>';return;}
-          list.forEach(name=>{
-            const d=document.createElement("div");
-            d.className="food-item"; d.textContent=name;
-            d.onclick=()=>{container.querySelectorAll(".food-item").forEach(e=>e.classList.remove("selected")); d.classList.add("selected"); if(isMain) selM=name; else selS=name; nb.disabled=!(selM&&selS);};
+        const render = (arr, f, container, isMain) => {
+          container.innerHTML = "";
+          const list = arr.filter(x => x.toLowerCase().includes(f.toLowerCase()));
+          if (!list.length) return container.innerHTML = '<div class="no-result">Tidak ditemukan</div>';
+          list.forEach(n => {
+            const d = document.createElement("div");
+            d.className = "food-item"; d.textContent = n;
+            d.onclick = () => {
+              container.querySelectorAll(".food-item").forEach(e => e.classList.remove("selected"));
+              d.classList.add("selected");
+              isMain ? m = n : s = n;
+              nb.disabled = !(m && s);
+            };
             container.appendChild(d);
           });
         };
 
-        sm.oninput=()=>{selM="";nb.disabled=true;cm.style.display="none";render(mains,sm.value,lm,true);};
-        ss.oninput=()=>{selS="";nb.disabled=true;render(sides,ss.value,ls,false);};
-        om.onclick=()=>{sm.style.display="none";lm.style.display="none";om.style.display="none";cm.style.display="block";};
-        dm.onclick=()=>{const v=im.value.trim();if(!v)return alert("Tulis nama makanan…"); selM=v; cm.style.display="none"; sm.style.display="block"; om.style.display="block"; lm.style.display="grid"; nb.disabled=!(selM&&selS);};
+        sm.oninput = () => { m=""; nb.disabled=true; cm.style.display="none"; render(mains, sm.value, lm, true); };
+        ss.oninput = () => { s=""; nb.disabled=true; render(sides, ss.value, ls, false); };
+        om.onclick = () => { sm.style.display="none"; lm.style.display="none"; om.style.display="none"; cm.style.display="block"; };
+        dm.onclick = () => {
+          const v = im.value.trim();
+          if (!v) return alert("Tulis makanan…");
+          m = v; cm.style.display="none"; sm.style.display="block"; om.style.display="block"; lm.style.display="grid"; nb.disabled = !(m && s);
+        };
 
-        render(mains,"",lm,true); render(sides,"",ls,false);
-        nb.onclick=()=>{selections[k]=selM+" + "+selS; if(i<keys.length-1){show("step"+keys[i+1]);} else { $("sel-b").textContent=selections.b||""; $("sel-l").textContent=selections.l||""; $("sel-d").textContent=selections.d||""; show("step4"); }};
+        render(mains, "", lm, true); render(sides, "", ls, false);
+        nb.onclick = () => {
+          sel[k] = m + " + " + s;
+          if (i < keys.length - 1) show("step" + keys[i+1]);
+          else {
+            $("sel-b").textContent = sel.b;
+            $("sel-l").textContent = sel.l;
+            $("sel-d").textContent = sel.d;
+            show("step4");
+          }
+        };
 
         document.getElementById("meals").appendChild(sec);
       });
@@ -183,7 +222,9 @@
     // Final review
     $("final").onclick = () => {
       aiFetch(
-        "Tinjau menu:\nSarapan: "+$("sel-b").textContent+"\nSiang: "+$("sel-l").textContent+"\nMalam: "+$("sel-d").textContent,
+        "Tinjau menu:\nSarapan: "+$("sel-b").textContent+
+        "\nSiang: "+$("sel-l").textContent+
+        "\nMalam: "+$("sel-d").textContent,
         $("aiReview")
       );
       confetti();
