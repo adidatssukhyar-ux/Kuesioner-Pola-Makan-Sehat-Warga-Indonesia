@@ -1,35 +1,37 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Nutrilix</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Shrikhand font for tagline -->
+  <link href="https://fonts.googleapis.com/css2?family=Shrikhand&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js" defer></script>
   <style>
     :root {
       --primary: #35a35c;
-      --accent : #5c97f5;
-      --mid    : #f5bc51;
-      --card   : #ffffff;
-      --text   : #333333;
-      --muted  : #777777;
-      --r      : 12px;
-      --shadow : 0 4px 20px rgba(0,0,0,0.05);
-      --tr     : 0.4s ease;
+      --accent:  #5c97f5;
+      --mid:     #f5bc51;
+      --card:    #ffffff;
+      --text:    #333333;
+      --muted:   #777777;
+      --r:       12px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.05);
+      --tr:      0.4s ease;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: "Segoe UI", sans-serif;
       color: var(--text);
       padding: 20px;
-      background: linear-gradient(120deg,var(--primary),var(--accent),var(--mid));
+      background: linear-gradient(120deg, var(--primary), var(--accent), var(--mid));
       background-size: 600% 600%;
-      animation: shift 16s ease infinite;
+      animation: gradientShift 16s ease infinite;
     }
-    @keyframes shift {
-      0%  { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100%{ background-position: 0% 50%; }
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
     .container {
       max-width: 540px;
@@ -40,7 +42,7 @@
       overflow: hidden;
       transition: max-width var(--tr);
     }
-    .wide { max-width: 90%; }
+    .container.wide { max-width: 90%; }
     .logo {
       background: var(--primary);
       text-align: center;
@@ -52,8 +54,21 @@
     }
     h1 {
       text-align: center;
-      margin: 16px 0;
+      margin: 16px 0 4px;
       color: var(--primary);
+    }
+    .project {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .tagline {
+      font-family: 'Shrikhand', cursive;
+      text-align: center;
+      font-size: 1.4rem;
+      color: var(--primary);
+      margin-bottom: 16px;
     }
     section {
       display: none;
@@ -176,7 +191,9 @@
     <div class="logo">
       <img src="https://yt3.ggpht.com/a/AATXAJwRp9NDxa9WX7nh8uuO9TUCUCMqCRE5yJp4CQ=s900-c-k-c0xffffffff-no-rj-mo" alt="Logo">
     </div>
-    <h1>Pola Makan Sehat</h1>
+    <h1>Nutrilix</h1>
+    <p class="project">Karya Kelompok 1 Proyek 1</p>
+    <p class="tagline">Hidup sehat itu penting!</p>
 
     <!-- STEP 1: Survey -->
     <section id="step1" class="active">
@@ -186,62 +203,57 @@
       <button id="next1" class="btn">Next</button>
     </section>
 
-    <!-- STEP 2: Survey Review -->
+    <!-- STEP 2: Review Survey Answers -->
     <section id="step2">
       <div class="step-title">Review Jawaban</div>
       <div id="aiOverview">Memuat…</div>
       <button id="next2" class="btn">Lanjut Pilih Menu</button>
     </section>
 
-    <!-- STEP 3A: Breakfast -->
-    <section id="step3b">
+    <!-- STEP 3: Meal Selection -->
+    <!-- Breakfast -->
+    <section id="step-b" class="meal-step">
       <div class="step-title">Sarapan: Pilih Main & Side</div>
-      <input id="search-b-main" class="search-input" placeholder="Cari main…" />
+      <input id="search-b-main" class="search-input" placeholder="Cari main…">
       <div id="list-b-main" class="food-list"></div>
       <button id="other-b-main" class="btn">Lainnya</button>
       <div id="custom-b-main" style="display:none">
         <textarea id="input-b-main" rows="2" placeholder="Tulis makanan lain…"></textarea>
         <button id="done-b-main" class="btn">Selesai</button>
       </div>
-
-      <input id="search-b-side" class="search-input" placeholder="Cari side…" />
+      <input id="search-b-side" class="search-input" placeholder="Cari side…">
       <div id="list-b-side" class="food-list"></div>
-
-      <button id="next3b" class="btn" disabled>Next: Siang</button>
+      <button id="next-b" class="btn" disabled>Next: Siang</button>
     </section>
 
-    <!-- STEP 3B: Lunch -->
-    <section id="step3l">
+    <!-- Lunch -->
+    <section id="step-l" class="meal-step">
       <div class="step-title">Makan Siang: Pilih Main & Side</div>
-      <input id="search-l-main" class="search-input" placeholder="Cari main…" />
+      <input id="search-l-main" class="search-input" placeholder="Cari main…">
       <div id="list-l-main" class="food-list"></div>
       <button id="other-l-main" class="btn">Lainnya</button>
       <div id="custom-l-main" style="display:none">
         <textarea id="input-l-main" rows="2" placeholder="Tulis makanan lain…"></textarea>
         <button id="done-l-main" class="btn">Selesai</button>
       </div>
-
-      <input id="search-l-side" class="search-input" placeholder="Cari side…" />
+      <input id="search-l-side" class="search-input" placeholder="Cari side…">
       <div id="list-l-side" class="food-list"></div>
-
-      <button id="next3l" class="btn" disabled>Next: Malam</button>
+      <button id="next-l" class="btn" disabled>Next: Malam</button>
     </section>
 
-    <!-- STEP 3C: Dinner -->
-    <section id="step3d">
+    <!-- Dinner -->
+    <section id="step-d" class="meal-step">
       <div class="step-title">Makan Malam: Pilih Main & Side</div>
-      <input id="search-d-main" class="search-input" placeholder="Cari main…" />
+      <input id="search-d-main" class="search-input" placeholder="Cari main…">
       <div id="list-d-main" class="food-list"></div>
       <button id="other-d-main" class="btn">Lainnya</button>
       <div id="custom-d-main" style="display:none">
         <textarea id="input-d-main" rows="2" placeholder="Tulis makanan lain…"></textarea>
         <button id="done-d-main" class="btn">Selesai</button>
       </div>
-
-      <input id="search-d-side" class="search-input" placeholder="Cari side…" />
+      <input id="search-d-side" class="search-input" placeholder="Cari side…">
       <div id="list-d-side" class="food-list"></div>
-
-      <button id="next3d" class="btn" disabled>Lanjut: Ringkasan</button>
+      <button id="next-d" class="btn" disabled>Lanjut: Ringkasan</button>
     </section>
 
     <!-- STEP 4: Summary & Final Review -->
@@ -262,219 +274,210 @@
   </div>
 
   <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const qs = [
-      "1. Menurut kamu junk food sehat atau tidak?",
-      "2. Seberapa sering kamu makan junk food?",
-      "3. Berapa kali makan sehari?",
-      "4. Sering minum soda/minuman berwarna?",
-      "5. Sering makan sayur?",
-      "6. Sebutkan makanan bergizi & tidak bergizi",
-      "7. Pentingkah makanan bergizi?",
-      "8. Sayur & buah termasuk bergizi?",
-      "9. Hari ini sudah sarapan?",
-      "10. Kenapa banyak suka gorengan?"
-    ];
-    const mains = [
-      "Nasi Goreng","Soto Ayam","Rendang","Bakso","Mie Goreng","Pecel Lele",
-      "Ayam Goreng","Pempek","Gado Gado","Ketoprak","Lontong Sayur",
-      "Soto Betawi","Martabak Telor","Martabak Manis","Bubur Ayam",
-      "Nasi Padang","Nasi Uduk","Es Campur","Scrambled Eggs",
-      "Pancakes","Grilled Chicken","Caesar Salad","Spaghetti Bolognese",
-      "Beef Steak","Chicken Sandwich","Shawarma","Falafel","Biryani",
-      "Roti Canai","Chicken Tikka","Lamb Kofta","Tabbouleh","Samosa"
-    ];
-    const sides = [
-      "Nasi Putih","Kentang Goreng","Mashed Potatoes","Sayur Bening",
-      "Sambal","Kerupuk","Tempe Goreng","Tahu Goreng","Salad Buah",
-      "Urap Sayur","Kentang Rebus","Kentang Panggang","Oatmeal",
-      "Roti Tawar","Polenta","Quinoa","Kuskus","Jagung Rebus",
-      "Tumis Brokoli","Hasselback Potato"
-    ];
+    document.addEventListener("DOMContentLoaded", () => {
+      // survey questions
+      const qs = [
+        "1. Menurut kamu junk food sehat atau tidak?",
+        "2. Seberapa sering kamu makan junk food?",
+        "3. Berapa kali makan sehari?",
+        "4. Sering minum soda/minuman berwarna?",
+        "5. Sering makan sayur?",
+        "6. Sebutkan makanan bergizi & tidak bergizi",
+        "7. Pentingkah makanan bergizi?",
+        "8. Sayur & buah termasuk bergizi?",
+        "9. Apakah kamu hari ini sudah sarapan?",
+        "10. Mengapa suka gorengan?"
+      ];
 
-    const R = id => document.getElementById(id);
-    let idx = 0, answers = [];
-    let selMain = {}, selSide = {};
+      // food lists
+      const mains = [
+        "Nasi Goreng","Soto Ayam","Rendang","Bakso","Mie Goreng","Pecel Lele",
+        "Ayam Goreng","Pempek","Gado Gado","Ketoprak","Lontong Sayur","Soto Betawi",
+        "Martabak Telor","Martabak Manis","Bubur Ayam","Nasi Padang","Nasi Uduk","Es Campur",
+        "Scrambled Eggs","Pancakes","Grilled Chicken","Caesar Salad","Spaghetti Bolognese",
+        "Beef Steak","Chicken Sandwich","Shawarma","Falafel","Biryani","Roti Canai",
+        "Chicken Tikka","Lamb Kofta","Tabbouleh","Samosa"
+      ];
+      const sides = [
+        "Nasi Putih","Kentang Goreng","Mashed Potatoes","Sayur Bening",
+        "Sambal","Kerupuk","Tempe Goreng","Tahu Goreng","Salad Buah","Urap Sayur",
+        "Kentang Rebus","Kentang Panggang","Oatmeal","Roti Tawar","Polenta",
+        "Quinoa","Kuskus","Jagung Rebus","Tumis Brokoli","Hasselback Potato"
+      ];
 
-    // step refs
-    const st1 = R("step1"), st2 = R("step2"),
-          st3b = R("step3b"), st3l = R("step3l"),
-          st3d = R("step3d"), st4 = R("step4"),
-          spin = R("spinner");
-
-    const qEl = R("q1"), aEl = R("a1"), btn1 = R("next1"),
-          aiO = R("aiOverview"), btn2 = R("next2"),
-          finalBtn = R("final"), aiR = R("aiReview"),
-          outB = R("sel-b"), outL = R("sel-l"), outD = R("sel-d");
-
-    function show(...secs) {
-      [st1,st2,st3b,st3l,st3d,st4].forEach(s => s.classList.remove("active"));
-      secs.forEach(s => s.classList.add("active"));
-    }
-    function renderQ(i) {
-      qEl.textContent = qs[i];
-      aEl.value = "";
-      btn1.textContent = i < qs.length -1 ? "Next" : "Submit";
-    }
-    renderQ(idx);
-
-    // survey step
-    btn1.onclick = async () => {
-      const v = aEl.value.trim();
-      if (!v) return alert("Isi jawaban.");
-      answers[idx] = v;
-      if (idx < qs.length -1) {
-        idx++; renderQ(idx);
-      } else {
-        show(st2);
-        spin.classList.add("active");
-        const prompt = 
-          `Tinjau jawaban survey:\n` +
-          qs.map((q,i) => `${q} ${answers[i]}`).join("\n");
+      // helper
+      const $ = id => document.getElementById(id);
+      const show = id => {
+        document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+        $(id).classList.add("active");
+      };
+      const fetchAI = async (prompt, outEl) => {
+        $("spinner").classList.add("active");
         const res = await fetch(
           "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
           {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({
-              contents:[{ parts:[{ text: prompt }] }]
-            })
+            method: "POST",
+            headers: { "Content-Type":"application/json" },
+            body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
           }
         );
-        const j = await res.json();
-        let t = j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
-        aiO.innerHTML = t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
-        spin.classList.remove("active");
-      }
-    };
+        const json = await res.json();
+        let text = json.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
+        outEl.innerHTML = text.replace(/\*\*/g,"").replace(/\n/g,"<br>");
+        $("spinner").classList.remove("active");
+      };
 
-    // to menu selection
-    btn2.onclick = () => {
-      R("main").classList.add("wide");
-      initMeal("b", st3b, R("search-b-main"), R("list-b-main"), R("other-b-main"),
-               R("custom-b-main"), R("input-b-main"), R("done-b-main"),
-               R("search-b-side"), R("list-b-side"), R("next3b"));
-      initMeal("l", st3l, R("search-l-main"), R("list-l-main"), R("other-l-main"),
-               R("custom-l-main"), R("input-l-main"), R("done-l-main"),
-               R("search-l-side"), R("list-l-side"), R("next3l"));
-      initMeal("d", st3d, R("search-d-main"), R("list-d-main"), R("other-d-main"),
-               R("custom-d-main"), R("input-d-main"), R("done-d-main"),
-               R("search-d-side"), R("list-d-side"), R("next3d"));
-      show(st3b);
-    };
-
-    function initMeal(type, section, searchM, listM, otherBtn, customDiv,
-                      inputCustom, doneCustom, searchS, listS, nextBtn) {
-      selMain[type] = null;
-      selSide[type] = null;
-      // render list helper
-      const renderList = (source, filter, container, isMain) => {
-        container.innerHTML = "";
-        const filtered = source.filter(item =>
-          item.toLowerCase().includes(filter.toLowerCase()));
-        if (!filtered.length) {
-          const no = document.createElement("div");
-          no.className = "no-result";
-          no.textContent = "Makanan Tidak Ditemukan";
-          container.append(no);
-          return;
+      // survey logic
+      let idx = 0, answers = [];
+      $("q1").textContent = qs[0];
+      $("next1").onclick = () => {
+        const val = $("a1").value.trim();
+        if (!val) return alert("Isi jawaban.");
+        answers[idx] = val;
+        if (idx < qs.length - 1) {
+          idx++;
+          $("q1").textContent = qs[idx];
+          $("a1").value = "";
+          $("next1").textContent = idx < qs.length - 1 ? "Next" : "Submit";
+        } else {
+          show("step2");
+          fetchAI(
+            "Tinjau jawaban survey:\n" +
+            qs.map((q,i) => q + " " + answers[i]).join("\n"),
+            $("aiOverview")
+          );
         }
-        filtered.forEach(name => {
-          const d = document.createElement("div");
-          d.className = "food-item";
-          d.textContent = name;
-          d.onclick = () => {
-            container.querySelectorAll(".food-item")
-                     .forEach(e=>e.classList.remove("selected"));
-            d.classList.add("selected");
-            if (isMain) selMain[type] = name;
-            else selSide[type] = name;
-            nextBtn.disabled = !(selMain[type] && selSide[type]);
-          };
-          container.append(d);
+      };
+
+      // after survey review → meals
+      $("next2").onclick = () => {
+        $("main").classList.add("wide");
+        ["b","l","d"].forEach(meal => initMeal(meal));
+        show("step-b");
+      };
+
+      // meal selection setup
+      function initMeal(meal) {
+        let mSel = null, sSel = null;
+        const searchM = $(`search-${meal}-main`),
+              listM   = $(`list-${meal}-main`),
+              otherM  = $(`other-${meal}-main`),
+              customM = $(`custom-${meal}-main`),
+              inputM  = $(`input-${meal}-main`),
+              doneM   = $(`done-${meal}-main`),
+              searchS = $(`search-${meal}-side`),
+              listS   = $(`list-${meal}-side`),
+              nextBtn = $(`next-${meal}`);
+
+              // — inside your existing <script> after initMeal(meal) signature —
+
+      function initMeal(meal) {
+        let mSel = null, sSel = null;
+        const searchM = $(`search-${meal}-main`),
+              listM   = $(`list-${meal}-main`),
+              otherM  = $(`other-${meal}-main`),
+              customM = $(`custom-${meal}-main`),
+              inputM  = $(`input-${meal}-main`),
+              doneM   = $(`done-${meal}-main`),
+              searchS = $(`search-${meal}-side`),
+              listS   = $(`list-${meal}-side`),
+              nextBtn = $(`next-${meal}`);
+
+        // helper to render items
+        function renderList(arr, filter, container, isMain) {
+          container.innerHTML = "";
+          const items = arr.filter(i =>
+            i.toLowerCase().includes(filter.toLowerCase())
+          );
+          if (!items.length) {
+            container.innerHTML = '<div class="no-result">Makanan Tidak Ditemukan</div>';
+            return;
+          }
+          items.forEach(name => {
+            const d = document.createElement("div");
+            d.className = "food-item";
+            d.textContent = name;
+            d.onclick = () => {
+              container.querySelectorAll(".food-item").forEach(e => e.classList.remove("selected"));
+              d.classList.add("selected");
+              if (isMain) mSel = name;
+              else          sSel = name;
+              nextBtn.disabled = !(mSel && sSel);
+            };
+            container.appendChild(d);
+          });
+        }
+
+        // main search
+        searchM.addEventListener("input", () => {
+          mSel = null;
+          nextBtn.disabled = true;
+          customM.style.display = "none";
+          listM.style.display = "grid";
+          renderList(mains, searchM.value, listM, true);
         });
-      };
 
-      // main search
-      searchM.addEventListener("input", () => {
-        selMain[type] = null;
-        nextBtn.disabled = true;
-        customDiv.style.display = "none";
-        listM.style.display = "grid";
-        renderList(mains, searchM.value, listM, true);
-      });
+        // side search
+        searchS.addEventListener("input", () => {
+          sSel = null;
+          nextBtn.disabled = true;
+          renderList(sides, searchS.value, listS, false);
+        });
 
-      // side search
-      searchS.addEventListener("input", () => {
-        selSide[type] = null;
-        nextBtn.disabled = true;
-        renderList(sides, searchS.value, listS, false);
-      });
+        // “Lainnya” button for main
+        otherM.onclick = () => {
+          searchM.style.display = "none";
+          listM.style.display   = "none";
+          otherM.style.display  = "none";
+          customM.style.display = "block";
+        };
 
-      // "Lainnya" button
-      otherBtn.onclick = () => {
-        listM.style.display = "none";
-        searchM.style.display = "none";
-        otherBtn.style.display = "none";
-        customDiv.style.display = "block";
-      };
+        // done custom main
+        doneM.onclick = () => {
+          const v = inputM.value.trim();
+          if (!v) return alert("Tulis nama makanan.");
+          mSel = v;
+          customM.style.display = "none";
+          searchM.style.display = "block";
+          otherM.style.display  = "block";
+          listM.style.display   = "grid";
+          renderList(mains, "", listM, true);
+          nextBtn.disabled = !(mSel && sSel);
+        };
 
-      // done custom main
-      doneCustom.onclick = () => {
-        const v = inputCustom.value.trim();
-        if (!v) return alert("Tulis nama makanan.");
-        selMain[type] = v;
-        customDiv.style.display = "none";
-        listM.style.display = "grid";
-        searchM.style.display = "block";
-        otherBtn.style.display = "block";
+        // initial render
         renderList(mains, "", listM, true);
-        nextBtn.disabled = !(selMain[type] && selSide[type]);
+        renderList(sides, "", listS, false);
+        nextBtn.disabled = true;
+
+        // navigation on Next
+        nextBtn.onclick = () => {
+          if (meal === "b") {
+            show("step-l");
+          } else if (meal === "l") {
+            show("step-d");
+          } else {
+            // fill summary
+            $("sel-b").textContent = `${mSel} + ${sSel}`;
+            $("sel-l").textContent = `${mSel = selMain.l, sSel = selSide.l, mSel} + ${sSel}`;
+            $("sel-d").textContent = `${mSel = selMain.d, sSel = selSide.d, mSel} + ${sSel}`;
+            show("step4");
+          }
+        };
+      }
+
+      // final review
+      $("final").onclick = () => {
+        const prompt =
+          `Tinjau menu harian saya:\n` +
+          `Sarapan: ${$("sel-b").textContent}\n` +
+          `Makan siang: ${$("sel-l").textContent}\n` +
+          `Makan malam: ${$("sel-d").textContent}\n` +
+          `Hitung total kalori dan saran agar sesuai 2000–2500 kkal.`;
+        fetchAI(prompt, $("aiReview"));
       };
 
-      // initial render
-      renderList(mains, "", listM, true);
-      renderList(sides, "", listS, false);
-      nextBtn.disabled = true;
-
-      // navigation
-      nextBtn.onclick = () => {
-        if (type === "b") show(st3l);
-        if (type === "l") show(st3d);
-        if (type === "d") {
-          show(st4);
-          outB.textContent = `${selMain.b} + ${selSide.b}`;
-          outL.textContent = `${selMain.l} + ${selSide.l}`;
-          outD.textContent = `${selMain.d} + ${selSide.d}`;
-        }
-      };
-    }
-
-    // final AI menu review
-    finalBtn.onclick = async () => {
-      show(st4);
-      spin.classList.add("active");
-      const prompt =
-        `Tinjau menu harian saya:\n` +
-        `Sarapan: ${selMain.b} + ${selSide.b}\n` +
-        `Makan siang: ${selMain.l} + ${selSide.l}\n` +
-        `Makan malam: ${selMain.d} + ${selSide.d}\n` +
-        `Berikan total perkiraan kalori dan saran agar sesuai 2000–2500 kkal.`;
-      const res = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyDIVFI3M-283v1Ume5ivh3iHnByP_RAxh0",
-        {
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
-        }
-      );
-      const j = await res.json();
-      let t = j.candidates?.[0]?.content?.parts?.[0]?.text || "Gagal.";
-      aiR.innerHTML = t.replace(/\*\*/g,"").replace(/\n/g,"<br>");
-      spin.classList.remove("active");
-    };
-
-  });
+    });  // end DOMContentLoaded
   </script>
 </body>
 </html>
